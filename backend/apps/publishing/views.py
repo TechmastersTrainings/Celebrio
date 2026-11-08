@@ -157,6 +157,7 @@ class AdminPublishAuthorizeView(views.APIView):
                 'order_reference': order.order_reference,
                 'slug': custom_slug,
                 'published_url': f"/invite/{custom_slug}",
+                'live_url': live_url,
                 'full_live_url': live_url,
                 'expires_at': expires_at.isoformat(),
                 'ticket_status': ticket.status,

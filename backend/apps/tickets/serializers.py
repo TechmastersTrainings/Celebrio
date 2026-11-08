@@ -66,6 +66,7 @@ class DesignVersionSummarySerializer(serializers.ModelSerializer):
         return obj.revisions.count()
 
 class TicketListSerializer(serializers.ModelSerializer):
+    order_reference = serializers.CharField(source='order.order_reference', read_only=True)
     customer_name = serializers.CharField(source='order.customer_name', read_only=True)
     occasion_name = serializers.CharField(source='order.occasion.display_name', read_only=True)
     package_name = serializers.CharField(source='order.package.name', read_only=True)
@@ -77,6 +78,7 @@ class TicketListSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'ticket_number',
+            'order_reference',
             'status',
             'priority',
             'customer_name',

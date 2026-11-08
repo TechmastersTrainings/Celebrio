@@ -28,6 +28,8 @@ class OrderCreateView(views.APIView):
             'data': {
                 'order_reference': order.order_reference,
                 'status': order.status,
+                'ticket_id': str(order.ticket.id),
+                'ticket_status': order.ticket.status,
                 'customer_facing_status': order.ticket.customer_facing_status,
                 'total_amount_inr': str(order.total_amount_inr),
                 'message': f"Order created successfully! Your unique reference is {order.order_reference}."

@@ -44,6 +44,7 @@ class WorkspaceClaimFIFOTicketView(views.APIView):
         return Response({
             'success': True,
             'data': {
+                'id': str(ticket.id),
                 'ticket_id': str(ticket.id),
                 'ticket_number': ticket.ticket_number,
                 'status': ticket.status,
@@ -120,6 +121,8 @@ class WorkspaceUploadDesignView(views.APIView):
         return Response({
             'success': True,
             'data': {
+                'id': str(design.id),
+                'version_number': design.version_number,
                 'design_version': design.version_number,
                 'preview_token': design.preview_token,
                 'preview_url': f"/preview/{design.preview_token}",
