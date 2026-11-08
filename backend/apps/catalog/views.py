@@ -1,10 +1,37 @@
+import os
+import sys
+from pathlib import Path
+
+# Ensure backend directory is in sys.path and Django settings are configured
+# when accessed directly from terminal or external scripts
+backend_dir = str(Path(__file__).resolve().parent.parent.parent)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+if not os.getenv('DJANGO_SETTINGS_MODULE'):
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'celebrio.settings')
+    try:
+        import django
+        django.setup()
+    except Exception:
+        pass
+
 from rest_framework import generics, status, views
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .models import Occasion, Package, Addon, Template
-from .serializers import OccasionSerializer, PackageSerializer, AddonSerializer, TemplateSerializer
-from apps.accounts.permissions import IsAdminUserRole
-from apps.audit.services import log_activity
+try:
+    from .models import Occasion, Package, Addon, Template
+    from .serializers import OccasionSerializer, PackageSerializer, AddonSerializer, TemplateSerializer
+except (ImportError, ValueError):
+    from apps.catalog.models import Occasion, Package, Addon, Template
+    from apps.catalog.serializers import OccasionSerializer, PackageSerializer, AddonSerializer, TemplateSerializer
+
+try:
+    from apps.accounts.permissions import IsAdminUserRole
+    from apps.audit.services import log_activity
+except (ImportError, ValueError):
+    from ..accounts.permissions import IsAdminUserRole
+    from ..audit.services import log_activity
 
 class OccasionListView(generics.ListAPIView):
     permission_classes = [AllowAny]
