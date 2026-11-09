@@ -110,6 +110,8 @@ export interface OrderDetail {
 export interface TicketSummary {
   id: string;
   ticket_number: string;
+  order_reference?: string;
+  occasion?: string;
   status: string;
   priority: string;
   customer_name: string;
@@ -139,6 +141,11 @@ export interface DesignVersionSummary {
 export interface TicketDetail {
   id: string;
   ticket_number: string;
+  order_reference?: string;
+  customer_name?: string;
+  occasion?: string;
+  customer_requirements?: string;
+  events?: any[];
   status: string;
   priority: string;
   assigned_developer?: string;
@@ -177,6 +184,7 @@ export interface TicketDetail {
 
 export interface AdminMetrics {
   total_orders: number;
+  new_unassigned?: number;
   unassigned_fifo_queue: number;
   assigned_tickets: number;
   work_in_progress: number;
@@ -195,6 +203,7 @@ export interface AdminMetrics {
 export interface CentralActivityLogItem {
   id: number;
   actor_name: string;
+  actor_email?: string;
   actor_role: string;
   action: string;
   module: string;

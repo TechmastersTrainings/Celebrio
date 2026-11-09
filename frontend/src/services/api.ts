@@ -112,6 +112,10 @@ export class ApiService {
     });
   }
 
+  static async requestCustomerOTP(phoneNumber: string, orderReference?: string) {
+    return this.sendCustomerOTP(phoneNumber, orderReference);
+  }
+
   static async verifyCustomerOTP(challengeId: string, otp: string) {
     const data: any = await this.request('/auth/customer/otp/verify/', {
       method: 'POST',
@@ -251,6 +255,13 @@ export class ApiService {
         status: 'captured',
       }),
     });
+  }
+
+  static async initiateMockPayment(orderReference: string, amount?: string) {
+    const orderData: any = await this.createPaymentOrder(orderReference);
+    const gatewayOrderId = orderData?.gateway_order_id || `MOCK_GW_${Date.now()}`;
+    const gatewayPaymentId = `PAY_${Date.now()}`;
+    return this.verifyPaymentWebhook(gatewayOrderId, gatewayPaymentId);
   }
 
   // --- Publishing & Neutral Invitations ---

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/customer/HomePage';
+import { DesignsPage } from './pages/customer/DesignsPage';
 import { CatalogPage } from './pages/customer/CatalogPage';
 import { OrderWizardPage } from './pages/customer/OrderWizardPage';
 import { OrderTrackingPage } from './pages/customer/OrderTrackingPage';
@@ -80,6 +81,17 @@ export const App: React.FC = () => {
         {currentView === 'home' && (
           <HomePage
             onSelectOccasion={(occId, pkgId) => {
+              setSelectedOccasionId(occId);
+              if (pkgId) setSelectedPackageId(pkgId);
+              setCurrentView('wizard');
+            }}
+            onNavigate={handleNavigate}
+          />
+        )}
+
+        {currentView === 'designs' && (
+          <DesignsPage
+            onSelectDesign={(occId, pkgId) => {
               setSelectedOccasionId(occId);
               if (pkgId) setSelectedPackageId(pkgId);
               setCurrentView('wizard');
@@ -181,7 +193,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      <Footer />
+      <Footer onNavigate={handleNavigate} />
     </div>
   );
 };

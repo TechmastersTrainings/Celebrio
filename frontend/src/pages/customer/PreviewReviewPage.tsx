@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ApiService } from '../../services/api';
+import { ArrowLeft, CheckCircle2, Edit3, ShieldAlert, Sparkles, MapPin, Calendar, Clock } from 'lucide-react';
 
 interface PreviewReviewPageProps {
   previewToken: string;
@@ -35,37 +36,53 @@ export const PreviewReviewPage: React.FC<PreviewReviewPageProps> = ({
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-        <div style={{ fontSize: '2rem' }}>✨</div>
-        <p style={{ color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>Loading draft preview...</p>
+      <div style={{ textAlign: 'center', padding: '6rem 0' }}>
+        <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✨</div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Rendering protected draft preview...</p>
       </div>
     );
   }
 
   if (error || !previewData) {
     return (
-      <div className="card" style={{ maxWidth: '600px', margin: '2rem auto', textAlign: 'center' }}>
-        <h3 style={{ color: 'var(--color-danger)' }}>Preview Unavailable</h3>
-        <p style={{ color: 'var(--color-text-muted)', margin: '1rem 0' }}>{error || 'Invalid or expired preview token.'}</p>
-        <button className="btn btn-outline" onClick={onBack}>← Back to Tracker</button>
+      <div className="card" style={{ maxWidth: '600px', margin: '4rem auto', textAlign: 'center', padding: '3rem' }}>
+        <h3 style={{ color: 'var(--color-danger)', marginBottom: '0.75rem' }}>Preview Unavailable</h3>
+        <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>{error || 'Invalid or expired preview token.'}</p>
+        <button className="btn btn-outline" onClick={onBack}>
+          &larr; Back to Order Tracker
+        </button>
       </div>
     );
   }
 
   const theme = previewData.theme || {};
-  const primaryColor = theme.theme_color || '#7C182A';
-  const accentColor = theme.accent_color || '#CFA043';
+  const primaryColor = theme.theme_color || 'var(--burgundy-rich)';
+  const accentColor = theme.accent_color || 'var(--gold-primary)';
 
   return (
-    <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '900px', margin: '3rem auto 5rem', padding: '0 1rem' }}>
       {/* Top Banner with Actions */}
-      <div style={{ background: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+      <div
+        style={{
+          background: '#FFFFFF',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '1.25rem 1.75rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '2rem',
+          boxShadow: 'var(--shadow-subtle)',
+        }}
+      >
         <div>
-          <button className="btn btn-sm btn-outline" onClick={onBack} style={{ marginBottom: '0.25rem' }}>
-            ← Back to Order
+          <button className="btn btn-sm btn-outline" onClick={onBack} style={{ marginBottom: '0.35rem' }}>
+            <ArrowLeft size={14} /> Back to Tracker
           </button>
-          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            Draft Version <strong>v{previewData.version_number}</strong> • Order: <strong>{previewData.order_reference}</strong>
+          <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)' }}>
+            Draft Version <strong>v{previewData.version_number}</strong> &bull; Order: <strong>{previewData.order_reference}</strong>
           </div>
         </div>
 
@@ -74,13 +91,15 @@ export const PreviewReviewPage: React.FC<PreviewReviewPageProps> = ({
             className="btn btn-sm btn-outline"
             onClick={() => onRequestRevision(previewData.order_reference)}
           >
-            ✏️ Request Changes
+            <Edit3 size={15} />
+            <span>Request Changes</span>
           </button>
           <button
             className="btn btn-sm btn-gold"
             onClick={() => onApprove(previewData.order_reference)}
           >
-            ✓ Approve Final Design
+            <CheckCircle2 size={15} />
+            <span>Approve Final Design</span>
           </button>
         </div>
       </div>
@@ -92,8 +111,9 @@ export const PreviewReviewPage: React.FC<PreviewReviewPageProps> = ({
           position: 'relative',
           padding: 0,
           overflow: 'hidden',
-          border: '2px solid var(--color-border)',
-          background: '#FFFDF9',
+          border: '2px solid var(--border-medium)',
+          background: 'var(--bg-ivory)',
+          boxShadow: 'var(--shadow-elevated)',
         }}
       >
         {/* Dynamic Watermark Overlay */}
@@ -104,22 +124,39 @@ export const PreviewReviewPage: React.FC<PreviewReviewPageProps> = ({
         </div>
 
         {/* Invitation Preview Canvas */}
-        <div style={{ padding: '3.5rem 2rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9rem', color: accentColor, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+        <div style={{ padding: '4.5rem 2rem', textAlign: 'center' }}>
+          <span className="editorial-kicker" style={{ color: accentColor, marginBottom: '0.75rem' }}>
             {previewData.occasion}
-          </div>
+          </span>
 
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.8rem', color: primaryColor, marginBottom: '1rem', lineHeight: 1.2 }}>
+          <h1
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: '3.2rem',
+              color: primaryColor,
+              marginBottom: '1.25rem',
+              lineHeight: 1.2,
+            }}
+          >
             {previewData.customer_name}
           </h1>
 
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '1.05rem', maxWidth: '600px', margin: '0 auto 2.5rem', lineHeight: 1.6 }}>
-            Together with our families, we cordially invite you to grace the auspicious celebration with your presence and blessings.
+          <p
+            style={{
+              color: 'var(--text-body)',
+              fontSize: '1.1rem',
+              maxWidth: '620px',
+              margin: '0 auto 3rem',
+              lineHeight: 1.75,
+              fontStyle: 'italic',
+            }}
+          >
+            "Together with our families, we cordially invite you to grace the auspicious celebration with your presence and blessings."
           </p>
 
           {/* Events Itinerary */}
-          <div style={{ maxWidth: '650px', margin: '0 auto', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', color: primaryColor, textAlign: 'center', marginBottom: '0.5rem' }}>
+          <div style={{ maxWidth: '680px', margin: '0 auto', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.35rem', color: primaryColor, textAlign: 'center', marginBottom: '0.5rem' }}>
               Ceremonial Schedule
             </h3>
 
@@ -128,32 +165,32 @@ export const PreviewReviewPage: React.FC<PreviewReviewPageProps> = ({
                 key={i}
                 style={{
                   background: '#FFFFFF',
-                  border: '1px solid #E2E8F0',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-md)',
-                  padding: '1.25rem',
-                  boxShadow: 'var(--shadow-sm)',
+                  padding: '1.5rem',
+                  boxShadow: 'var(--shadow-subtle)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h4 style={{ fontSize: '1.15rem', color: primaryColor }}>{ev.event_title}</h4>
-                  <span className="badge badge-assigned">{ev.event_date} • {ev.start_time}</span>
+                  <h4 style={{ fontSize: '1.2rem', color: primaryColor }}>{ev.event_title}</h4>
+                  <span className="badge badge-assigned">{ev.event_date} &bull; {ev.start_time}</span>
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--color-text-main)', fontWeight: 600 }}>
-                  📍 {ev.venue_name}
+                <div style={{ fontSize: '0.94rem', color: 'var(--text-heading)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={16} style={{ color: 'var(--gold-primary)' }} />
+                  <span>{ev.venue_name}</span>
                 </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginTop: '0.25rem', paddingLeft: '22px' }}>
                   {ev.venue_address}
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ marginTop: '3rem', borderTop: '1px solid #E2E8F0', paddingTop: '1.5rem', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-            This is a protected draft preview rendered on TechMasters staging storage. High-resolution print-ready cards and live neutral invitation links are generated post-payment.
+          <div style={{ marginTop: '3.5rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.75rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            This is a protected draft preview rendered on TechMasters staging storage. High-resolution 300 DPI print-ready cards and live neutral invitation links are generated post-payment.
           </div>
         </div>
       </div>
     </div>
   );
 };
-

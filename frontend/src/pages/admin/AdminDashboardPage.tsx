@@ -1,6 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
 import { AdminMetrics, TicketSummary, CentralActivityLogItem } from '../../types';
+import {
+  Sparkles,
+  RefreshCw,
+  Users,
+  ShieldCheck,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+  Layers,
+  DollarSign,
+  FileText,
+  Search,
+  ExternalLink,
+  ChevronRight,
+  UserCheck,
+  UserX,
+  Video,
+  Clock,
+  Eye,
+  Send,
+  Sliders,
+  Check
+} from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'queue' | 'developers' | 'catalog' | 'audit'>('queue');
@@ -123,152 +146,240 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  const filteredLogs = auditModule
+    ? auditLogs.filter((log) => log.module === auditModule)
+    : auditLogs;
+
   return (
-    <div>
-      {/* Admin Title */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ maxWidth: '1240px', margin: '3rem auto 5rem', padding: '0 1.5rem' }}>
+      {/* Admin Title Bar */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '2rem',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
         <div>
-          <h2 style={{ fontSize: '1.8rem', color: 'var(--color-primary-dark)' }}>
-            Operations Command Center & Governance
-          </h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
-            TechMasters Innovations Private Limited • Complete operational visibility, queue balance, and audit logs.
+          <span className="editorial-kicker">TECHMASTERS INNOVATIONS &bull; CENTRAL GOVERNANCE</span>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--navy-deep)' }}>
+            Admin Operations Command Center
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '2px' }}>
+            Bidar Operations &bull; Real-time queue supervision, developer approval, and immutable audit telemetry.
           </p>
         </div>
 
-        <button className="btn btn-sm btn-outline" onClick={loadAll}>
-          🔄 Refresh Operations
+        <button className="btn btn-outline btn-sm" onClick={loadAll}>
+          <RefreshCw size={14} /> Refresh Telemetry
         </button>
       </div>
 
       {actionMsg && (
-        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            background: '#F0FDF4',
+            border: '1px solid #BBF7D0',
+            color: '#166534',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-sm)',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <span>{actionMsg}</span>
-          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#047857', fontWeight: 'bold' }} onClick={() => setActionMsg(null)}>×</button>
+          <button
+            onClick={() => setActionMsg(null)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#166534', fontWeight: 'bold' }}
+          >
+            &times;
+          </button>
         </div>
       )}
 
       {error && (
-        <div style={{ background: '#FFF1F2', border: '1px solid #FECDD3', color: 'var(--color-danger)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem' }}>
-          {error}
+        <div
+          style={{
+            background: '#FEF2F2',
+            border: '1px solid #FECACA',
+            color: 'var(--color-danger)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: 'var(--radius-sm)',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <AlertCircle size={16} />
+          <span>{error}</span>
         </div>
       )}
 
-      {/* KPI Metrics Strip */}
+      {/* KPI Metrics Dashboard Cards */}
       {metrics && (
-        <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1rem' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Enquiries & Orders</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary)' }}>{metrics.total_orders}</div>
+        <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2.5rem' }}>
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+              Total Orders
+            </span>
+            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              {metrics.total_orders}
+            </div>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              {metrics.unassigned_fifo_queue} Unassigned &bull; {metrics.work_in_progress} In Progress
+            </span>
           </div>
 
-          <div className="card" style={{ padding: '1rem', background: '#FFFBEB', borderColor: '#FDE68A' }}>
-            <div style={{ fontSize: '0.8rem', color: '#92400E', textTransform: 'uppercase' }}>Unassigned FIFO Queue</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#B45309' }}>{metrics.unassigned_fifo_queue}</div>
+          <div className="card" style={{ padding: '1.5rem', background: 'var(--bg-cream)', borderTop: '3px solid var(--gold-primary)' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
+              Unassigned FIFO Queue
+            </span>
+            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              {metrics.unassigned_fifo_queue}
+            </div>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Available for developer self-claim
+            </span>
           </div>
 
-          <div className="card" style={{ padding: '1rem' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Ready for Publishing</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-info)' }}>{metrics.payment_done}</div>
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+              Ready for Publication
+            </span>
+            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              {metrics.payment_done}
+            </div>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Payment completed; requires Admin authorization
+            </span>
           </div>
 
-          <div className="card" style={{ padding: '1rem', background: '#F0FDF4', borderColor: '#BBF7D0' }}>
-            <div style={{ fontSize: '0.8rem', color: '#166534', textTransform: 'uppercase' }}>Verified Revenue</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#15803D' }}>₹{parseFloat(metrics.total_revenue_inr).toFixed(0)}</div>
+          <div className="card" style={{ padding: '1.5rem', background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
+            <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
+              Verified Revenue
+            </span>
+            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: '#15803D', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              ₹{parseFloat(metrics.total_revenue_inr).toFixed(0)}
+            </div>
+            <span style={{ fontSize: '0.78rem', color: '#166534', marginTop: '4px', display: 'block' }}>
+              {metrics.active_developers} Active Developers on duty
+            </span>
           </div>
         </div>
       )}
 
-      {/* Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--color-border)', marginBottom: '1.5rem' }}>
+      {/* Admin Module Navigation Tabs */}
+      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
         <button
-          className={`btn ${activeTab === 'queue' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' }}
+          className={`btn btn-sm ${activeTab === 'queue' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('queue')}
         >
-          Queue & Ticket Dispatch ({tickets.length})
+          Queue &amp; Ticket Operations ({tickets.length})
         </button>
 
         <button
-          className={`btn ${activeTab === 'developers' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' }}
+          className={`btn btn-sm ${activeTab === 'developers' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('developers')}
         >
-          Developer Governance ({developers.length})
+          Developer Governance &amp; Approvals ({developers.length})
         </button>
 
         <button
-          className={`btn ${activeTab === 'catalog' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' }}
+          className={`btn btn-sm ${activeTab === 'catalog' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('catalog')}
         >
-          Dynamic Pricing Configurator
+          Catalog &amp; Dynamic Pricing
         </button>
 
         <button
-          className={`btn ${activeTab === 'audit' ? 'btn-gold' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, borderBottom: 'none' }}
+          className={`btn btn-sm ${activeTab === 'audit' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('audit')}
         >
-          Immutable Central Audit ({auditLogs.length})
+          Central Immutable Audit Trail ({auditLogs.length})
         </button>
       </div>
 
-      {/* TAB 1: Queue & Ticket Management */}
+      {/* =========================================================================
+          TAB 1: QUEUE & TICKET OPERATIONS
+          ========================================================================= */}
       {activeTab === 'queue' && (
-        <div className="card">
-          <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', marginBottom: '1.25rem' }}>
-            All Active ServiceNow-Style Tickets
-          </h3>
-
+        <div>
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Ticket Ref</th>
-                  <th>Customer</th>
+                  <th>Ticket / Order Ref</th>
                   <th>Occasion</th>
-                  <th>Package</th>
-                  <th>Assigned Dev</th>
+                  <th>Customer</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>Assigned Artisan</th>
+                  <th>Actions &amp; Authorization</th>
                 </tr>
               </thead>
               <tbody>
                 {tickets.map((t) => (
                   <tr key={t.id}>
-                    <td><strong>{t.ticket_number}</strong></td>
-                    <td>{t.customer_name}</td>
-                    <td>{t.occasion_name}</td>
-                    <td>{t.package_name}</td>
-                    <td>{t.assigned_developer_name || <span style={{ color: 'var(--color-text-muted)' }}>Unassigned (Queue)</span>}</td>
-                    <td><span className="badge badge-wip">{t.status}</span></td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1.05rem' }}>
+                        {t.ticket_number}
+                      </strong>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.order_reference || t.ticket_number}</div>
+                    </td>
+                    <td>{t.occasion_name || t.occasion}</td>
+                    <td>{t.customer_name}</td>
+                    <td>
+                      <span className={`badge ${t.status === 'DELIVERED' ? 'badge-published' : 'badge-wip'}`}>
+                        {t.status}
+                      </span>
+                    </td>
+                    <td>
+                      {t.assigned_developer ? (
+                        <strong>{t.assigned_developer}</strong>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned (In FIFO)</span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        {/* Authorize publication if payment done */}
                         {t.status === 'PAYMENT_DONE' && (
                           <button
-                            className="btn btn-sm btn-gold"
+                            className="btn btn-gold btn-sm"
                             onClick={() => {
-                              setPublishOrderRef(t.ticket_number);
-                              setCustomSlug(`${t.customer_name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-celebration`);
+                              setPublishOrderRef(t.order_reference || t.ticket_number);
+                              setCustomSlug(t.customer_name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-celebration');
                             }}
                           >
-                            Authorize Publishing 🚀
+                            Authorize Publication
                           </button>
                         )}
 
                         <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => setReassignTicketId(t.id)}
+                          className="btn btn-outline btn-sm"
+                          onClick={() => {
+                            setReassignTicketId(t.id);
+                            const firstDev = developers.find((d) => d.is_approved);
+                            if (firstDev) setTargetDevId(firstDev.id);
+                          }}
                         >
                           Reassign
                         </button>
 
                         {t.assigned_developer && (
                           <button
-                            className="btn btn-sm btn-outline"
-                            style={{ color: 'var(--color-danger)' }}
+                            className="btn btn-outline btn-sm"
                             onClick={() => handleRelease(t.id)}
+                            title="Return ticket to available FIFO queue"
                           >
                             Release
                           </button>
@@ -283,73 +394,68 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: Developer Governance */}
+      {/* =========================================================================
+          TAB 2: DEVELOPER GOVERNANCE & APPROVALS
+          ========================================================================= */}
       {activeTab === 'developers' && (
-        <div className="card">
-          <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-            Internal Developer Roster & Approval Management
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-            Only approved developers have access to customer orders and the FIFO queue. Video production tasks require explicit permission grants.
-          </p>
-
+        <div>
           <div className="table-container">
             <table>
               <thead>
                 <tr>
                   <th>Developer Name</th>
                   <th>Email</th>
-                  <th>Role</th>
                   <th>Approval Status</th>
-                  <th>Video Specialist?</th>
-                  <th>Workload Cap</th>
-                  <th>Admin Governance Actions</th>
+                  <th>Active Tickets</th>
+                  <th>Video Production</th>
+                  <th>Administrative Controls</th>
                 </tr>
               </thead>
               <tbody>
-                {developers.map((d) => (
-                  <tr key={d.id}>
-                    <td><strong>{d.full_name}</strong></td>
-                    <td>{d.email}</td>
-                    <td><code>{d.role}</code></td>
+                {developers.map((dev) => (
+                  <tr key={dev.id}>
                     <td>
-                      <span className={`badge ${d.developer_profile?.approval_status === 'APPROVED_ACTIVE' ? 'badge-closed' : 'badge-hold'}`}>
-                        {d.developer_profile?.approval_status || 'N/A'}
+                      <strong>{dev.full_name}</strong>
+                    </td>
+                    <td>{dev.email}</td>
+                    <td>
+                      <span className={`badge ${dev.is_approved ? 'badge-published' : 'badge-awaiting'}`}>
+                        {dev.approval_status || (dev.is_approved ? 'APPROVED' : 'PENDING')}
                       </span>
                     </td>
                     <td>
-                      {d.developer_profile?.can_produce_video ? (
-                        <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✓ Yes (Video Specialist)</span>
-                      ) : (
-                        <span style={{ color: 'var(--color-text-muted)' }}>No</span>
-                      )}
+                      {dev.active_tickets_count} / {dev.max_active_tickets || 3}
                     </td>
-                    <td>{d.developer_profile?.max_active_tickets || 3} Tickets</td>
+                    <td>
+                      <span className={`badge ${dev.can_produce_video ? 'badge-published' : 'badge-closed'}`}>
+                        {dev.can_produce_video ? 'Authorized' : 'Restricted'}
+                      </span>
+                    </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                        {d.developer_profile?.approval_status !== 'APPROVED_ACTIVE' ? (
+                        {!dev.is_approved ? (
                           <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => handleDeveloperAction(d.id, 'APPROVE')}
+                            className="btn btn-primary btn-sm"
+                            onClick={() => handleDeveloperAction(dev.id, 'APPROVE')}
                           >
-                            Approve Access
+                            <UserCheck size={14} /> Approve Access
                           </button>
                         ) : (
-                          <button
-                            className="btn btn-sm btn-outline"
-                            style={{ color: 'var(--color-danger)', borderColor: '#FECDD3' }}
-                            onClick={() => handleDeveloperAction(d.id, 'SUSPEND')}
-                          >
-                            Suspend
-                          </button>
+                          <>
+                            <button
+                              className="btn btn-outline btn-sm"
+                              onClick={() => handleDeveloperAction(dev.id, 'SUSPEND')}
+                            >
+                              <UserX size={14} /> Suspend
+                            </button>
+                            <button
+                              className="btn btn-outline btn-sm"
+                              onClick={() => handleDeveloperAction(dev.id, 'TOGGLE_VIDEO', !dev.can_produce_video)}
+                            >
+                              <Video size={14} /> {dev.can_produce_video ? 'Revoke Video' : 'Grant Video'}
+                            </button>
+                          </>
                         )}
-
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => handleDeveloperAction(d.id, 'APPROVE', !d.developer_profile?.can_produce_video)}
-                        >
-                          {d.developer_profile?.can_produce_video ? 'Revoke Video' : 'Grant Video Perm'}
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -360,41 +466,61 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: Dynamic Price Configurator */}
+      {/* =========================================================================
+          TAB 3: CATALOG & DYNAMIC PRICING CONFIGURATION
+          ========================================================================= */}
       {activeTab === 'catalog' && (
-        <div className="card">
-          <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-            Dynamic Service & Package Price Governance
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-            No pricing rules are hardcoded. Modify package base prices here; changes take effect immediately for new customer orders.
-          </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '1.5rem' }}>
+            <span className="editorial-kicker">PRICING GOVERNANCE</span>
+            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>Dynamic Package Pricing</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+              Prices are never hardcoded. Changes take effect instantly in the customer order wizard with immutable audit tracking.
+            </p>
+          </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="grid grid-cols-2">
             {occasions.map((occ) => (
-              <div key={occ.id} style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.25rem' }}>
-                <h4 style={{ color: 'var(--color-primary)', marginBottom: '0.75rem' }}>{occ.display_name}</h4>
-                <div className="grid grid-cols-2" style={{ gap: '1rem' }}>
-                  {occ.packages.map((pkg: any) => (
-                    <div key={pkg.id} style={{ background: '#F8FAFC', padding: '1rem', borderRadius: 'var(--radius-sm)', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={occ.id} className="editorial-card" style={{ padding: '2rem' }}>
+                <h3 style={{ fontSize: '1.35rem', color: 'var(--navy-deep)', marginBottom: '1.25rem' }}>
+                  {occ.display_name}
+                </h3>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {occ.packages?.map((pkg: any) => (
+                    <div
+                      key={pkg.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.85rem 1rem',
+                        background: 'var(--bg-champagne)',
+                        borderRadius: 'var(--radius-sm)',
+                      }}
+                    >
                       <div>
                         <strong>{pkg.name}</strong>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{pkg.code}</div>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>
+                          Code: {pkg.code}
+                        </span>
                       </div>
+
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span>₹</span>
-                        <input
-                          type="number"
-                          className="form-control"
-                          style={{ width: '90px', padding: '4px 8px' }}
-                          defaultValue={parseFloat(pkg.base_price_inr).toFixed(0)}
-                          onBlur={(e) => {
-                            const val = parseFloat(e.target.value);
-                            if (!isNaN(val) && val >= 0) {
-                              handlePriceUpdate(pkg.id, val);
+                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--burgundy-rich)' }}>
+                          ₹{pkg.base_price_inr}
+                        </span>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => {
+                            const newP = prompt(`Enter new price in INR for ${pkg.name}:`, String(pkg.base_price_inr));
+                            if (newP && !isNaN(Number(newP))) {
+                              handlePriceUpdate(pkg.id, Number(newP));
                             }
                           }}
-                        />
+                        >
+                          Edit
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -405,38 +531,27 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: Central Immutable Audit Explorer */}
+      {/* =========================================================================
+          TAB 4: CENTRAL IMMUTABLE AUDIT TRAIL
+          ========================================================================= */}
       {activeTab === 'audit' && (
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>
-                Immutable Central Audit Ledger
-              </h3>
-              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                Guaranteed append-only audit trail capturing actor, role, module, action, and JSON state diffs.
-              </p>
+              <span className="editorial-kicker">DATABASE-LEVEL IMMUTABLE LOG</span>
+              <h3 style={{ fontSize: '1.35rem' }}>Audit Telemetry</h3>
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <select
-                className="form-control"
-                style={{ width: '180px' }}
-                value={auditModule}
-                onChange={(e) => {
-                  setAuditModule(e.target.value);
-                  ApiService.getAuditLogs(e.target.value || undefined).then((data: any) => setAuditLogs(data));
-                }}
-              >
-                <option value="">All Modules</option>
-                <option value="ORDERS">ORDERS</option>
-                <option value="TICKETS">TICKETS</option>
-                <option value="ASSIGNMENTS">ASSIGNMENTS</option>
-                <option value="DESIGNS">DESIGNS</option>
-                <option value="PAYMENTS">PAYMENTS</option>
-                <option value="PUBLISHING">PUBLISHING</option>
-                <option value="ACCOUNTS">ACCOUNTS</option>
-              </select>
+              {['', 'CATALOG', 'TICKETS', 'ASSIGNMENT', 'ACCOUNTS', 'PUBLISHING', 'PAYMENT'].map((mod) => (
+                <button
+                  key={mod}
+                  className={`btn btn-sm ${auditModule === mod ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setAuditModule(mod)}
+                >
+                  {mod || 'All Modules'}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -445,34 +560,35 @@ export const AdminDashboardPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>Timestamp</th>
-                  <th>Actor (Role)</th>
-                  <th>Action</th>
+                  <th>Actor</th>
                   <th>Module</th>
-                  <th>Target Record</th>
-                  <th>State Delta (Diff)</th>
-                  <th>Status</th>
+                  <th>Action</th>
+                  <th>Remarks &amp; State Diff</th>
                 </tr>
               </thead>
               <tbody>
-                {auditLogs.map((log) => (
+                {filteredLogs.map((log) => (
                   <tr key={log.id}>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
-                      {new Date(log.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {new Date(log.timestamp).toLocaleString()}
                     </td>
                     <td>
-                      <div><strong>{log.actor_name}</strong></div>
-                      <span className="badge badge-assigned" style={{ fontSize: '0.65rem' }}>{log.actor_role}</span>
-                    </td>
-                    <td><code>{log.action}</code></td>
-                    <td><span className="badge badge-new">{log.module}</span></td>
-                    <td style={{ fontSize: '0.8rem', fontFamily: 'monospace' }}>{log.record_id}</td>
-                    <td style={{ fontSize: '0.75rem', maxWidth: '280px', overflowX: 'auto' }}>
-                      <pre style={{ margin: 0 }}>{JSON.stringify(log.new_value, null, 1)}</pre>
+                      <strong>{log.actor_name || log.actor_email}</strong>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>{log.actor_role}</span>
                     </td>
                     <td>
-                      <span className={`badge ${log.status === 'SUCCESS' ? 'badge-closed' : 'badge-hold'}`}>
-                        {log.status}
-                      </span>
+                      <span className="badge badge-assigned">{log.module}</span>
+                    </td>
+                    <td>
+                      <strong>{log.action}</strong>
+                    </td>
+                    <td style={{ fontSize: '0.86rem', color: 'var(--text-body)' }}>
+                      {log.remarks}
+                      {log.new_value && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          Diff: <code>{JSON.stringify(log.new_value)}</code>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -482,77 +598,90 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Reassign Modal */}
-      {reassignTicketId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ maxWidth: '450px', width: '100%', padding: '1.75rem' }}>
-            <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)', marginBottom: '0.75rem' }}>
-              Manual Ticket Reassignment
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
-              Select target approved developer to reallocate this order ticket.
-            </p>
-
-            <div className="form-group">
-              <label className="form-label">Assign to Developer</label>
-              <select className="form-control" value={targetDevId} onChange={(e) => setTargetDevId(e.target.value)}>
-                <option value="">-- Choose Developer --</option>
-                {developers.filter((d) => d.developer_profile?.approval_status === 'APPROVED_ACTIVE').map((d) => (
-                  <option key={d.id} value={d.id}>{d.full_name} ({d.role})</option>
-                ))}
-              </select>
+      {/* Publishing Authorization Modal */}
+      {publishOrderRef && (
+        <div className="modal-backdrop" onClick={() => setPublishOrderRef(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-cream)' }}>
+              <span className="editorial-kicker">FINAL RELEASE GATE</span>
+              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Authorize Public Invitation Release</h3>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-              <button className="btn btn-outline" onClick={() => setReassignTicketId(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleReassign} disabled={!targetDevId || loading}>
-                Confirm Reassignment
-              </button>
+            <div style={{ padding: '1.75rem' }}>
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+                Authorizing publication for order <strong>{publishOrderRef}</strong> will generate the live public invitation URL on your neutral host and unlock print-ready 300 DPI deliverables.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label">Custom Invitation Slug</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. sachin-ananya-wedding"
+                  value={customSlug}
+                  onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Post-Event Expiration Grace Period (Days)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={graceDays}
+                  onChange={(e) => setGraceDays(parseInt(e.target.value) || 30)}
+                  min={7}
+                  max={180}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-outline btn-sm" onClick={() => setPublishOrderRef(null)}>
+                  Cancel
+                </button>
+                <button className="btn btn-gold btn-sm" onClick={handleAuthorizePublish} disabled={loading}>
+                  <Check size={14} /> Authorize &amp; Publish Live
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Publishing Authorization Modal */}
-      {publishOrderRef && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ maxWidth: '520px', width: '100%', padding: '2rem' }}>
-            <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
-              Authorize Live Celebration Publishing
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-              Confirm quality compliance and assign the neutral URL path for order <strong>{publishOrderRef}</strong>.
-            </p>
+      {/* Reassign Ticket Modal */}
+      {reassignTicketId && (
+        <div className="modal-backdrop" onClick={() => setReassignTicketId(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-cream)' }}>
+              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Reassign Ticket to Developer</h3>
+            </div>
 
-            <div className="form-group">
-              <label className="form-label">Neutral Custom Slug Path</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>neutral-domain/</span>
-                <input
-                  type="text"
+            <div style={{ padding: '1.75rem' }}>
+              <div className="form-group">
+                <label className="form-label">Select Target Artisan / Developer</label>
+                <select
                   className="form-control"
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  placeholder="e.g. rahul-sneha-wedding"
-                />
+                  value={targetDevId}
+                  onChange={(e) => setTargetDevId(e.target.value)}
+                >
+                  {developers
+                    .filter((d) => d.is_approved)
+                    .map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.full_name} ({d.active_tickets_count} active tickets)
+                      </option>
+                    ))}
+                </select>
               </div>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Post-Event Grace Period (Hosting Days)</label>
-              <input
-                type="number"
-                className="form-control"
-                value={graceDays}
-                onChange={(e) => setGraceDays(parseInt(e.target.value) || 30)}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-              <button className="btn btn-outline" onClick={() => setPublishOrderRef(null)}>Cancel</button>
-              <button className="btn btn-gold" onClick={handleAuthorizePublish} disabled={loading}>
-                Authorize & Activate Live URL 🚀
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-outline btn-sm" onClick={() => setReassignTicketId(null)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary btn-sm" onClick={handleReassign} disabled={loading}>
+                  Confirm Reassignment
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -560,4 +689,3 @@ export const AdminDashboardPage: React.FC = () => {
     </div>
   );
 };
-

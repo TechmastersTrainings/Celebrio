@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ApiService } from '../../services/api';
+import { TechMastersLogo } from '../../components/TechMastersLogo';
+import { LogIn, UserPlus, AlertCircle, CheckCircle2, ShieldCheck, Lock } from 'lucide-react';
 
 interface DeveloperAuthPageProps {
   onLoginSuccess: (user: any) => void;
@@ -30,7 +32,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
       const user = await ApiService.staffLogin(email, password);
       onLoginSuccess(user);
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please check credentials.');
     } finally {
       setLoading(false);
     }
@@ -64,27 +66,58 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
   };
 
   return (
-    <div style={{ maxWidth: '480px', margin: '3rem auto' }}>
-      <div className="card" style={{ padding: '2.5rem 2rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🛠️</div>
-          <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary-dark)' }}>
-            {isRegister ? 'Developer Account Registration' : 'Internal Staff & Developer Sign In'}
+    <div style={{ maxWidth: '500px', margin: '4rem auto 6rem', padding: '0 1rem' }}>
+      <div className="card card-gold-accent" style={{ padding: '3rem 2.5rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <TechMastersLogo variant="header" size="md" />
+          </div>
+          <span className="editorial-kicker">INTERNAL PRODUCTION OPERATIONS</span>
+          <h2 style={{ fontSize: '1.75rem', color: 'var(--navy-deep)' }}>
+            {isRegister ? 'Developer Registration' : 'Internal Staff & Developer Sign In'}
           </h2>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-            TechMasters Digital Celebrations Internal Workspace
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.35rem' }}>
+            TechMasters Innovations Production Operations Platform
           </p>
         </div>
 
         {error && (
-          <div style={{ background: '#FFF1F2', border: '1px solid #FECDD3', color: 'var(--color-danger)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
-            {error}
+          <div
+            style={{
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: 'var(--color-danger)',
+              padding: '0.75rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '1.5rem',
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>{error}</span>
           </div>
         )}
 
         {regSuccess && (
-          <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', color: '#047857', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.875rem' }}>
-            {regSuccess}
+          <div
+            style={{
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              color: '#166534',
+              padding: '0.85rem 1.25rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '1.5rem',
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <CheckCircle2 size={18} />
+            <span>{regSuccess}</span>
           </div>
         )}
 
@@ -99,6 +132,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
                   placeholder="e.g. Priya Sharma"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  required
                 />
               </div>
 
@@ -129,7 +163,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="HTML, CSS, Kannada, Video Sync"
+                  placeholder="HTML, CSS, Kannada, Video Production"
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}
                 />
@@ -138,68 +172,67 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
           )}
 
           <div className="form-group">
-            <label className="form-label">Internal Email Address *</label>
+            <label className="form-label">Corporate Email Address *</label>
             <input
               type="email"
               className="form-control"
-              placeholder="priya.dev@techmasters.internal"
+              placeholder="e.g. dev@techmastersinnovations.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password *</label>
+            <label className="form-label">Secure Password *</label>
             <input
               type="password"
               className="form-control"
-              placeholder="••••••••"
+              placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
           <button
             type="submit"
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '0.5rem' }}
+            style={{ width: '100%', marginTop: '0.75rem' }}
             disabled={loading}
           >
-            {loading ? 'Processing...' : isRegister ? 'Submit for Admin Approval' : 'Sign In to Workspace'}
+            {loading ? (
+              <span>Authenticating...</span>
+            ) : isRegister ? (
+              <>
+                <UserPlus size={16} />
+                <span>Submit Developer Application</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={16} />
+                <span>Sign In to Production Workspace</span>
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem' }}>
-          {isRegister ? (
-            <span style={{ color: 'var(--color-text-muted)' }}>
-              Already have an account?{' '}
-              <a href="#login" style={{ color: 'var(--color-primary)', fontWeight: 600 }} onClick={(e) => { e.preventDefault(); setIsRegister(false); }}>
-                Sign In
-              </a>
-            </span>
-          ) : (
-            <span style={{ color: 'var(--color-text-muted)' }}>
-              New TechMasters designer?{' '}
-              <a href="#register" style={{ color: 'var(--color-primary)', fontWeight: 600 }} onClick={(e) => { e.preventDefault(); setIsRegister(true); }}>
-                Register Account
-              </a>
-            </span>
-          )}
+        <div style={{ textAlign: 'center', marginTop: '1.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem' }}>
+          <button
+            onClick={() => { setIsRegister(!isRegister); setError(null); }}
+            style={{ background: 'none', border: 'none', color: 'var(--burgundy-rich)', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
+          >
+            {isRegister
+              ? 'Already registered? Sign in here'
+              : 'New TechMasters creative? Register developer profile'}
+          </button>
         </div>
 
-        <div style={{ marginTop: '1.75rem', borderTop: '1px solid var(--color-border)', paddingTop: '1rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-          <strong>Default Seed Accounts:</strong>
-          <ul style={{ listStyle: 'none', marginTop: '0.35rem', lineHeight: 1.5 }}>
-            <li>Admin: <code>admin@techmasters.internal</code></li>
-            <li>Approved Dev: <code>priya.dev@techmasters.internal</code></li>
-            <li>Video Specialist: <code>vikram.video@techmasters.internal</code></li>
-          </ul>
-          <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            Passwords are set during <code>python manage.py seed_catalog</code> using <code>.env</code> variables or generated securely.
-          </div>
+        <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+          <ShieldCheck size={14} style={{ color: 'var(--gold-primary)' }} />
+          <span>Role-Gated Access &bull; Admin Approval Required for New Accounts</span>
         </div>
       </div>
     </div>
   );
 };
-
