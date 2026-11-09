@@ -107,6 +107,85 @@ def claim_next_fifo_ticket(developer_user, client_ip=None, user_agent=None) -> T
                 continue
             raise NotFound("No eligible unassigned tickets currently available in the queue.")
 
+def claim_specific_ticket(ticket_id, developer_user, client_ip=None, user_agent=None) -> Ticket:
+    """
+    Atomically assigns a specific unassigned ticket directly to the requesting developer (Assign to Me).
+    Enforces developer approval and active workload quotas.
+    """
+    if not developer_user.is_authenticated:
+        raise ValidationError("Authentication required to claim tickets.")
+
+    if not developer_user.is_approved_developer and not developer_user.is_admin_role:
+        raise ValidationError("Only approved active developers can claim tickets.")
+
+    profile = getattr(developer_user, 'developer_profile', None)
+    max_quota = getattr(profile, 'max_active_tickets', 3) if profile else 5
+
+    active_statuses = [
+        TicketStatus.ASSIGNED,
+        TicketStatus.WORK_IN_PROGRESS,
+        TicketStatus.INTERNAL_REVIEW
+    ]
+
+    current_active_count = Ticket.objects.filter(
+        assigned_developer=developer_user,
+        status__in=active_statuses
+    ).count()
+
+    if current_active_count >= max_quota:
+        raise ValidationError(
+            f"Active workload quota reached ({current_active_count}/{max_quota}). "
+            "Please progress or complete your current assigned tickets before claiming new work."
+        )
+
+    with transaction.atomic():
+        try:
+            ticket = Ticket.objects.select_for_update().get(id=ticket_id)
+        except Ticket.DoesNotExist:
+            raise NotFound("Ticket not found.")
+
+        if ticket.assigned_developer and ticket.assigned_developer != developer_user and not developer_user.is_admin_role:
+            raise ValidationError(f"This ticket is already assigned to {ticket.assigned_developer.full_name}.")
+
+        previous_status = ticket.status
+        ticket.assigned_developer = developer_user
+        if ticket.status == TicketStatus.NEW_OPEN:
+            ticket.status = TicketStatus.ASSIGNED
+        ticket.assigned_at = timezone.now()
+        ticket.save(update_fields=['assigned_developer', 'status', 'assigned_at', 'updated_at'])
+
+        TicketAssignmentHistory.objects.create(
+            ticket=ticket,
+            developer=developer_user,
+            assigned_by=developer_user,
+            assignment_type='FIFO_SELF_CLAIM',
+            notes=f"Self-assigned by {developer_user.full_name}."
+        )
+
+        TicketStatusHistory.objects.create(
+            ticket=ticket,
+            previous_status=previous_status,
+            new_status=ticket.status,
+            changed_by=developer_user,
+            transition_reason=f"Self-assigned by {developer_user.full_name}."
+        )
+
+        log_activity(
+            actor=developer_user,
+            actor_role=developer_user.role,
+            action='TICKET_SELF_ASSIGNED',
+            module='ASSIGNMENTS',
+            record_id=str(ticket.id),
+            previous_value={'status': previous_status, 'assigned_developer': None},
+            new_value={'status': ticket.status, 'assigned_developer': str(developer_user.id)},
+            ip_address=client_ip,
+            user_agent=user_agent,
+            status='SUCCESS',
+            remarks=f"Ticket {ticket.ticket_number} self-assigned by {developer_user.full_name}."
+        )
+
+        return ticket
+
 def admin_assign_ticket(ticket: Ticket, developer_user, admin_user, reason: str = None, client_ip=None, user_agent=None) -> Ticket:
     """
     Administrative manual assignment or reassignment of any ticket.

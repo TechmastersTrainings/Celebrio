@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'apps.video_production',
     'apps.payments',
     'apps.publishing',
+    'apps.notifications',
     'apps.audit',
 ]
 

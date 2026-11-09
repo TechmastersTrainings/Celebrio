@@ -8,7 +8,7 @@ from apps.tickets.models import Ticket, TicketStatus, TicketStatusHistory
 from apps.tickets.serializers import TicketListSerializer, TicketDetailSerializer, DesignVersionSummarySerializer
 from apps.designs.models import DesignVersion, DesignStatus
 from apps.video_production.models import VideoTask, VideoTaskStatus
-from apps.assignments.services import claim_next_fifo_ticket
+from apps.assignments.services import claim_next_fifo_ticket, claim_specific_ticket
 from apps.accounts.permissions import IsApprovedDeveloper, CanProduceVideoPermission
 from apps.audit.services import log_activity
 
@@ -51,6 +51,33 @@ class WorkspaceClaimFIFOTicketView(views.APIView):
                 'customer_facing_status': ticket.customer_facing_status,
                 'assigned_at': ticket.assigned_at.isoformat() if ticket.assigned_at else None,
                 'message': f"Ticket {ticket.ticket_number} successfully claimed via FIFO!"
+            }
+        }, status=status.HTTP_200_OK)
+
+class WorkspaceClaimSpecificTicketView(views.APIView):
+    permission_classes = [IsApprovedDeveloper]
+
+    def post(self, request, ticket_id):
+        client_ip = request.META.get('REMOTE_ADDR')
+        user_agent = request.META.get('HTTP_USER_AGENT')
+        
+        ticket = claim_specific_ticket(
+            ticket_id=ticket_id,
+            developer_user=request.user,
+            client_ip=client_ip,
+            user_agent=user_agent
+        )
+
+        return Response({
+            'success': True,
+            'data': {
+                'id': str(ticket.id),
+                'ticket_id': str(ticket.id),
+                'ticket_number': ticket.ticket_number,
+                'status': ticket.status,
+                'customer_facing_status': ticket.customer_facing_status,
+                'assigned_at': ticket.assigned_at.isoformat() if ticket.assigned_at else None,
+                'message': f"Ticket {ticket.ticket_number} assigned to you successfully!"
             }
         }, status=status.HTTP_200_OK)
 

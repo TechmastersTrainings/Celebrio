@@ -195,6 +195,12 @@ export class ApiService {
     });
   }
 
+  static async claimSpecificTicket(ticketId: string) {
+    return this.request(`/workspace/tickets/${ticketId}/claim/`, {
+      method: 'POST',
+    });
+  }
+
   static async getAssignedTickets(): Promise<any[]> {
     return this.request('/workspace/tickets/assigned/');
   }
@@ -224,10 +230,14 @@ export class ApiService {
     return this.request(`/tickets/${ticketId}/`);
   }
 
-  static async updateTicketStatus(ticketId: string, newStatus: string, reason?: string) {
+  static async updateTicketStatus(ticketId: string, newStatus: string, reason?: string, workNotes?: string) {
     return this.request(`/tickets/${ticketId}/status/`, {
       method: 'PATCH',
-      body: JSON.stringify({ status: newStatus, reason }),
+      body: JSON.stringify({
+        status: newStatus,
+        reason: reason || workNotes,
+        work_notes: workNotes || reason,
+      }),
     });
   }
 

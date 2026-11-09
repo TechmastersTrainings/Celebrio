@@ -190,7 +190,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                           marginBottom: '6px',
                         }}
                       >
-                        Sachin &amp; Ananya
+                        Arjun &amp; Sneha
                       </div>
                       <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
                         Saturday, 28th November 2026 • The Leela Palace
@@ -589,12 +589,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                       ROYAL WEDDING SAMPLE
                     </span>
                     <h3 style={{ fontSize: '1.45rem', margin: 0 }}>
-                      Sachin &amp; Ananya Vivaha Mahotsava
+                      Arjun &amp; Sneha Vivaha Mahotsava
                     </h3>
                   </div>
                   <button
                     className="btn btn-primary btn-sm"
-                    onClick={() => onNavigate('public-invite', 'sachin-ananya-wedding-1645')}
+                    onClick={() => onNavigate('public-invite', 'arjun-sneha-wedding-1645')}
                   >
                     <span>Open Live Website Demo</span>
                     <ExternalLink size={14} />
@@ -611,7 +611,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                   }}
                 >
                   <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', color: 'var(--burgundy-rich)', fontWeight: 700, marginBottom: '0.5rem' }}>
-                    Sachin &amp; Ananya
+                    Arjun &amp; Sneha
                   </div>
                   <p style={{ fontStyle: 'italic', color: 'var(--gold-primary)', fontSize: '1.05rem', marginBottom: '1rem' }}>
                     "Two hearts, one lifelong celebration"
@@ -714,7 +714,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                     <QrCode size={120} style={{ color: 'var(--navy-deep)' }} />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>
-                    Scan to Open Sachin &amp; Ananya's Wedding
+                    Scan to Open Arjun &amp; Sneha's Wedding
                   </span>
                   <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                     High-contrast SVG and PNG assets included

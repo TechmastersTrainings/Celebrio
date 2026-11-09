@@ -23,10 +23,13 @@ class TicketDetailView(views.APIView):
         except Ticket.DoesNotExist:
             return Response({'success': False, 'error': {'message': 'Ticket not found'}}, status=status.HTTP_404_NOT_FOUND)
 
-        # Scoping check: Developers can only view their own assigned tickets, while Admins view all
+        # Scoping check: Admins can view all tickets; approved developers can view their assigned tickets or unassigned queue tickets
         user = request.user
-        if not user.is_admin_role and ticket.assigned_developer != user:
-            return Response({'success': False, 'error': {'message': 'Access forbidden to unassigned ticket.'}}, status=status.HTTP_403_FORBIDDEN)
+        if not user.is_admin_role:
+            if ticket.assigned_developer and ticket.assigned_developer != user:
+                return Response({'success': False, 'error': {'message': 'Access forbidden to ticket assigned to another developer.'}}, status=status.HTTP_403_FORBIDDEN)
+            if not ticket.assigned_developer and not user.is_approved_developer:
+                return Response({'success': False, 'error': {'message': 'Only approved developers can view queue tickets.'}}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = TicketDetailSerializer(ticket)
         return Response({'success': True, 'data': serializer.data})
@@ -46,22 +49,30 @@ class TicketStatusUpdateView(views.APIView):
 
         new_status = request.data.get('status')
         reason = request.data.get('reason', '')
+        work_notes = request.data.get('work_notes', '') or reason
 
         if not new_status or new_status not in TicketStatus.values:
             return Response({'success': False, 'error': {'status': f'Invalid status. Permitted values: {TicketStatus.values}'}}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Resolution work notes mandatory for closure (ServiceNow ITIL compliance)
+        if new_status == TicketStatus.CLOSED and not work_notes.strip():
+            return Response({
+                'success': False,
+                'error': {'message': 'Resolution work notes are required when closing a ticket (ITIL compliance).'}
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         # State transition validation
         permitted_transitions = {
-            TicketStatus.NEW_OPEN: [TicketStatus.ASSIGNED, TicketStatus.CANCELLED],
-            TicketStatus.ASSIGNED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.NEW_OPEN, TicketStatus.ON_HOLD],
-            TicketStatus.WORK_IN_PROGRESS: [TicketStatus.INTERNAL_REVIEW, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD],
-            TicketStatus.INTERNAL_REVIEW: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE],
-            TicketStatus.AWAITING_CUSTOMER_RESPONSE: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_PAYMENT, TicketStatus.ON_HOLD],
-            TicketStatus.AWAITING_PAYMENT: [TicketStatus.PAYMENT_DONE, TicketStatus.WORK_IN_PROGRESS],
-            TicketStatus.PAYMENT_DONE: [TicketStatus.CLOSED],
+            TicketStatus.NEW_OPEN: [TicketStatus.ASSIGNED, TicketStatus.WORK_IN_PROGRESS, TicketStatus.CANCELLED],
+            TicketStatus.ASSIGNED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD, TicketStatus.NEW_OPEN, TicketStatus.CLOSED],
+            TicketStatus.WORK_IN_PROGRESS: [TicketStatus.INTERNAL_REVIEW, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD, TicketStatus.CLOSED],
+            TicketStatus.INTERNAL_REVIEW: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CLOSED],
+            TicketStatus.AWAITING_CUSTOMER_RESPONSE: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_PAYMENT, TicketStatus.ON_HOLD, TicketStatus.CLOSED],
+            TicketStatus.AWAITING_PAYMENT: [TicketStatus.PAYMENT_DONE, TicketStatus.WORK_IN_PROGRESS, TicketStatus.CLOSED],
+            TicketStatus.PAYMENT_DONE: [TicketStatus.CLOSED, TicketStatus.WORK_IN_PROGRESS],
             TicketStatus.CLOSED: [TicketStatus.REOPENED],
-            TicketStatus.ON_HOLD: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.CANCELLED],
-            TicketStatus.REOPENED: [TicketStatus.WORK_IN_PROGRESS],
+            TicketStatus.ON_HOLD: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CANCELLED],
+            TicketStatus.REOPENED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CLOSED],
         }
 
         # Admin can override transitions
@@ -80,12 +91,28 @@ class TicketStatusUpdateView(views.APIView):
                 ticket.wip_started_at = timezone.now()
             ticket.save(update_fields=['status', 'wip_started_at', 'updated_at'])
 
+            # Synchronize Order Status
+            if new_status == TicketStatus.WORK_IN_PROGRESS and ticket.order.status != 'IN_PRODUCTION':
+                ticket.order.status = 'IN_PRODUCTION'
+                ticket.order.save(update_fields=['status', 'updated_at'])
+            elif new_status == TicketStatus.CLOSED and ticket.order.status != 'DELIVERED':
+                ticket.order.status = 'DELIVERED'
+                ticket.order.save(update_fields=['status', 'updated_at'])
+
+            # Log internal note if work_notes provided
+            if work_notes.strip():
+                TicketInternalNote.objects.create(
+                    ticket=ticket,
+                    author=user,
+                    note_text=f"[{new_status}] {work_notes.strip()}"
+                )
+
             TicketStatusHistory.objects.create(
                 ticket=ticket,
                 previous_status=previous_status,
                 new_status=new_status,
                 changed_by=user,
-                transition_reason=reason or f"Status changed by {user.full_name} ({user.role})"
+                transition_reason=work_notes or reason or f"Status changed to {new_status} by {user.full_name} ({user.role})"
             )
 
             log_activity(
@@ -98,7 +125,7 @@ class TicketStatusUpdateView(views.APIView):
                 new_value={'status': new_status},
                 ip_address=request.META.get('REMOTE_ADDR'),
                 status='SUCCESS',
-                remarks=reason
+                remarks=work_notes or reason
             )
 
         return Response({

@@ -617,7 +617,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="e.g. sachin-ananya-wedding"
+                  placeholder="e.g. arjun-sneha-wedding"
                   value={customSlug}
                   onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 />

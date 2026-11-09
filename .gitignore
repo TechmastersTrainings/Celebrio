@@ -48,6 +48,7 @@ pnpm-debug.log*
 .vite/
 
 # Testing and coverage
+scratch/
 .pytest_cache/
 .coverage
 htmlcov/

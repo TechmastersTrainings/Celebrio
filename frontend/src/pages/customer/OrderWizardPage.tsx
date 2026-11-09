@@ -694,7 +694,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
             <textarea
               className="form-control"
               rows={4}
-              placeholder="e.g. Groom: Sachin (S/o Smt. & Sri...), Bride: Ananya... Please use traditional Kannada font for muhurtham shloka and include warm gold accents."
+              placeholder="e.g. Groom: Arjun (S/o Smt. & Sri...), Bride: Sneha... Please use traditional Kannada font for muhurtham shloka and include warm gold accents."
               value={specialInstructions}
               onChange={(e) => setSpecialInstructions(e.target.value)}
             />

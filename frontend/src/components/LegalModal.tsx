@@ -123,3 +123,4 @@ export const LegalModal: React.FC<LegalModalProps> = ({ policyType, onClose }) =
     </div>
   );
 };
+

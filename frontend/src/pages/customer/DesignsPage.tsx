@@ -86,7 +86,7 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
       imageUrl: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80',
       description: 'Rich temple gopuram line-art, jasmine garlands, multi-day ceremony timelines (Haldi, Mehendi, Sangeet), and direct Google Maps navigation.',
       tags: ['Temple Architecture', 'Multi-day Timeline', 'Google Maps'],
-      mockCouple: 'Ananya & Sachin',
+      mockCouple: 'Sneha & Arjun',
       mockDate: 'November 28, 2026',
       mockVenue: 'Shree Krishna Kalyana Mantapa, Bidar',
     },
@@ -611,3 +611,4 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
     </div>
   );
 };
+
