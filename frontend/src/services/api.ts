@@ -1,4 +1,5 @@
-const API_BASE = '/api/v1';
+const PRIMARY_API = '/api/v1';
+const FALLBACK_API = 'http://127.0.0.1:8000/api/v1';
 
 export class ApiService {
   private static getHeaders(isCustomer = false, isMultipart = false): HeadersInit {
@@ -30,33 +31,67 @@ export class ApiService {
       ...(options.headers as Record<string, string> || {}),
     };
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${PRIMARY_API}${endpoint}`, {
+        ...options,
+        headers,
+      });
+      if (!res.ok && res.status >= 500) {
+        throw new Error(`Proxy error ${res.status}`);
+      }
+    } catch {
+      res = await fetch(`${FALLBACK_API}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    }
 
-    const data = await res.json();
+    const text = await res.text();
+    let data: any;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`Invalid response format from server`);
+    }
+
     if (!res.ok) {
-      const message = data?.error?.message || (typeof data?.error === 'string' ? data.error : JSON.stringify(data?.error)) || 'Request failed';
+      const message = data?.error?.message || (typeof data?.error === 'string' ? data.error : JSON.stringify(data?.error)) || `Request failed (${res.status})`;
       throw new Error(message);
     }
 
-    return data.data;
+    return (data && data.data !== undefined) ? data.data : data;
   }
 
   // --- Auth Endpoints ---
   static async staffLogin(email: string, password: string) {
-    const res = await fetch(`${API_BASE}/auth/token/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
+    let res: Response;
+    try {
+      res = await fetch(`${PRIMARY_API}/auth/token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok && res.status >= 500) {
+        throw new Error('Proxy error');
+      }
+    } catch {
+      res = await fetch(`${FALLBACK_API}/auth/token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    }
+
+    const text = await res.text();
+    const data = text ? JSON.parse(text) : {};
     if (!res.ok) throw new Error(data?.error?.message || data?.detail || 'Invalid credentials');
     
-    localStorage.setItem('celebrio_staff_token', data.data.access);
-    localStorage.setItem('celebrio_staff_user', JSON.stringify(data.data.user));
-    return data.data.user;
+    const token = data?.access || data?.data?.access;
+    const user = data?.user || data?.data?.user;
+    if (token) localStorage.setItem('celebrio_staff_token', token);
+    if (user) localStorage.setItem('celebrio_staff_user', JSON.stringify(user));
+    return user;
   }
 
   static async registerDeveloper(payload: any) {

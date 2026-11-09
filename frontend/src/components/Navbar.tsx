@@ -15,12 +15,41 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
           <a
             href="#home"
             className="navbar-brand"
-            onClick={(e) => { e.preventDefault(); onNavigate('catalog'); }}
+            onClick={(e) => { e.preventDefault(); onNavigate('home'); }}
           >
-            <span style={{ fontSize: '1.6rem' }}>✨</span>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #7B2CBF 0%, #D4AF37 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 15px rgba(212, 175, 55, 0.35)',
+              fontSize: '1.25rem'
+            }}>
+              ✨
+            </div>
             <div>
-              <div style={{ fontSize: '1.15rem', lineHeight: 1.1 }}>TechMasters</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--color-accent-dark)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <div style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: '1.2rem',
+                fontWeight: 800,
+                letterSpacing: '0.5px',
+                background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #D4AF37 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                lineHeight: 1.15
+              }}>
+                TechMasters
+              </div>
+              <div style={{
+                fontSize: '0.68rem',
+                color: '#D4AF37',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                fontWeight: 700
+              }}>
                 Digital Celebrations
               </div>
             </div>
@@ -29,17 +58,25 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
 
         <nav className="nav-links">
           <button
-            className={`btn btn-sm ${currentView === 'catalog' ? 'btn-primary' : 'btn-outline'}`}
+            className={`btn btn-sm ${currentView === 'home' ? 'btn-gold' : 'btn-outline'}`}
+            onClick={() => onNavigate('home')}
+          >
+            Home
+          </button>
+
+          <button
+            className={`btn btn-sm ${currentView === 'catalog' ? 'btn-gold' : 'btn-outline'}`}
             onClick={() => onNavigate('catalog')}
           >
             Packages & Pricing
           </button>
 
           <button
-            className={`btn btn-sm ${currentView === 'wizard' ? 'btn-primary' : 'btn-outline'}`}
+            className={`btn btn-sm ${currentView === 'wizard' ? 'btn-gold' : 'btn-outline'}`}
             onClick={() => onNavigate('wizard')}
+            style={currentView !== 'wizard' ? { borderColor: 'rgba(212, 175, 55, 0.4)', color: '#FBE698' } : {}}
           >
-            Create Invitation
+            ✨ Create Invitation
           </button>
 
           <button
@@ -49,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             Track Order / OTP
           </button>
 
-          <div style={{ width: '1px', height: '24px', background: 'var(--color-border)', margin: '0 0.5rem' }} />
+          <div style={{ width: '1px', height: '24px', background: 'rgba(226, 232, 240, 0.2)', margin: '0 0.35rem' }} />
 
           {staffUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -63,19 +100,19 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
               ) : null}
 
               <button
-                className={`btn btn-sm ${currentView === 'workspace' ? 'btn-gold' : 'btn-outline'}`}
+                className={`btn btn-sm ${currentView === 'workspace' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => onNavigate('workspace')}
               >
                 Dev Workspace
               </button>
 
-              <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--silver-muted)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {staffUser.full_name}
               </div>
 
               <button
                 className="btn btn-sm btn-outline"
-                style={{ color: 'var(--color-danger)', borderColor: '#FECDD3' }}
+                style={{ color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.4)' }}
                 onClick={onLogout}
               >
                 Logout
@@ -83,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             </div>
           ) : (
             <button
-              className={`btn btn-sm ${currentView === 'dev-auth' ? 'btn-gold' : 'btn-outline'}`}
+              className={`btn btn-sm ${currentView === 'dev-auth' ? 'btn-primary' : 'btn-outline'}`}
               onClick={() => onNavigate('dev-auth')}
             >
               Staff / Dev Login
@@ -94,4 +131,3 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
     </header>
   );
 };
-

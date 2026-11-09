@@ -154,26 +154,26 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
           Your order has been logged into our ServiceNow-grade ticketing system and entered into the active FIFO queue for our internal creative team.
         </p>
 
-        <div style={{ background: '#F8FAFC', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', marginBottom: '2rem', textAlign: 'left' }}>
+        <div style={{ background: 'rgba(9, 15, 36, 0.7)', border: '1px solid var(--silver-border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', marginBottom: '2rem', textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Order & Ticket Reference:</span>
-            <strong style={{ fontSize: '1.2rem', color: 'var(--color-primary)' }}>{orderResult.order_reference}</strong>
+            <span style={{ color: 'var(--silver-muted)', fontSize: '0.9rem' }}>Order & Ticket Reference:</span>
+            <strong style={{ fontSize: '1.3rem', color: 'var(--gold-pure)', fontFamily: 'var(--font-serif)' }}>{orderResult.order_reference}</strong>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Customer Status:</span>
+            <span style={{ color: 'var(--silver-muted)', fontSize: '0.9rem' }}>Customer Status:</span>
             <span className="badge badge-new">{orderResult.customer_facing_status}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Total Amount:</span>
-            <strong>₹{orderResult.total_amount_inr}</strong>
+            <span style={{ color: 'var(--silver-muted)', fontSize: '0.9rem' }}>Total Amount:</span>
+            <strong style={{ color: 'var(--gold-pure)', fontSize: '1.2rem' }}>₹{orderResult.total_amount_inr}</strong>
           </div>
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-          <button className="btn btn-primary" onClick={() => onOrderCreated(orderResult.order_reference)}>
-            Track Order Progress
+          <button className="btn btn-luxury-gold" onClick={() => onOrderCreated(orderResult.order_reference)}>
+            Track Order Progress →
           </button>
-          <button className="btn btn-outline" onClick={onCancel}>
+          <button className="btn btn-luxury-silver" onClick={onCancel}>
             Back to Catalog
           </button>
         </div>
@@ -182,9 +182,9 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
   }
 
   return (
-    <div style={{ maxWidth: '850px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '850px', margin: '0 auto', paddingBottom: '3rem' }}>
       {/* Wizard Progress Stepper */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', background: '#FFFFFF', padding: '1.25rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', background: 'var(--midnight-card)', padding: '1.25rem 2rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--silver-border)' }}>
         {[
           { num: 1, label: 'Package & Language' },
           { num: 2, label: 'Hosts & Ceremonies' },
@@ -192,10 +192,10 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
           { num: 4, label: 'Review & Submit' },
         ].map((s) => (
           <div key={s.num} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: step >= s.num ? 1 : 0.4 }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: step >= s.num ? 'var(--color-primary)' : 'var(--color-border)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
+            <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: step >= s.num ? 'linear-gradient(135deg, #D4AF37, #A67C1E)' : 'rgba(226, 232, 240, 0.15)', color: step >= s.num ? '#070B19' : '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.85rem' }}>
               {s.num}
             </div>
-            <span style={{ fontWeight: step === s.num ? 700 : 500, fontSize: '0.9rem' }}>{s.label}</span>
+            <span style={{ fontWeight: step === s.num ? 700 : 500, fontSize: '0.9rem', color: step === s.num ? 'var(--gold-pure)' : 'var(--silver-pure)' }}>{s.label}</span>
           </div>
         ))}
       </div>

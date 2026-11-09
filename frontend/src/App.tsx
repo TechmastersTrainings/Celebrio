@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { HomePage } from './pages/customer/HomePage';
 import { CatalogPage } from './pages/customer/CatalogPage';
 import { OrderWizardPage } from './pages/customer/OrderWizardPage';
 import { OrderTrackingPage } from './pages/customer/OrderTrackingPage';
@@ -12,7 +13,7 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { PublicInvitationPage } from './pages/public/PublicInvitationPage';
 
 export const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<string>('catalog');
+  const [currentView, setCurrentView] = useState<string>('home');
   const [selectedOccasionId, setSelectedOccasionId] = useState<string>('');
   const [selectedPackageId, setSelectedPackageId] = useState<string>('');
   const [activeOrderRef, setActiveOrderRef] = useState<string>('');
@@ -76,6 +77,17 @@ export const App: React.FC = () => {
       />
 
       <main className="main-content">
+        {currentView === 'home' && (
+          <HomePage
+            onSelectOccasion={(occId, pkgId) => {
+              setSelectedOccasionId(occId);
+              if (pkgId) setSelectedPackageId(pkgId);
+              setCurrentView('wizard');
+            }}
+            onNavigate={handleNavigate}
+          />
+        )}
+
         {currentView === 'catalog' && (
           <CatalogPage
             onSelectPackage={(occId, pkgId) => {

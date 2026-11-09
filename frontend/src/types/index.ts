@@ -36,6 +36,7 @@ export interface Package {
   occasion: string;
   name: string;
   code: string;
+  description?: string;
   base_price_inr: string;
   features_json: string[];
   included_revisions: number;
