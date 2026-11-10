@@ -52,7 +52,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({ policyType, onClose }) =
           {policyType === 'privacy' && (
             <div>
               <p style={{ marginBottom: '1rem' }}>
-                <strong>TechMasters Innovations Private Limited</strong> operates <strong>TechMasters Digital Services</strong>. We are committed to protecting the privacy and personal media of our customers and celebration guests.
+                <strong>TechMasters Digital Services</strong> is committed to protecting the privacy and personal media of our customers and celebration guests.
               </p>
               <h4 style={{ fontSize: '1rem', marginTop: '1.25rem', marginBottom: '0.5rem' }}>1. Information Collected</h4>
               <p style={{ marginBottom: '1rem' }}>
@@ -72,15 +72,15 @@ export const LegalModal: React.FC<LegalModalProps> = ({ policyType, onClose }) =
           {policyType === 'terms' && (
             <div>
               <p style={{ marginBottom: '1rem' }}>
-                By engaging <strong>TechMasters Digital Services</strong>, a commercial business unit of <strong>TechMasters Innovations Private Limited</strong>, you agree to these Terms and Conditions.
+                By engaging <strong>TechMasters Digital Services</strong>, you agree to these Terms and Conditions.
               </p>
               <h4 style={{ fontSize: '1rem', marginTop: '1.25rem', marginBottom: '0.5rem' }}>1. Service Delivery & Workflow</h4>
               <p style={{ marginBottom: '1rem' }}>
                 Our digital celebration service operates under an artisan production model. Upon order submission, an internal TechMasters developer creates your design draft. You will receive protected watermarked previews for inspection and feedback.
               </p>
-              <h4 style={{ fontSize: '1rem', marginTop: '1.25rem', marginBottom: '0.5rem' }}>2. Revisions Policy</h4>
+              <h4 style={{ fontSize: '1rem', marginTop: '1.25rem', marginBottom: '0.5rem' }}>2. Design Adjustments & Polish</h4>
               <p style={{ marginBottom: '1rem' }}>
-                Every package includes <strong>two (2) complimentary revision rounds</strong> for text amendments, photograph adjustments, and timing changes. Additional major structural modifications or post-approval rework are billable as add-ons.
+                We work closely with you during the draft review phase to incorporate your text amendments, photograph adjustments, and schedule updates prior to your final approval and payment.
               </p>
               <h4 style={{ fontSize: '1rem', marginTop: '1.25rem', marginBottom: '0.5rem' }}>3. Customer Design Approval & Payment</h4>
               <p style={{ marginBottom: '1rem' }}>

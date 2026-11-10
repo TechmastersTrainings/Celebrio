@@ -77,31 +77,19 @@ export const TechMastersLogo: React.FC<TechMastersLogoProps> = ({
         </div>
 
         {showSubtitle && (
-          <div style={{ display: 'flex', flexDirection: 'column', marginTop: '2px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 800,
-                fontSize: size === 'sm' ? '0.62rem' : size === 'lg' ? '0.78rem' : '0.70rem',
-                letterSpacing: '0.14em',
-                textTransform: 'uppercase',
-                color: '#D97706', // Vibrant corporate amber/orange
-              }}
-            >
-              DIGITAL SERVICES
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontWeight: 500,
-                fontSize: size === 'sm' ? '0.52rem' : '0.58rem',
-                letterSpacing: '0.04em',
-                color: isDark ? '#94A3B8' : '#64748B', // Metallic grey
-              }}
-            >
-              TechMasters Innovations Pvt. Ltd.
-            </span>
-          </div>
+          <span
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontWeight: 800,
+              fontSize: size === 'sm' ? '0.65rem' : size === 'lg' ? '0.82rem' : '0.72rem',
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: '#D97706', // Vibrant corporate amber/orange
+              marginTop: '1px',
+            }}
+          >
+            DIGITAL SERVICES
+          </span>
         )}
       </div>
     </div>

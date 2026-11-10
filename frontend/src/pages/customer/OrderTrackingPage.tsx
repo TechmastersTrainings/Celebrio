@@ -174,7 +174,7 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
           Order Tracker &amp; Celebration Hub
         </h1>
         <p className="lead-text" style={{ maxWidth: '620px', margin: '0 auto' }}>
-          Inspect your real-time design progress, launch protected draft previews, submit revision feedback, or download completed deliverables.
+          Inspect your real-time design progress, launch protected draft previews, submit change requests, or download completed deliverables.
         </p>
       </div>
 
@@ -342,7 +342,7 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
             {order.has_active_preview && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <div style={{ background: '#FFFBEB', border: '1px solid #FCD34D', padding: '1.25rem', borderRadius: 'var(--radius-sm)', color: '#92400E', fontSize: '0.92rem', lineHeight: 1.6 }}>
-                  ✨ <strong>Your celebration draft preview is ready!</strong> Please launch the protected preview below. You can inspect all ceremonies, test the countdown, suggest revisions (2 rounds included free), or approve the design to unlock final delivery.
+                  ✨ <strong>Your celebration draft preview is ready!</strong> Please launch the protected preview below. You can inspect all ceremonies, test the countdown, request design adjustments, or approve the design to unlock final delivery.
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
@@ -355,7 +355,7 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
 
                   <button className="btn btn-outline" onClick={() => setShowRevisionModal(true)}>
                     <Edit3 size={16} />
-                    <span>Request Changes (Revisions)</span>
+                    <span>Request Changes</span>
                   </button>
 
                   <button className="btn btn-gold" onClick={handleApproveDesign} disabled={loading}>
@@ -440,7 +440,7 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
         <div className="modal-backdrop" onClick={() => setShowRevisionModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-cream)' }}>
-              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Request Design Revisions</h3>
+              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Request Design Changes</h3>
               <button onClick={() => setShowRevisionModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
@@ -448,11 +448,11 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
 
             <form onSubmit={handleSendRevision} style={{ padding: '1.75rem' }}>
               <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-                Describe the specific changes you need (timing adjustments, spelling updates, photograph substitutions). Two revision rounds are included free in your package!
+                Describe the specific changes you need (timing adjustments, spelling updates, photograph substitutions). Our designers will update your preview promptly.
               </p>
 
               <div className="form-group">
-                <label className="form-label">Revision Details *</label>
+                <label className="form-label">Change Details *</label>
                 <textarea
                   className="form-control"
                   rows={5}
@@ -468,7 +468,7 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={revisionSubmitting}>
-                  {revisionSubmitting ? 'Submitting...' : 'Submit Revision to Creative Team'}
+                  {revisionSubmitting ? 'Submitting...' : 'Submit Changes to Creative Team'}
                 </button>
               </div>
             </form>

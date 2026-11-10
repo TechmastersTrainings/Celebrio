@@ -77,7 +77,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onSelectPackage, onTra
             Celebration Packages &amp; Pricing
           </h1>
           <p className="lead-text">
-            Transparent, all-inclusive packages. Submit requirements, inspect watermarked interactive previews with <strong>2 complimentary revision rounds</strong>, pay only after approval, and receive high-resolution deliverables.
+            Transparent, all-inclusive packages. Submit requirements, inspect watermarked interactive previews, pay only after approval, and receive high-resolution deliverables.
           </p>
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.5rem' }}>
@@ -192,7 +192,7 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onSelectPackage, onTra
                         </div>
 
                         <div style={{ padding: '0.35rem 0.65rem', background: 'var(--bg-champagne)', borderRadius: 'var(--radius-xs)', marginBottom: '1.25rem', fontSize: '0.78rem', color: 'var(--burgundy-rich)', fontWeight: 600 }}>
-                          ✓ Includes {pkg.included_revisions} Free Revisions &bull; 90-Day Hosting
+                          ✓ Bespoke Design Preview &bull; 90-Day Hosting
                         </div>
 
                         {/* Inclusions */}

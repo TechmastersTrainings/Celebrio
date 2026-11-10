@@ -387,7 +387,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                       </span>
                     </div>
                     <span style={{ fontSize: '0.76rem', color: 'var(--gold-primary)', fontWeight: 600, display: 'block' }}>
-                      Includes {pkg.included_revisions} Free Revisions
+                      Bespoke Designer Preview Included
                     </span>
                   </div>
                 ))}
@@ -768,7 +768,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
           <div style={{ padding: '1rem 1.25rem', background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <ShieldCheck size={20} style={{ color: 'var(--burgundy-rich)', flexShrink: 0 }} />
             <span style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              <strong>TechMasters Assurance:</strong> You will receive a watermarked preview within 24-48 business hours. 2 revision rounds are included free. Payment is made only when you are 100% satisfied.
+              <strong>TechMasters Assurance:</strong> You will receive a watermarked preview within 24-48 business hours. Payment is made only when you are 100% satisfied.
             </span>
           </div>
 

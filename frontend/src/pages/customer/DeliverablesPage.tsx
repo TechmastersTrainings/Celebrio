@@ -94,7 +94,7 @@ export const DeliverablesPage: React.FC<DeliverablesPageProps> = ({
           Your Celebration Assets Are Ready!
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.6, maxWidth: '650px', marginBottom: '2rem' }}>
-          Order <strong>{deliverables.order_reference}</strong> has been published by TechMasters Innovations. Your live neutral invitation link, high-resolution 300 DPI cards, dynamic QR code, and video assets are listed below.
+          Order <strong>{deliverables.order_reference}</strong> has been published by TechMasters Digital Services. Your live neutral invitation link, high-resolution 300 DPI cards, dynamic QR code, and video assets are listed below.
         </p>
 
         {/* Live Public URL Card */}

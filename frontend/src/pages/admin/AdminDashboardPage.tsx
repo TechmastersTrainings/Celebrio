@@ -384,7 +384,7 @@ export const AdminDashboardPage: React.FC = () => {
         }}
       >
         <div>
-          <span className="editorial-kicker">TECHMASTERS INNOVATIONS &bull; CENTRAL GOVERNANCE</span>
+          <span className="editorial-kicker">TECHMASTERS DIGITAL SERVICES &bull; CENTRAL GOVERNANCE</span>
           <h1 style={{ fontSize: '2.2rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
             Admin Superman Control Center
           </h1>

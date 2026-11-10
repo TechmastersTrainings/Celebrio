@@ -186,7 +186,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             }}
           >
             <div>
-              &copy; 2026 <strong>TechMasters Innovations Private Limited</strong>. All rights reserved.
+              &copy; 2026 <strong>TechMasters Digital Services</strong>. All rights reserved.
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>

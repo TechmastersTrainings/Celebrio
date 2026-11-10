@@ -125,7 +125,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                   <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
                   <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                    2 Free Revisions
+                    100% Approval Guarantee
                   </span>
                 </div>
                 <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
@@ -331,9 +331,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       >
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 2.75rem' }}>
-            <span className="editorial-kicker" style={{ color: '#92400E', fontWeight: 700 }}>
-              PERSONALIZED CELEBRATIONS
-            </span>
             <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
               Invitations for Life's Milestones
             </h2>
@@ -411,9 +408,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       >
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 2.75rem' }}>
-            <span className="editorial-kicker" style={{ color: '#F59E0B', fontWeight: 700 }}>
-              COMPREHENSIVE MULTI-MEDIA SUITE
-            </span>
             <h2 style={{ marginBottom: '0.75rem', color: '#FFFFFF' }}>
               Seven Dimensions of Digital Hospitality
             </h2>
@@ -558,9 +552,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       >
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 2.75rem' }}>
-            <span className="editorial-kicker" style={{ color: '#1E3A8A', fontWeight: 700 }}>
-              SERVICENOW-GRADE PRODUCTION PRECISION
-            </span>
             <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
               Six Steps to Your Celebration Reveal
             </h2>
@@ -569,123 +560,178 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
             </p>
           </div>
 
-          {/* Connected Horizontal Timeline Bar */}
+          {/* 6-Step Workflow Process Grid with Increased Font Sizes */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-              gap: '1rem',
-              background: '#FFFFFF',
-              border: '1px solid #CBD5E1',
-              borderRadius: 'var(--radius-md)',
-              padding: '1.75rem 1.25rem',
-              boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '1.25rem',
             }}
           >
             {/* Step 1 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   01
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 1
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Choose Occasion
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
                 Pick Wedding, Naming Ceremony, Birthday, or Anniversary &amp; select tier.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   02
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 2
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Submit Details
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
                 Enter event dates, venues, family names, and upload high-res photos.
               </p>
             </div>
 
             {/* Step 3 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   03
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 3
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Artisan Designs
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
                 Ticket enters FIFO queue. TechMasters designers craft bespoke previews.
               </p>
             </div>
 
             {/* Step 4 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   04
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 4
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Review Preview
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
-                Inspect live draft preview. 2 free revision rounds are included free.
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
+                Inspect live draft preview. Request adjustments directly before approval.
               </p>
             </div>
 
             {/* Step 5 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   05
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 5
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Approve &amp; Pay
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
                 Authorize payment via UPI or cards only after you 100% approve.
               </p>
             </div>
 
             {/* Step 6 */}
-            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                padding: '1.75rem',
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
                   06
                 </span>
-                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
                   Step 6
                 </span>
               </div>
-              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
                 Launch Live
               </h4>
-              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
                 Receive published website, 300 DPI card PDFs, and printable QR codes.
               </p>
             </div>
