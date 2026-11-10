@@ -82,19 +82,31 @@ DATABASES = {
     }
 }
 
-# In production if DATABASE_URL is configured
+# In production if DATABASE_URL is configured (Render PostgreSQL or external DB)
 DATABASE_URL = os.getenv('DATABASE_URL')
-if DATABASE_URL and DATABASE_URL.startswith('postgres'):
-    import urllib.parse as urlparse
-    url = urlparse.urlparse(DATABASE_URL)
-    DATABASES['default'] = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': url.path[1:],
-        'USER': url.username,
-        'PASSWORD': url.password,
-        'HOST': url.hostname,
-        'PORT': url.port or 5432,
-    }
+if DATABASE_URL:
+    try:
+        import dj_database_url
+        DATABASES['default'] = dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
+    except Exception:
+        import urllib.parse as urlparse
+        url = urlparse.urlparse(DATABASE_URL)
+        DATABASES['default'] = {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
+        }
 
 # Password validation & Argon2 Hasher
 PASSWORD_HASHERS = [
