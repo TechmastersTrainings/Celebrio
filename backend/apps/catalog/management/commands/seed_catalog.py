@@ -10,11 +10,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Seeding TechMasters Digital Celebrations catalog and accounts...")
 
-        admin_pwd = os.getenv('SEED_ADMIN_PASSWORD') or secrets.token_urlsafe(16)
-        dev_pwd = os.getenv('SEED_DEV_PASSWORD') or secrets.token_urlsafe(16)
+        admin_pwd = os.getenv('SEED_ADMIN_PASSWORD', 'Fri10Feb@2023')
+        dev_pwd = os.getenv('SEED_DEV_PASSWORD', 'Fri10Feb@2023')
 
         # 1. Create Super Admin
-        admin_email = os.getenv('SEED_ADMIN_EMAIL', 'admin@techmasters.internal')
+        admin_email = os.getenv('SEED_ADMIN_EMAIL', 'techmastersinnovations@gmail.com')
         admin_user, created = User.objects.get_or_create(
             email=admin_email,
             defaults={
@@ -30,55 +30,7 @@ class Command(BaseCommand):
             admin_user.save()
             self.stdout.write(self.style.SUCCESS(f"Created Super Admin: {admin_email}"))
 
-        # 2. Create Approved Developer: Priya
-        dev1_email = 'priya.dev@techmasters.internal'
-        dev1, created = User.objects.get_or_create(
-            email=dev1_email,
-            defaults={
-                'full_name': 'Priya Sharma (Lead UI/Web Designer)',
-                'role': UserRole.DEV_ACTIVE,
-                'is_staff': False,
-                'is_active': True,
-            }
-        )
-        if created:
-            dev1.set_password(dev_pwd)
-            dev1.save()
-            DeveloperProfile.objects.create(
-                user=dev1,
-                approval_status=ApprovalStatus.APPROVED_ACTIVE,
-                approved_by=admin_user,
-                can_produce_video=False,
-                max_active_tickets=3,
-                skills=['HTML', 'CSS', 'Kannada', 'Hindi', 'Wedding Cards']
-            )
-            self.stdout.write(self.style.SUCCESS(f"Created Approved Developer: {dev1_email}"))
-
-        # 3. Create Approved Video Specialist: Vikram
-        vid_email = 'vikram.video@techmasters.internal'
-        vid_user, created = User.objects.get_or_create(
-            email=vid_email,
-            defaults={
-                'full_name': 'Vikram Rao (Motion & Video Specialist)',
-                'role': UserRole.DEV_VIDEO,
-                'is_staff': False,
-                'is_active': True,
-            }
-        )
-        if created:
-            vid_user.set_password(dev_pwd)
-            vid_user.save()
-            DeveloperProfile.objects.create(
-                user=vid_user,
-                approval_status=ApprovalStatus.APPROVED_ACTIVE,
-                approved_by=admin_user,
-                can_produce_video=True,
-                max_active_tickets=4,
-                skills=['After Effects', 'FFmpeg', 'Audio Sync', 'Motion Typography']
-            )
-            self.stdout.write(self.style.SUCCESS(f"Created Approved Video Specialist: {vid_email}"))
-
-        # 4. Create Occasions & Initial Proposed Packages
+        # 2. Occasions & Initial Proposed Packages
         catalog_seed = [
             {
                 'slug': 'birthday',

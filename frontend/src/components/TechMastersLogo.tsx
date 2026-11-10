@@ -1,4 +1,5 @@
 import React from 'react';
+import techMastersLogo from '../assets/techmasters-logo.png';
 
 interface TechMastersLogoProps {
   variant?: 'light' | 'dark' | 'header' | 'footer';
@@ -16,9 +17,9 @@ export const TechMastersLogo: React.FC<TechMastersLogoProps> = ({
   const isDark = variant === 'dark' || variant === 'footer';
 
   const iconSizes = {
-    sm: { box: 32, icon: 18, radius: 8 },
-    md: { box: 42, icon: 22, radius: 11 },
-    lg: { box: 52, icon: 28, radius: 14 },
+    sm: { width: 30, height: 34 },
+    md: { width: 38, height: 43 },
+    lg: { width: 48, height: 55 },
   };
 
   const currentSize = iconSizes[size];
@@ -29,61 +30,34 @@ export const TechMastersLogo: React.FC<TechMastersLogoProps> = ({
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: size === 'sm' ? '0.6rem' : '0.85rem',
+        gap: size === 'sm' ? '0.65rem' : '0.85rem',
         textDecoration: 'none',
         userSelect: 'none',
       }}
     >
-      {/* Authentic TechMasters Innovations Icon Mark: Blue, Orange & Metallic Grey */}
+      {/* Authentic TechMasters Innovations Corporate 3D Hexagon Mark */}
       <div
         style={{
-          width: `${currentSize.box}px`,
-          height: `${currentSize.box}px`,
-          borderRadius: `${currentSize.radius}px`,
-          background: 'linear-gradient(135deg, #0A192F 0%, #1E3A8A 55%, #0B132B 100%)',
-          border: '1.5px solid rgba(148, 163, 184, 0.45)',
+          width: `${currentSize.width}px`,
+          height: `${currentSize.height}px`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: isDark
-            ? '0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.15)'
-            : '0 4px 12px rgba(10, 25, 47, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.25)',
           flexShrink: 0,
-          position: 'relative',
         }}
       >
-        {/* Metallic Grey + Radiant Orange Code Mark */}
-        <svg
-          width={currentSize.icon}
-          height={currentSize.icon}
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {/* Left code bracket in orange */}
-          <path
-            d="M8 6L2 12L8 18"
-            stroke="#F59E0B"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Right code bracket in orange */}
-          <path
-            d="M16 6L22 12L16 18"
-            stroke="#F59E0B"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          {/* Metallic Grey Accent Slash */}
-          <path
-            d="M14 4L10 20"
-            stroke="#94A3B8"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
+        <img
+          src={techMastersLogo}
+          alt="TechMasters Innovations"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            filter: isDark
+              ? 'drop-shadow(0 0 1px rgba(255, 255, 255, 0.45)) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.4))'
+              : 'drop-shadow(0 2px 6px rgba(10, 25, 47, 0.12))',
+          }}
+        />
       </div>
 
       {/* Typography: TechMasters Digital Services */}
@@ -133,4 +107,3 @@ export const TechMastersLogo: React.FC<TechMastersLogoProps> = ({
     </div>
   );
 };
-

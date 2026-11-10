@@ -20,7 +20,7 @@ def claim_next_fifo_ticket(developer_user, client_ip=None, user_agent=None) -> T
 
     # 2. Enforce active workload quota
     profile = getattr(developer_user, 'developer_profile', None)
-    max_quota = getattr(profile, 'max_active_tickets', 3) if profile else 3
+    max_quota = getattr(profile, 'max_active_tickets', 5 if developer_user.is_admin_role else 3) if profile else (5 if developer_user.is_admin_role else 3)
 
     active_statuses = [
         TicketStatus.ASSIGNED,

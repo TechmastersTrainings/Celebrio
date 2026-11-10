@@ -217,8 +217,8 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Total Service Fee:</span>
-              <strong style={{ color: 'var(--burgundy-rich)', fontSize: '1.25rem' }}>
-                ₹{orderResult.total_amount_inr}
+              <strong style={{ color: 'var(--burgundy-rich)', fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                ₹{parseFloat(String(orderResult.total_amount_inr)).toFixed(2)}
               </strong>
             </div>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.75rem', fontStyle: 'italic' }}>
@@ -382,8 +382,8 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
                       <strong style={{ fontSize: '1.1rem', color: 'var(--text-heading)' }}>{pkg.name}</strong>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)' }}>
-                        ₹{pkg.base_price_inr}
+                      <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', letterSpacing: '-0.02em' }}>
+                        ₹{parseFloat(String(pkg.base_price_inr)).toFixed(2)}
                       </span>
                     </div>
                     <span style={{ fontSize: '0.76rem', color: 'var(--gold-primary)', fontWeight: 600, display: 'block' }}>
@@ -694,7 +694,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
             <textarea
               className="form-control"
               rows={4}
-              placeholder="e.g. Groom: Arjun (S/o Smt. & Sri...), Bride: Sneha... Please use traditional Kannada font for muhurtham shloka and include warm gold accents."
+              placeholder="e.g. Host family details, preferred fonts or regional script preferences (Kannada/Hindi/Telugu), specific mantras, color themes, or special notes for our design artisans."
               value={specialInstructions}
               onChange={(e) => setSpecialInstructions(e.target.value)}
             />
@@ -735,8 +735,8 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                 </span>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)' }}>
-                  ₹{currentPackage ? (parseFloat(String(currentPackage.base_price_inr)) + (includeVideo ? 299 : 0)) : '399'}
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', letterSpacing: '-0.02em' }}>
+                  ₹{(currentPackage ? (parseFloat(String(currentPackage.base_price_inr)) + (includeVideo ? 299 : 0)) : 399).toFixed(2)}
                 </div>
                 <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', fontWeight: 600 }}>
                   Zero Upfront Payment

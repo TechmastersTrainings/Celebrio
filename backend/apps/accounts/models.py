@@ -75,6 +75,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     @property
     def is_approved_developer(self):
+        if self.is_admin_role:
+            return True
         if self.role in [UserRole.DEV_ACTIVE, UserRole.DEV_VIDEO]:
             if hasattr(self, 'developer_profile'):
                 return self.developer_profile.approval_status == ApprovalStatus.APPROVED_ACTIVE

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { ApiService } from '../../services/api';
 import { TechMastersLogo } from '../../components/TechMastersLogo';
-import { LogIn, UserPlus, AlertCircle, CheckCircle2, ShieldCheck, Lock } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle, CheckCircle2, ShieldCheck, Lock, Code, ArrowLeft } from 'lucide-react';
 
 interface DeveloperAuthPageProps {
   onLoginSuccess: (user: any) => void;
+  onNavigate?: (view: string) => void;
 }
 
-export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuccess }) => {
+export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuccess, onNavigate }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,16 +24,25 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please provide email and password.');
+      setError('Please provide corporate email and password.');
       return;
     }
     try {
       setLoading(true);
       setError(null);
       const user = await ApiService.staffLogin(email, password);
+
+      // Validate developer status or admin supervision
+      if (user.approval_status === 'REJECTED' || user.approval_status === 'SUSPENDED') {
+        localStorage.removeItem('celebrio_staff_token');
+        localStorage.removeItem('celebrio_staff_user');
+        setError('Access Inactive: Your developer account has been suspended or rejected by administration.');
+        return;
+      }
+
       onLoginSuccess(user);
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please check credentials.');
+      setError(err.message || 'Developer authentication failed. Verify credentials.');
     } finally {
       setLoading(false);
     }
@@ -56,7 +66,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
         portfolio_url: portfolioUrl || undefined,
         skills: skillList,
       });
-      setRegSuccess(res.message);
+      setRegSuccess(res.message || 'Developer application submitted successfully! It is now pending Administrator approval.');
       setIsRegister(false);
     } catch (err: any) {
       setError(err.message || 'Registration failed');
@@ -66,18 +76,50 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
   };
 
   return (
-    <div style={{ maxWidth: '500px', margin: '4rem auto 6rem', padding: '0 1rem' }}>
-      <div className="card card-gold-accent" style={{ padding: '3rem 2.5rem' }}>
+    <div style={{ maxWidth: '520px', margin: '4rem auto 6rem', padding: '0 1.25rem' }}>
+      <div
+        className="card card-gold-accent"
+        style={{
+          padding: '3rem 2.5rem',
+          background: '#FFFFFF',
+          borderRadius: 'var(--radius-md)',
+          boxShadow: '0 16px 40px rgba(13, 27, 42, 0.10)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ marginBottom: '1.25rem' }}>
+          <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'center' }}>
             <TechMastersLogo variant="header" size="md" />
           </div>
-          <span className="editorial-kicker">INTERNAL PRODUCTION OPERATIONS</span>
-          <h2 style={{ fontSize: '1.75rem', color: 'var(--navy-deep)' }}>
-            {isRegister ? 'Developer Registration' : 'Internal Staff & Developer Sign In'}
-          </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '0.35rem' }}>
-            TechMasters Innovations Production Operations Platform
+
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.35rem 0.85rem',
+              borderRadius: 'var(--radius-full)',
+              background: 'linear-gradient(135deg, rgba(107, 23, 40, 0.08), rgba(184, 142, 62, 0.12))',
+              color: 'var(--burgundy-rich)',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              marginBottom: '0.75rem',
+              border: '1px solid rgba(107, 23, 40, 0.2)',
+            }}
+          >
+            <Code size={14} style={{ color: 'var(--burgundy-rich)' }} />
+            <span>Developer &amp; Artisan Workspace</span>
+          </div>
+
+          <h1 style={{ fontSize: '1.8rem', color: 'var(--navy-deep)', margin: '0.25rem 0 0.5rem', fontFamily: 'var(--font-serif)' }}>
+            {isRegister ? 'Developer Registration' : 'Developer Portal Sign In'}
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0, lineHeight: 1.5 }}>
+            {isRegister
+              ? 'Join our artisan creative team. Approved developers receive assigned orders and design tasks.'
+              : 'Sign in to access your assigned order queue, preview generator & customer revision tools.'}
           </p>
         </div>
 
@@ -87,16 +129,17 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
               background: '#FEF2F2',
               border: '1px solid #FECACA',
               color: 'var(--color-danger)',
-              padding: '0.75rem 1rem',
+              padding: '0.85rem 1.15rem',
               borderRadius: 'var(--radius-sm)',
               marginBottom: '1.5rem',
               fontSize: '0.88rem',
               display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
+              alignItems: 'flex-start',
+              gap: '0.6rem',
+              lineHeight: 1.5,
             }}
           >
-            <AlertCircle size={16} />
+            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
             <span>{error}</span>
           </div>
         )}
@@ -113,10 +156,11 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
               fontSize: '0.88rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              gap: '0.6rem',
+              lineHeight: 1.5,
             }}
           >
-            <CheckCircle2 size={18} />
+            <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
             <span>{regSuccess}</span>
           </div>
         )}
@@ -124,8 +168,10 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
         <form onSubmit={isRegister ? handleRegister : handleLogin}>
           {isRegister && (
             <>
-              <div className="form-group">
-                <label className="form-label">Full Name *</label>
+              <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Full Name *
+                </label>
                 <input
                   type="text"
                   className="form-control"
@@ -133,58 +179,74 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Phone Number</label>
+              <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Phone Number
+                </label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder="e.g. +91 98860 12345"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Portfolio URL</label>
+              <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Portfolio URL
+                </label>
                 <input
                   type="url"
                   className="form-control"
-                  placeholder="https://..."
+                  placeholder="https://behance.net/..."
                   value={portfolioUrl}
                   onChange={(e) => setPortfolioUrl(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Skills (Comma-separated)</label>
+              <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+                <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+                  Creative Skills (Comma-separated)
+                </label>
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="HTML, CSS, Kannada, Video Production"
+                  placeholder="HTML, CSS, Kannada Typography, Video Motion"
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
                 />
               </div>
             </>
           )}
 
-          <div className="form-group">
-            <label className="form-label">Corporate Email Address *</label>
+          <div className="form-group" style={{ marginBottom: '1.15rem' }}>
+            <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+              Corporate Email Address *
+            </label>
             <input
               type="email"
               className="form-control"
-              placeholder="e.g. dev@techmastersinnovations.in"
+              placeholder="e.g. sachin@techmastersinnovatons.in"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoFocus
+              style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Secure Password *</label>
+          <div className="form-group" style={{ marginBottom: '1.35rem' }}>
+            <label className="form-label" style={{ fontWeight: 600, color: 'var(--navy-deep)', display: 'block', marginBottom: '0.35rem', fontSize: '0.85rem' }}>
+              Secure Password *
+            </label>
             <input
               type="password"
               className="form-control"
@@ -192,13 +254,23 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              style={{ width: '100%', padding: '0.75rem 0.9rem', fontSize: '0.92rem' }}
             />
           </div>
 
           <button
             type="submit"
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '0.75rem' }}
+            style={{
+              width: '100%',
+              padding: '0.85rem',
+              fontWeight: 700,
+              fontSize: '0.94rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+            }}
             disabled={loading}
           >
             {loading ? (
@@ -211,7 +283,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
             ) : (
               <>
                 <LogIn size={16} />
-                <span>Sign In to Production Workspace</span>
+                <span>Sign In to Developer Workspace</span>
               </>
             )}
           </button>
@@ -223,14 +295,62 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
             style={{ background: 'none', border: 'none', color: 'var(--burgundy-rich)', fontWeight: 600, fontSize: '0.88rem', cursor: 'pointer' }}
           >
             {isRegister
-              ? 'Already registered? Sign in here'
+              ? 'Already registered? Sign in to Developer Workspace'
               : 'New TechMasters creative? Register developer profile'}
           </button>
         </div>
 
-        <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-          <ShieldCheck size={14} style={{ color: 'var(--gold-primary)' }} />
-          <span>Role-Gated Access &bull; Admin Approval Required for New Accounts</span>
+        {/* Alternate Portals Navigation */}
+        <div
+          style={{
+            marginTop: '1.75rem',
+            paddingTop: '1.25rem',
+            borderTop: '1px solid var(--border-subtle)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.65rem',
+            textAlign: 'center',
+            fontSize: '0.84rem',
+          }}
+        >
+          {onNavigate && (
+            <>
+              <button
+                onClick={() => onNavigate('admin-login')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--navy-deep)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                <ShieldCheck size={14} style={{ color: 'var(--gold-primary)' }} />
+                <span>Operations Administrator? Sign in to Admin Portal</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('home')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                <ArrowLeft size={13} />
+                <span>Return to Public Customer Website</span>
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

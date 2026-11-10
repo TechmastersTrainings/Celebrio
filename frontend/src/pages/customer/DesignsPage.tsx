@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
 import { Occasion } from '../../types';
-import { Search, Sparkles, Smartphone, Monitor, Eye, ArrowRight, X, Heart, Calendar, MapPin } from 'lucide-react';
+import { Sparkles, Smartphone, Monitor, Eye, ArrowRight, X, Heart, Calendar, MapPin, Layers, CheckCircle2 } from 'lucide-react';
 
 interface DesignsPageProps {
   onSelectDesign: (occasionId: string, packageId?: string) => void;
@@ -26,7 +26,6 @@ interface GalleryItem {
 export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavigate }) => {
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -86,7 +85,7 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
       imageUrl: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80',
       description: 'Rich temple gopuram line-art, jasmine garlands, multi-day ceremony timelines (Haldi, Mehendi, Sangeet), and direct Google Maps navigation.',
       tags: ['Temple Architecture', 'Multi-day Timeline', 'Google Maps'],
-      mockCouple: 'Sneha & Arjun',
+      mockCouple: 'Ananya & Siddharth',
       mockDate: 'November 28, 2026',
       mockVenue: 'Shree Krishna Kalyana Mantapa, Bidar',
     },
@@ -189,22 +188,27 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
   ];
 
   const filteredItems = galleryItems.filter((item) => {
-    const matchesCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-    const matchesSearch =
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.aesthetic.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCat && matchesSearch;
+    if (selectedCategory === 'ALL') return true;
+    if (selectedCategory === 'WEDDING') {
+      return (
+        item.category === 'WEDDING' ||
+        item.category === 'TRADITIONAL_WEDDING' ||
+        item.category === 'MODERN_WEDDING' ||
+        item.category === 'LUXURY_HERITAGE'
+      );
+    }
+    return item.category === selectedCategory;
   });
 
+  const activeCategoryLabel = categories.find((c) => c.key === selectedCategory)?.label || 'All Designs';
+
   return (
-    <div style={{ padding: '3.5rem 0 5rem' }}>
+    <div style={{ padding: '3rem 0 5rem' }}>
       <div className="container">
         {/* Editorial Header */}
-        <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 3rem' }}>
+        <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 2.75rem' }}>
           <span className="editorial-kicker">CURATED INVITATION EXPERIENCES</span>
-          <h1 style={{ marginBottom: '1rem', fontSize: '2.6rem' }}>
+          <h1 style={{ marginBottom: '0.75rem', fontSize: '2.5rem' }}>
             Invitation Design Gallery
           </h1>
           <p className="lead-text">
@@ -212,178 +216,294 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
           </p>
         </div>
 
-        {/* Search & Category Filter Bar */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '1.25rem',
-            marginBottom: '2.5rem',
-            boxShadow: 'var(--shadow-subtle)',
-          }}
-        >
-          {/* Search Input */}
-          <div style={{ position: 'relative', marginBottom: '1.25rem' }}>
-            <Search
-              size={18}
-              style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
-            />
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search by aesthetic, occasion, or style (e.g. Royal, Minimalist, Namakarana, Gold)..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ paddingLeft: '2.6rem' }}
-            />
-          </div>
-
-          {/* Filter Pills */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            {categories.map((c) => (
-              <button
-                key={c.key}
-                onClick={() => setSelectedCategory(c.key)}
-                className={`btn btn-sm ${selectedCategory === c.key ? 'btn-primary' : 'btn-outline'}`}
-                style={{
-                  fontSize: '0.82rem',
-                  padding: '0.45rem 0.95rem',
-                  borderRadius: 'var(--radius-full)',
-                }}
-              >
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-3">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="showcase-card">
-              <div style={{ position: 'relative', overflow: 'hidden' }}>
-                <img src={item.imageUrl} alt={item.title} className="showcase-card-img" />
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    left: '12px',
-                    background: 'rgba(13, 27, 42, 0.85)',
-                    backdropFilter: 'blur(6px)',
-                    color: '#F8FAFC',
-                    fontSize: '0.72rem',
-                    fontWeight: 600,
-                    padding: '0.28rem 0.65rem',
-                    borderRadius: 'var(--radius-xs)',
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {item.aesthetic}
-                </span>
-
-                <button
-                  onClick={() => setPreviewItem(item)}
-                  style={{
-                    position: 'absolute',
-                    bottom: '12px',
-                    right: '12px',
-                    background: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '0.45rem 0.75rem',
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
-                    color: 'var(--navy-deep)',
-                  }}
-                >
-                  <Eye size={14} />
-                  <span>Preview</span>
-                </button>
-              </div>
-
-              <div className="showcase-card-body">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                  <h3 style={{ fontSize: '1.28rem', color: 'var(--text-heading)' }}>
-                    {item.title}
-                  </h3>
-                  <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>From</span>
-                    <strong style={{ color: 'var(--burgundy-rich)', fontSize: '1.1rem' }}>
-                      ₹{item.startingPrice}
-                    </strong>
-                  </div>
-                </div>
-
-                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
-                  {item.description}
-                </p>
-
-                {/* Feature Tags */}
-                <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                  {item.tags.map((t, idx) => (
-                    <span
-                      key={idx}
-                      style={{
-                        fontSize: '0.70rem',
-                        background: 'var(--bg-champagne)',
-                        color: 'var(--text-body)',
-                        padding: '0.2rem 0.55rem',
-                        borderRadius: 'var(--radius-xs)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.65rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    style={{ flex: 1 }}
-                    onClick={() => setPreviewItem(item)}
-                  >
-                    View Mockup
-                  </button>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    style={{ flex: 1.2 }}
-                    onClick={() => onSelectDesign(item.occasionId)}
-                  >
-                    <span>Customise</span>
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {filteredItems.length === 0 && (
-          <div
+        {/* 2-Column Responsive Layout: Left-Side Menu + Right-Side Gallery */}
+        <div className="designs-page-layout">
+          {/* =========================================================================
+              LEFT SIDEBAR: CATEGORIES & THEMES MENU
+              ========================================================================= */}
+          <aside
             style={{
-              textAlign: 'center',
-              padding: '4rem 1.5rem',
               background: '#FFFFFF',
-              borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-md)',
+              boxShadow: 'var(--shadow-subtle)',
+              overflow: 'hidden',
+              position: 'sticky',
+              top: '90px',
             }}
           >
-            <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1rem' }}>
-              No invitation designs found matching "{searchQuery}".
-            </p>
-            <button className="btn btn-outline btn-sm" onClick={() => { setSearchQuery(''); setSelectedCategory('ALL'); }}>
-              Reset Filters
-            </button>
-          </div>
-        )}
+            {/* Sidebar Title */}
+            <div
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: 'var(--bg-champagne)',
+              }}
+            >
+              <span
+                className="editorial-kicker"
+                style={{ fontSize: '0.68rem', marginBottom: '2px', display: 'block' }}
+              >
+                COLLECTIONS
+              </span>
+              <h3 style={{ fontSize: '1.15rem', color: 'var(--navy-deep)', margin: 0 }}>
+                Occasions &amp; Themes
+              </h3>
+            </div>
+
+            {/* Vertical Category Links */}
+            <nav style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              {categories.map((c) => {
+                const isActive = selectedCategory === c.key;
+
+                return (
+                  <button
+                    key={c.key}
+                    onClick={() => setSelectedCategory(c.key)}
+                    className={isActive ? '' : 'category-sidebar-btn'}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      padding: '0.72rem 1rem',
+                      borderRadius: 'var(--radius-sm)',
+                      border: 'none',
+                      background: isActive ? 'var(--burgundy-rich)' : 'transparent',
+                      color: isActive ? '#FFFFFF' : 'var(--text-body)',
+                      fontWeight: isActive ? 600 : 500,
+                      fontSize: '0.88rem',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      width: '100%',
+                    }}
+                  >
+                    <span>{c.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Bespoke Request Sidebar Box */}
+            <div
+              style={{
+                padding: '1.25rem',
+                margin: '0.5rem 0.75rem 0.75rem',
+                background: 'var(--bg-ivory)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-sm)',
+                textAlign: 'left',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  color: 'var(--burgundy-rich)',
+                  fontWeight: 600,
+                  fontSize: '0.84rem',
+                  marginBottom: '0.35rem',
+                }}
+              >
+                <Sparkles size={14} style={{ color: 'var(--gold-primary)' }} />
+                <span>Custom Theme Request</span>
+              </div>
+              <p
+                style={{
+                  fontSize: '0.76rem',
+                  color: 'var(--text-muted)',
+                  lineHeight: 1.5,
+                  margin: '0 0 0.85rem',
+                }}
+              >
+                Need a bespoke theme or cultural artwork? Our internal artisans craft custom designs.
+              </p>
+              <button
+                className="btn btn-outline-gold btn-sm"
+                style={{ width: '100%', fontSize: '0.76rem', padding: '0.4rem 0.75rem' }}
+                onClick={() => onNavigate('wizard')}
+              >
+                Request Custom Design &rarr;
+              </button>
+            </div>
+          </aside>
+
+          {/* =========================================================================
+              RIGHT MAIN CONTENT: DESIGNS GALLERY
+              ========================================================================= */}
+          <main style={{ minWidth: 0 }}>
+            {/* Gallery Top Status Bar */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingBottom: '1rem',
+                marginBottom: '1.5rem',
+                borderBottom: '1px solid var(--border-subtle)',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}
+            >
+              <div>
+                <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-deep)', margin: '0 0 0.2rem' }}>
+                  {activeCategoryLabel}
+                </h2>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Showing {filteredItems.length} curated celebration design{filteredItems.length === 1 ? '' : 's'}
+                </p>
+              </div>
+
+              {selectedCategory !== 'ALL' && (
+                <button
+                  onClick={() => setSelectedCategory('ALL')}
+                  className="btn btn-outline btn-sm"
+                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                >
+                  View All Designs
+                </button>
+              )}
+            </div>
+
+            {/* Designs Cards Grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
+                gap: '1.75rem',
+              }}
+            >
+              {filteredItems.map((item) => (
+                <div key={item.id} className="showcase-card">
+                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <img src={item.imageUrl} alt={item.title} className="showcase-card-img" />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '12px',
+                        left: '12px',
+                        background: 'rgba(13, 27, 42, 0.85)',
+                        backdropFilter: 'blur(6px)',
+                        color: '#F8FAFC',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        padding: '0.28rem 0.65rem',
+                        borderRadius: 'var(--radius-xs)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {item.aesthetic}
+                    </span>
+
+                    <button
+                      onClick={() => setPreviewItem(item)}
+                      style={{
+                        position: 'absolute',
+                        bottom: '12px',
+                        right: '12px',
+                        background: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.45rem 0.75rem',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                        color: 'var(--navy-deep)',
+                      }}
+                    >
+                      <Eye size={14} />
+                      <span>Preview</span>
+                    </button>
+                  </div>
+
+                  <div className="showcase-card-body">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                      <h3 style={{ fontSize: '1.25rem', color: 'var(--text-heading)', margin: 0 }}>
+                        {item.title}
+                      </h3>
+                      <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '0.75rem' }}>
+                        <span className="card-price-value">
+                          <span className="card-price-currency">₹</span>
+                          <span className="card-price-amount">{Math.floor(parseFloat(String(item.startingPrice)))}</span>
+                          <span className="card-price-decimals">.00</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
+                      {item.description}
+                    </p>
+
+                    {/* Feature Tags */}
+                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                      {item.tags.map((t, idx) => (
+                        <span
+                          key={idx}
+                          style={{
+                            fontSize: '0.70rem',
+                            background: 'var(--bg-champagne)',
+                            color: 'var(--text-body)',
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: 'var(--radius-xs)',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.65rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        style={{ flex: 1 }}
+                        onClick={() => setPreviewItem(item)}
+                      >
+                        View Mockup
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        style={{ flex: 1.2 }}
+                        onClick={() => onSelectDesign(item.occasionId)}
+                      >
+                        <span>Customise</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {filteredItems.length === 0 && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '4rem 1.5rem',
+                  background: '#FFFFFF',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1rem' }}>
+                  No invitation designs found in this category.
+                </p>
+                <button
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setSelectedCategory('ALL')}
+                >
+                  View All Designs
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
 
       {/* Live Interactive Invitation Preview Modal */}
@@ -561,7 +681,7 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
 
                   <div style={{ textAlign: 'center', padding: '1rem 0' }}>
                     <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                      Interactive RSVP • Google Maps Venue Navigation • Multilingual Wishes
+                      Interactive RSVP &bull; Google Maps Venue Navigation &bull; Multilingual Wishes
                     </p>
                     <span className="badge badge-published">
                       300 DPI Print Card &amp; Animated Video Included
@@ -584,9 +704,11 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
             >
               <div>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Package Starting Price:</span>
-                <strong style={{ display: 'block', fontSize: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                  ₹{previewItem.startingPrice}
-                </strong>
+                <span className="card-price-value" style={{ display: 'flex', fontSize: '1.45rem', marginTop: '2px' }}>
+                  <span className="card-price-currency" style={{ fontSize: '1.15rem' }}>₹</span>
+                  <span className="card-price-amount">{Math.floor(parseFloat(String(previewItem.startingPrice)))}</span>
+                  <span className="card-price-decimals" style={{ fontSize: '1.02rem' }}>.00</span>
+                </span>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -600,8 +722,8 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
                     onSelectDesign(previewItem.occasionId);
                   }}
                 >
-                  <Sparkles size={15} style={{ color: '#F59E0B' }} />
-                  <span>Choose This Design</span>
+                  <span>Customise This Design</span>
+                  <ArrowRight size={14} />
                 </button>
               </div>
             </div>
@@ -611,4 +733,3 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
     </div>
   );
 };
-

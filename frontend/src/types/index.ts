@@ -216,3 +216,75 @@ export interface CentralActivityLogItem {
   timestamp: string;
 }
 
+export interface AdminUserItem {
+  id: string;
+  email: string | null;
+  phone_number: string | null;
+  full_name: string;
+  role: string;
+  role_display: string;
+  is_active: boolean;
+  is_staff: boolean;
+  is_superuser: boolean;
+  created_at: string;
+  developer_profile?: {
+    approval_status: string;
+    max_active_tickets: number;
+    can_produce_video: boolean;
+    skills: string[];
+  } | null;
+}
+
+export interface AdminPaymentItem {
+  id: string;
+  order_reference: string;
+  customer_name: string;
+  customer_email?: string;
+  customer_phone?: string;
+  occasion?: string;
+  package_name?: string;
+  amount_inr: string;
+  status: string;
+  gateway_provider: string;
+  gateway_order_id: string;
+  gateway_payment_id?: string;
+  ticket_status?: string;
+  created_at: string;
+}
+
+export interface AdminFinancialsData {
+  revenue: {
+    gross_revenue_inr: string;
+    paid_orders_count: number;
+    average_order_value_inr: string;
+    by_occasion: Array<{ occasion: string; amount_inr: string }>;
+    by_package: Array<{ package: string; amount_inr: string }>;
+    recent_transactions: Array<{
+      id: string;
+      gateway_payment_id: string;
+      order_reference: string;
+      customer_name: string;
+      occasion: string;
+      amount_inr: string;
+      verified_at: string;
+    }>;
+  };
+  profit_and_loss: {
+    gross_revenue_inr: string;
+    cogs: {
+      developer_payouts_inr: string;
+      dev_payout_pct: string;
+      gateway_processing_fees_inr: string;
+      gateway_fee_pct: string;
+      cloud_and_sms_delivery_inr: string;
+      total_cogs_inr: string;
+    };
+    gross_profit_inr: string;
+    opex: {
+      fixed_server_and_maintenance_inr: string;
+    };
+    net_profit_inr: string;
+    net_profit_margin_pct: string;
+  };
+}
+

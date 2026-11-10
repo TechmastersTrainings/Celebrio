@@ -33,7 +33,6 @@ interface HomePageProps {
 export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate }) => {
   const [occasions, setOccasions] = useState<Occasion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [portfolioTab, setPortfolioTab] = useState<'website' | 'card' | 'video' | 'qr'>('website');
 
   useEffect(() => {
     loadOccasions();
@@ -70,164 +69,205 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
   return (
     <div>
       {/* =========================================================================
-          SECTION 1: EDITORIAL SPLIT-SCREEN HERO
+          SECTION 1: EDITORIAL SPLIT-SCREEN HERO (COMPACT & SLEEK)
           ========================================================================= */}
       <section className="hero-split">
         <div className="container">
           <div className="hero-grid">
             {/* Left Column: Brand Intro, Headline, CTAs */}
             <div>
-              <span className="editorial-kicker">
+              <span className="editorial-kicker" style={{ marginBottom: '0.4rem', display: 'block' }}>
                 TECHMASTERS DIGITAL SERVICES • BIDAR, KARNATAKA
               </span>
 
-              <h1 style={{ marginBottom: '1.25rem', color: 'var(--navy-deep)', lineHeight: 1.18 }}>
+              <h1 style={{ marginBottom: '0.75rem', color: 'var(--navy-deep)', lineHeight: 1.15, fontSize: '2.45rem' }}>
                 Make Every Celebration{' '}
                 <span style={{ color: 'var(--burgundy-rich)', fontStyle: 'italic' }}>
                   Unforgettable.
                 </span>
               </h1>
 
-              <p className="lead-text" style={{ marginBottom: '2rem', maxWidth: '520px' }}>
+              <p className="lead-text" style={{ marginBottom: '1.25rem', maxWidth: '520px', fontSize: '1.02rem', lineHeight: 1.55 }}>
                 Beautiful digital invitations and personalised celebration experiences, thoughtfully designed for life's most meaningful moments.
               </p>
 
               {/* CTAs */}
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '2.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <button
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary"
                   onClick={() => onNavigate('wizard')}
                 >
-                  <Sparkles size={18} style={{ color: '#F59E0B' }} />
+                  <Sparkles size={17} style={{ color: '#F59E0B' }} />
                   <span>Create Your Invitation</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </button>
 
                 <button
-                  className="btn btn-outline btn-lg"
+                  className="btn btn-outline"
                   onClick={() => onNavigate('designs')}
                 >
                   Explore Designs
                 </button>
               </div>
 
-              {/* Trust & Guarantee Markers */}
+              {/* Sleek Tight Horizontal Trust & Guarantee Markers */}
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                  gap: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.75rem',
                   borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '1.75rem',
+                  paddingTop: '0.85rem',
+                  fontSize: '0.80rem',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ fontSize: '0.86rem', color: 'var(--text-body)', fontWeight: 500 }}>
-                    2 Free Revisions Included
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
+                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
+                    2 Free Revisions
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ fontSize: '0.86rem', color: 'var(--text-body)', fontWeight: 500 }}>
-                    300 DPI Print Ready (PDF)
+                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
+                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
+                    300 DPI Print PDF
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ fontSize: '0.86rem', color: 'var(--text-body)', fontWeight: 500 }}>
+                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
+                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
                     Live RSVP &amp; Maps
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ fontSize: '0.86rem', color: 'var(--text-body)', fontWeight: 500 }}>
-                    WhatsApp One-Tap Share
+                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
+                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
+                    WhatsApp Share
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Realistic Mockup Display (Laptop + Mobile Phone) */}
+            {/* Right Column: Authentic MacBook Pro and iPhone 16 Pro Displays */}
             <div>
               <div className="mockup-composition">
-                {/* Laptop Mockup */}
-                <div className="laptop-frame">
-                  <div className="laptop-screen">
-                    {/* Simulated Celebration Webpage */}
+                {/* Authentic MacBook Pro Housing */}
+                <div className="macbook-housing">
+                  {/* MacBook Center Notch */}
+                  <div className="macbook-notch">
+                    <div className="macbook-camera-lens" />
+                  </div>
+
+                  {/* MacBook Retina Screen */}
+                  <div className="macbook-screen">
+                    {/* macOS Safari Browser Toolbar */}
+                    <div className="macbook-toolbar">
+                      <div className="macbook-traffic-lights">
+                        <span className="traffic-light traffic-light-close" />
+                        <span className="traffic-light traffic-light-minimize" />
+                        <span className="traffic-light traffic-light-expand" />
+                      </div>
+                      <div className="macbook-url-bar">
+                        🔒 celebrio.in/invitation/preview
+                      </div>
+                    </div>
+
+                    {/* Celebration Webpage Preview */}
                     <div
                       style={{
-                        height: '100%',
-                        background: 'radial-gradient(circle at 50% 30%, #FFFDF9 0%, #F5EFEB 100%)',
-                        padding: '1.25rem',
+                        flex: 1,
+                        background: 'radial-gradient(circle at 50% 25%, #FFFDF9 0%, #F5EFEB 100%)',
+                        padding: '1rem 1.25rem',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
                         textAlign: 'center',
-                        position: 'relative',
                       }}
                     >
+                      <span style={{ fontSize: '0.9rem', marginBottom: '2px' }}>✨</span>
                       <div
                         style={{
-                          fontSize: '0.62rem',
-                          letterSpacing: '0.18em',
+                          fontSize: '0.58rem',
+                          letterSpacing: '0.16em',
                           textTransform: 'uppercase',
                           color: 'var(--gold-primary)',
                           fontWeight: 700,
-                          marginBottom: '4px',
+                          marginBottom: '2px',
                         }}
                       >
-                        THE WEDDING CELEBRATION
+                        DIGITAL INVITATION EXPERIENCE
                       </div>
                       <div
                         style={{
                           fontFamily: 'var(--font-serif)',
-                          fontSize: '1.6rem',
+                          fontSize: '1.4rem',
                           color: 'var(--burgundy-rich)',
                           fontWeight: 700,
                           lineHeight: 1.1,
-                          marginBottom: '6px',
+                          marginBottom: '4px',
                         }}
                       >
-                        Arjun &amp; Sneha
+                        Grand Celebration
                       </div>
-                      <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                        Saturday, 28th November 2026 • The Leela Palace
+                      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        Custom Web Invitation &bull; Interactive RSVP &bull; Venue Maps
                       </p>
 
-                      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '8px' }}>
-                        <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
-                          48 Days Left
+                      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '8px' }}>
+                        <span style={{ background: '#FFFFFF', padding: '2px 7px', borderRadius: '4px', fontSize: '0.62rem', border: '1px solid var(--border-subtle)', fontWeight: 600, color: 'var(--navy-deep)' }}>
+                          Live Countdown
                         </span>
-                        <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
+                        <span style={{ background: '#FFFFFF', padding: '2px 7px', borderRadius: '4px', fontSize: '0.62rem', border: '1px solid var(--border-subtle)', fontWeight: 600, color: 'var(--navy-deep)' }}>
                           Google Maps Venue
                         </span>
-                        <span style={{ background: '#FFFFFF', padding: '3px 8px', borderRadius: '4px', fontSize: '0.65rem', border: '1px solid var(--border-subtle)', fontWeight: 600 }}>
-                          RSVP Open
+                        <span style={{ background: 'var(--burgundy-rich)', color: '#FFFFFF', padding: '2px 8px', borderRadius: '4px', fontSize: '0.62rem', fontWeight: 600 }}>
+                          Confirm RSVP
                         </span>
                       </div>
-
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '4px',
-                          background: 'linear-gradient(90deg, transparent, var(--gold-primary), transparent)',
-                          marginTop: '4px',
-                        }}
-                      />
                     </div>
                   </div>
-                  <div className="laptop-base" />
+
+                  {/* MacBook Aluminum Lower Deck with Thumb Notch */}
+                  <div className="macbook-base">
+                    <div className="macbook-thumb-groove" />
+                  </div>
                 </div>
 
-                {/* Smartphone Mockup */}
-                <div className="phone-frame">
-                  <div className="phone-screen">
+                {/* Authentic iPhone 16 Pro Mockup */}
+                <div className="iphone-housing">
+                  {/* Dynamic Island */}
+                  <div className="iphone-dynamic-island">
+                    <div className="iphone-island-lens" />
+                  </div>
+
+                  {/* iPhone Screen */}
+                  <div className="iphone-screen">
+                    {/* Status Bar */}
                     <div
                       style={{
-                        padding: '1.25rem 0.85rem',
-                        height: '100%',
+                        padding: '18px 12px 4px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: '0.52rem',
+                        fontWeight: 600,
+                        color: '#1E293B',
+                      }}
+                    >
+                      <span>9:41</span>
+                      <span style={{ letterSpacing: '1px' }}>📶 🔋</span>
+                    </div>
+
+                    {/* Mobile Celebration Invitation View */}
+                    <div
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.75rem 1rem',
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -236,30 +276,38 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                         background: 'linear-gradient(180deg, #FAF6F0 0%, #FFFFFF 100%)',
                       }}
                     >
-                      <div style={{ fontSize: '0.55rem', color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.12em' }}>
-                        VIVAHA PRARTHANA
-                      </div>
                       <div>
-                        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', color: 'var(--burgundy-rich)', fontWeight: 700 }}>
-                          S &amp; A
+                        <div style={{ fontSize: '0.50rem', color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.12em', marginTop: '6px' }}>
+                          DIGITAL CARD &bull; RSVP
                         </div>
-                        <p style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Nov 28, 2026
+                      </div>
+
+                      <div>
+                        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: 'var(--burgundy-rich)', fontWeight: 700, lineHeight: 1.15 }}>
+                          Save The Date
+                        </div>
+                        <p style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                          Personalised Celebration
                         </p>
                       </div>
+
                       <div
                         style={{
                           background: 'var(--burgundy-rich)',
                           color: '#FFFFFF',
-                          padding: '4px 10px',
-                          borderRadius: '12px',
-                          fontSize: '0.6rem',
+                          padding: '3px 10px',
+                          borderRadius: '10px',
+                          fontSize: '0.58rem',
                           fontWeight: 600,
+                          boxShadow: '0 2px 6px rgba(107, 23, 40, 0.25)',
                         }}
                       >
                         Confirm RSVP
                       </div>
                     </div>
+
+                    {/* Home Indicator Bar */}
+                    <div className="iphone-home-bar" />
                   </div>
                 </div>
               </div>
@@ -269,14 +317,27 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       </section>
 
       {/* =========================================================================
-          SECTION 2: OCCASION CATEGORIES (EDITORIAL CARDS)
+          SECTION 2: OCCASION CATEGORIES (WARM CHAMPAGNE AMBER)
           ========================================================================= */}
-      <section className="section" id="occasions">
+      <section
+        className="section"
+        id="occasions"
+        style={{
+          padding: '3.75rem 0',
+          background: 'linear-gradient(180deg, #F9F4EB 0%, #F5ECE0 100%)',
+          borderTop: '1px solid #E8DDD0',
+          borderBottom: '1px solid #E8DDD0',
+        }}
+      >
         <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
-            <span className="editorial-kicker">PERSONALIZED CELEBRATION VERTICALS</span>
-            <h2 style={{ marginBottom: '1rem' }}>Bespoke Invitations for Life's Milestones</h2>
-            <p className="lead-text">
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 2.75rem' }}>
+            <span className="editorial-kicker" style={{ color: '#92400E', fontWeight: 700 }}>
+              PERSONALIZED CELEBRATIONS
+            </span>
+            <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
+              Invitations for Life's Milestones
+            </h2>
+            <p className="lead-text" style={{ color: '#475569' }}>
               Every occasion possesses its own rhythm, family emotion, and cultural beauty. We tailor each experience with respectful typography, interactive schedules, and custom media.
             </p>
           </div>
@@ -287,50 +348,33 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
               const startPrice = getStartingPrice(occ);
 
               return (
-                <div key={occ.id} className="showcase-card">
+                <div key={occ.id} className="showcase-card" style={{ background: '#FFFFFF', border: '1px solid #E5D9CC' }}>
                   <div style={{ position: 'relative', overflow: 'hidden' }}>
                     <img src={imgUrl} alt={occ.display_name} className="showcase-card-img" />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        background: 'rgba(13, 27, 42, 0.85)',
-                        backdropFilter: 'blur(6px)',
-                        color: '#F8FAFC',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        padding: '0.28rem 0.65rem',
-                        borderRadius: 'var(--radius-xs)',
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      Bespoke Vertical
-                    </span>
                   </div>
 
                   <div className="showcase-card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.35rem' }}>{occ.display_name}</h3>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                      <h3 style={{ fontSize: '1.32rem', margin: 0, color: '#0A192F' }}>{occ.display_name}</h3>
                       {startPrice && (
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>From</span>
-                          <strong style={{ color: 'var(--burgundy-rich)', fontSize: '1.15rem' }}>
-                            ₹{startPrice}
-                          </strong>
+                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '0.75rem' }}>
+                          <span className="card-price-value">
+                            <span className="card-price-currency">₹</span>
+                            <span className="card-price-amount">{Math.floor(parseFloat(String(startPrice)))}</span>
+                            <span className="card-price-decimals">.00</span>
+                          </span>
                         </div>
                       )}
                     </div>
 
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
+                    <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
                       {occ.description}
                     </p>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid #E8DDD0', paddingTop: '1rem' }}>
                       <button
                         className="btn btn-outline btn-sm"
-                        style={{ flex: 1 }}
+                        style={{ flex: 1, color: '#0A192F', borderColor: '#CBD5E1', background: '#FFFFFF' }}
                         onClick={() => onNavigate('designs')}
                       >
                         Explore Designs
@@ -353,557 +397,310 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       </section>
 
       {/* =========================================================================
-          SECTION 3: 7 DEDICATED SERVICES SHOWCASE
+          SECTION 3: 7 DEDICATED SERVICES SHOWCASE (ROYAL MIDNIGHT NAVY)
           ========================================================================= */}
-      <section className="section section-champagne" id="services">
+      <section
+        className="section section-navy"
+        id="services"
+        style={{
+          padding: '4.5rem 0',
+          background: 'linear-gradient(135deg, #0A192F 0%, #0F284E 50%, #08162B 100%)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      >
         <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 3.5rem' }}>
-            <span className="editorial-kicker">COMPREHENSIVE MULTI-MEDIA SUITE</span>
-            <h2 style={{ marginBottom: '1rem' }}>Seven Dimensions of Digital Hospitality</h2>
-            <p className="lead-text">
+          <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 2.75rem' }}>
+            <span className="editorial-kicker" style={{ color: '#F59E0B', fontWeight: 700 }}>
+              COMPREHENSIVE MULTI-MEDIA SUITE
+            </span>
+            <h2 style={{ marginBottom: '0.75rem', color: '#FFFFFF' }}>
+              Seven Dimensions of Digital Hospitality
+            </h2>
+            <p className="lead-text" style={{ color: '#CBD5E1' }}>
               We go far beyond static graphic cards. TechMasters Digital Services delivers an end-to-end interactive guest experience engineered for every digital channel.
             </p>
           </div>
 
-          <div className="grid grid-cols-3">
+          {/* Symmetrical 6-Box Horizontal Capability Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
             {/* Service 1 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <Monitor size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <Monitor size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Personalised Invitation Websites</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                Custom hosted websites on clean neutral domains. Includes real-time countdown clocks, personalized event stories, photo galleries, and background music player.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Personalised Invitation Websites</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  Custom hosted websites on clean neutral domains with countdown clocks, couple stories, photo galleries, and music players.
+                </p>
+              </div>
             </div>
 
             {/* Service 2 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <FileText size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <FileText size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Ultra HD Print-Ready Cards</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                300 DPI high-resolution invitation cards delivered in JPG, PNG, and vector-crisp PDF formats. Perfect for direct WhatsApp sharing and local commercial printing.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Ultra HD Print-Ready Cards</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  300 DPI high-resolution invitation cards in JPG, PNG, and vector-crisp PDF. Ideal for WhatsApp and physical printing.
+                </p>
+              </div>
             </div>
 
             {/* Service 3 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <Video size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <Video size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Animated Invitation Videos</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                Cinematic MP4 motion videos produced by dedicated TechMasters video specialists. Incorporates family photographs, transition titles, and curated auspicious soundtracks.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Animated Invitation Videos</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  Cinematic MP4 motion videos produced with family photos, motion typography, and curated classical/devotional audio.
+                </p>
+              </div>
             </div>
 
             {/* Service 4 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <QrCode size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <QrCode size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>QR-Enabled Physical Cards</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                Vector QR code generated for your celebration. Print it onto physical cards or wedding sweets boxes so guests can scan with any phone to open the interactive website.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>QR-Enabled Physical Cards</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  Dynamic printable vector QR code for cards and sweet boxes. Guests scan with any phone to open the interactive website.
+                </p>
+              </div>
             </div>
 
             {/* Service 5 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <Heart size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <Heart size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Guest RSVP &amp; Digital Wishes</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                Seamless attendee headcount collection without calling guests. Guests leave heartfelt blessings and diet preferences; hosts view responses in real-time.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Guest RSVP &amp; Digital Wishes</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  Automated attendee headcount collection. Guests submit heartfelt blessings and diet preferences tracked in your portal.
+                </p>
+              </div>
             </div>
 
             {/* Service 6 */}
-            <div className="editorial-card">
-              <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', color: 'var(--burgundy-rich)' }}>
-                <MapPin size={22} />
+            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <MapPin size={20} />
               </div>
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Event Schedules &amp; Venue Maps</h3>
-              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                Multi-day ceremony timelines (Mehendi, Sangeet, Muhurtham, Reception) with one-click Google Maps GPS navigation so out-of-town guests arrive smoothly.
-              </p>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Schedules &amp; Google Maps GPS</h3>
+                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
+                  Multi-day ceremony timelines (Mehendi, Sangeet, Muhurtham) with direct one-tap Google Maps navigation for guests.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Dimension 7: Horizontal Multilingual Typography Banner */}
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              borderRadius: 'var(--radius-md)',
+              padding: '1.25rem 1.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '1.25rem',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
+              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
+                <Palette size={20} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '1.05rem', margin: '0 0 3px', color: '#FFFFFF' }}>
+                  Regional Language Unicode Typography
+                </h4>
+                <p style={{ fontSize: '0.84rem', color: '#E2E8F0', margin: 0 }}>
+                  Full native script support in <strong style={{ color: '#F59E0B' }}>Kannada (ಕನ್ನಡ), Hindi (हिन्दी), Telugu (తెలుగు), Marathi (मराठी), Tamil (தமிழ்), and English</strong>.
+                </p>
+              </div>
             </div>
 
-            {/* Service 7 */}
-            <div className="editorial-card" style={{ gridColumn: 'span 3', '@media (max-width: 992px)': { gridColumn: 'span 1' } } as any}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-champagne)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--burgundy-rich)', flexShrink: 0 }}>
-                  <Palette size={22} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>Premium Customisations &amp; Regional Language Scripting</h3>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                    Full Unicode typography support in <strong>Kannada, Hindi, Telugu, Marathi, Tamil, and English</strong>. Bespoke color grading, wedding monogram crests, and auspicious Vedic verses tailored to your community traditions.
-                  </p>
-                </div>
-                <button className="btn btn-outline-gold btn-sm" onClick={() => onNavigate('wizard')}>
-                  Request Customised Package
-                </button>
-              </div>
-            </div>
+            <button
+              className="btn btn-gold btn-sm"
+              style={{ fontWeight: 700, padding: '0.5rem 1.1rem' }}
+              onClick={() => onNavigate('wizard')}
+            >
+              Request Customised Package
+            </button>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 4: HOW IT WORKS (6-STEP REFINED TIMELINE)
+          SECTION 4: HOW IT WORKS (CRISP PLATINUM SLATE)
           ========================================================================= */}
-      <section className="section" id="how-it-works">
+      <section
+        className="section"
+        id="how-it-works"
+        style={{
+          padding: '3.75rem 0',
+          background: 'linear-gradient(180deg, #F0F4FA 0%, #E6EDF6 100%)',
+          borderTop: '1px solid #DCE5EE',
+          borderBottom: '1px solid #DCE5EE',
+        }}
+      >
         <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 3.5rem' }}>
-            <span className="editorial-kicker">SERVICENOW-GRADE PRODUCTION PRECISION</span>
-            <h2 style={{ marginBottom: '1rem' }}>Six Steps to Your Celebration Reveal</h2>
-            <p className="lead-text">
-              We blend artisan design craftsmanship with enterprise service tracking. You inspect protected previews and approve everything before payment is required.
+          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 2.75rem' }}>
+            <span className="editorial-kicker" style={{ color: '#1E3A8A', fontWeight: 700 }}>
+              SERVICENOW-GRADE PRODUCTION PRECISION
+            </span>
+            <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
+              Six Steps to Your Celebration Reveal
+            </h2>
+            <p className="lead-text" style={{ color: '#475569' }}>
+              We blend artisan craftsmanship with enterprise service tracking. Inspect protected previews and approve everything before payment.
             </p>
           </div>
 
-          <div className="grid grid-cols-3">
+          {/* Connected Horizontal Timeline Bar */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+              gap: '1rem',
+              background: '#FFFFFF',
+              border: '1px solid #CBD5E1',
+              borderRadius: 'var(--radius-md)',
+              padding: '1.75rem 1.25rem',
+              boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+            }}
+          >
             {/* Step 1 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">01</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Choose Your Occasion</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Select your celebration vertical (Wedding, Naming Ceremony, Milestone Birthday, Anniversary) and preferred service tier.
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  01
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 1
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Choose Occasion
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Pick Wedding, Naming Ceremony, Birthday, or Anniversary &amp; select tier.
               </p>
             </div>
 
             {/* Step 2 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">02</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Submit Details &amp; Assets</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Enter event dates, multi-ceremony venues, and family names. Upload high-res photographs and preferred music securely.
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  02
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 2
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Submit Details
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Enter event dates, venues, family names, and upload high-res photos.
               </p>
             </div>
 
             {/* Step 3 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">03</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Artisan Team Designs</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Your ticket enters our FIFO production queue. Dedicated TechMasters designers craft bespoke layouts and responsive preview builds.
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  03
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 3
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Artisan Designs
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Ticket enters FIFO queue. TechMasters designers craft bespoke previews.
               </p>
             </div>
 
             {/* Step 4 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">04</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Review Protected Preview</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Inspect your live draft preview with watermarked security. Request revisions easily—two revision rounds are complimentary!
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  04
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 4
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Review Preview
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Inspect live draft preview. 2 free revision rounds are included free.
               </p>
             </div>
 
             {/* Step 5 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">05</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Approve &amp; Complete Payment</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Only when you are 100% delighted with the design do you authorize payment via secure UPI, cards, or net banking.
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  05
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 5
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Approve &amp; Pay
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Authorize payment via UPI or cards only after you 100% approve.
               </p>
             </div>
 
             {/* Step 6 */}
-            <div className="timeline-step-card">
-              <div className="timeline-number">06</div>
-              <h3 style={{ fontSize: '1.18rem', marginBottom: '0.5rem' }}>Receive &amp; Launch Live</h3>
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-                Admin publishes your final website on an elegant neutral domain, and delivers 300 DPI cards, dynamic QR codes, and MP4 video.
+            <div style={{ display: 'flex', flexDirection: 'column', padding: '0.5rem', borderLeft: '1px solid #E2E8F0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#D97706' }}>
+                  06
+                </span>
+                <span style={{ fontSize: '0.70rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 600 }}>
+                  Step 6
+                </span>
+              </div>
+              <h4 style={{ fontSize: '0.98rem', marginBottom: '0.35rem', color: '#0A192F' }}>
+                Launch Live
+              </h4>
+              <p style={{ fontSize: '0.80rem', color: '#475569', lineHeight: 1.5, margin: 0 }}>
+                Receive published website, 300 DPI card PDFs, and printable QR codes.
               </p>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* =========================================================================
-          SECTION 5: REAL PORTFOLIO & WORK SHOWCASE
-          ========================================================================= */}
-      <section className="section section-cream" id="portfolio">
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 3rem' }}>
-            <span className="editorial-kicker">VERIFIED LIVE EXPERIENCES</span>
-            <h2 style={{ marginBottom: '1rem' }}>Experience Actual Invitation Releases</h2>
-            <p className="lead-text">
-              Test drive actual published neutral invitation experiences created by our production team.
-            </p>
-          </div>
-
-          {/* Showcase Tabs */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '2.5rem', flexWrap: 'wrap' }}>
+          <div style={{ textAlign: 'center', marginTop: '2.25rem' }}>
             <button
-              className={`btn btn-sm ${portfolioTab === 'website' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setPortfolioTab('website')}
+              className="btn btn-primary btn-lg"
+              style={{ background: '#6B1728', color: '#FFFFFF' }}
+              onClick={() => onNavigate('wizard')}
             >
-              <Monitor size={15} />
-              <span>Interactive Celebration Website</span>
+              <Sparkles size={16} style={{ color: '#F59E0B' }} />
+              <span>Create Your Invitation</span>
+              <ArrowRight size={16} />
             </button>
-            <button
-              className={`btn btn-sm ${portfolioTab === 'card' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setPortfolioTab('card')}
-            >
-              <FileText size={15} />
-              <span>300 DPI Print Card</span>
-            </button>
-            <button
-              className={`btn btn-sm ${portfolioTab === 'video' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setPortfolioTab('video')}
-            >
-              <Video size={15} />
-              <span>Animated Motion Video</span>
-            </button>
-            <button
-              className={`btn btn-sm ${portfolioTab === 'qr' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setPortfolioTab('qr')}
-            >
-              <QrCode size={15} />
-              <span>Dynamic Smart QR</span>
-            </button>
-          </div>
-
-          {/* Showcase Viewer Content */}
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-subtle)',
-              padding: '2.5rem',
-              boxShadow: 'var(--shadow-card)',
-              maxWidth: '920px',
-              margin: '0 auto',
-            }}
-          >
-            {portfolioTab === 'website' && (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <span className="editorial-kicker" style={{ marginBottom: '4px', fontSize: '0.72rem' }}>
-                      ROYAL WEDDING SAMPLE
-                    </span>
-                    <h3 style={{ fontSize: '1.45rem', margin: 0 }}>
-                      Arjun &amp; Sneha Vivaha Mahotsava
-                    </h3>
-                  </div>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => onNavigate('public-invite', 'arjun-sneha-wedding-1645')}
-                  >
-                    <span>Open Live Website Demo</span>
-                    <ExternalLink size={14} />
-                  </button>
-                </div>
-
-                <div
-                  style={{
-                    background: 'var(--bg-champagne)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '2rem',
-                    textAlign: 'center',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <div style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', color: 'var(--burgundy-rich)', fontWeight: 700, marginBottom: '0.5rem' }}>
-                    Arjun &amp; Sneha
-                  </div>
-                  <p style={{ fontStyle: 'italic', color: 'var(--gold-primary)', fontSize: '1.05rem', marginBottom: '1rem' }}>
-                    "Two hearts, one lifelong celebration"
-                  </p>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '500px', margin: '0 auto 1.5rem' }}>
-                    Featuring live countdown timer, interactive RSVP guestbook, Google Maps route to venue in Bidar, and curated classical instrumental audio.
-                  </p>
-                  <div style={{ display: 'inline-flex', gap: '1rem' }}>
-                    <span className="badge badge-published">Published On Neutral Domain</span>
-                    <span className="badge badge-paid">Fully Responsive</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {portfolioTab === 'card' && (
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Ultra High-Definition 300 DPI Cards</h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 1.75rem' }}>
-                  Supplied in CMYK print-ready vector PDF and sRGB high-res JPG for WhatsApp distribution without compression degradation.
-                </p>
-                <div
-                  style={{
-                    display: 'inline-block',
-                    background: 'var(--bg-ivory)',
-                    padding: '1.5rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '2px solid var(--gold-primary)',
-                    boxShadow: 'var(--shadow-elevated)',
-                    maxWidth: '380px',
-                  }}
-                >
-                  <div style={{ border: '1px dashed var(--gold-primary)', padding: '2rem 1.5rem' }}>
-                    <div style={{ fontSize: '1.25rem', color: 'var(--gold-primary)', marginBottom: '0.5rem' }}>卐 ॐ 卐</div>
-                    <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--burgundy-rich)', fontWeight: 700 }}>
-                      Priya &amp; Rohan
-                    </div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.5rem 0 1rem' }}>
-                      Cordially invite you to their Ring Ceremony • ITC Windsor Bengaluru
-                    </p>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--gold-primary)', fontWeight: 600 }}>
-                      300 DPI PRINT QUALITY VERIFIED
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {portfolioTab === 'video' && (
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Cinematic MP4 Invitation Video</h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 1.75rem' }}>
-                  Animated invitations with smooth typography entrance, couple story photomontage, and traditional music accompaniment.
-                </p>
-                <div
-                  style={{
-                    background: 'var(--navy-deep)',
-                    color: '#FFFFFF',
-                    padding: '3rem 2rem',
-                    borderRadius: 'var(--radius-md)',
-                    maxWidth: '480px',
-                    margin: '0 auto',
-                  }}
-                >
-                  <Video size={48} style={{ color: 'var(--gold-soft)', marginBottom: '1rem' }} />
-                  <h4 style={{ color: '#FFFFFF', fontSize: '1.2rem', marginBottom: '0.5rem' }}>
-                    1080p Full HD Motion Invite
-                  </h4>
-                  <p style={{ fontSize: '0.82rem', color: '#94A3B8', marginBottom: '1.25rem' }}>
-                    Standard duration 45–60 seconds • Formatted for WhatsApp status &amp; direct messages
-                  </p>
-                  <button
-                    className="btn btn-gold btn-sm"
-                    onClick={() => onNavigate('wizard')}
-                  >
-                    Include Video In My Order
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {portfolioTab === 'qr' && (
-              <div style={{ textAlign: 'center' }}>
-                <h3 style={{ fontSize: '1.35rem', marginBottom: '0.5rem' }}>Dynamic Smart QR Codes</h3>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '520px', margin: '0 auto 1.75rem' }}>
-                  Connect your printed cards to your digital experience. Guests scan with any camera app to launch the live countdown and map.
-                </p>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    background: 'var(--bg-champagne)',
-                    padding: '2rem',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <div style={{ background: '#FFFFFF', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-medium)', marginBottom: '1rem' }}>
-                    <QrCode size={120} style={{ color: 'var(--navy-deep)' }} />
-                  </div>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-heading)' }}>
-                    Scan to Open Arjun &amp; Sneha's Wedding
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    High-contrast SVG and PNG assets included
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 6: DYNAMIC PACKAGES & PRICING PREVIEW
-          ========================================================================= */}
-      <section className="section" id="pricing">
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 3.5rem' }}>
-            <span className="editorial-kicker">TRANSPARENT VALUE ARCHITECTURE</span>
-            <h2 style={{ marginBottom: '1rem' }}>All-Inclusive Celebration Packages</h2>
-            <p className="lead-text">
-              Real packages configured through our administrative catalog. All prices include design development, 2 revision rounds, and secure hosting.
-            </p>
-          </div>
-
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
-              Loading real-time catalog pricing from server...
-            </div>
-          ) : occasions.length > 0 ? (
-            <div className="grid grid-cols-3">
-              {occasions.slice(0, 3).map((occ) => {
-                const pkgs = occ.packages || [];
-                const primaryPkg = pkgs[0];
-
-                return (
-                  <div key={occ.id} className="card card-gold-accent" style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ marginBottom: '1.25rem' }}>
-                      <span className="editorial-kicker" style={{ fontSize: '0.72rem', marginBottom: '2px' }}>
-                        {occ.display_name}
-                      </span>
-                      <h3 style={{ fontSize: '1.4rem' }}>
-                        {primaryPkg ? primaryPkg.name : `${occ.display_name} Package`}
-                      </h3>
-                    </div>
-
-                    <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                        <span style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)' }}>
-                          ₹{primaryPkg ? primaryPkg.base_price_inr : '399'}
-                        </span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>/ complete service</span>
-                      </div>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', fontWeight: 600 }}>
-                        2 Revision Rounds Included Free
-                      </span>
-                    </div>
-
-                    <ul style={{ listStyle: 'none', marginBottom: '2rem', flex: 1 }}>
-                      <li style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                        <CheckCircle2 size={16} style={{ color: 'var(--burgundy-rich)', flexShrink: 0, marginTop: '3px' }} />
-                        <span>Interactive Celebration Website</span>
-                      </li>
-                      <li style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                        <CheckCircle2 size={16} style={{ color: 'var(--burgundy-rich)', flexShrink: 0, marginTop: '3px' }} />
-                        <span>High-Resolution 300 DPI Card (PDF &amp; JPG)</span>
-                      </li>
-                      <li style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                        <CheckCircle2 size={16} style={{ color: 'var(--burgundy-rich)', flexShrink: 0, marginTop: '3px' }} />
-                        <span>Real-Time RSVP &amp; Google Maps Venue</span>
-                      </li>
-                      <li style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                        <CheckCircle2 size={16} style={{ color: 'var(--burgundy-rich)', flexShrink: 0, marginTop: '3px' }} />
-                        <span>Dynamic Printable QR Code</span>
-                      </li>
-                      <li style={{ display: 'flex', gap: '0.65rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
-                        <CheckCircle2 size={16} style={{ color: 'var(--burgundy-rich)', flexShrink: 0, marginTop: '3px' }} />
-                        <span>Regional Language Unicode Typography</span>
-                      </li>
-                    </ul>
-
-                    <button
-                      className="btn btn-primary"
-                      style={{ width: '100%' }}
-                      onClick={() => onSelectOccasion(occ.id, primaryPkg?.id)}
-                    >
-                      <span>Select Package</span>
-                      <ArrowRight size={15} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div
-              style={{
-                textAlign: 'center',
-                padding: '3rem',
-                background: '#FFFFFF',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>Packages Being Configured</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-                Our operations team is currently updating bespoke packages. Please submit an enquiry for custom pricing.
-              </p>
-              <button className="btn btn-primary btn-sm" onClick={() => onNavigate('wizard')}>
-                Submit Custom Celebration Enquiry
-              </button>
-            </div>
-          )}
-
-          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-            <button className="btn btn-outline" onClick={() => onNavigate('catalog')}>
-              <span>View Full Catalog &amp; Add-Ons (Videos &amp; Hosting)</span>
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 7: CORPORATE TRUST & BIDAR CAMPUS CALL-TO-ACTION
-          ========================================================================= */}
-      <section className="section section-champagne">
-        <div className="container">
-          <div
-            style={{
-              background: '#0D1B2A',
-              color: '#FFFFFF',
-              borderRadius: 'var(--radius-lg)',
-              padding: '3.5rem 3rem',
-              boxShadow: 'var(--shadow-elevated)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <div style={{ maxWidth: '640px', position: 'relative', zIndex: 10 }}>
-              <span className="editorial-kicker" style={{ color: 'var(--gold-soft)' }}>
-                TECHMASTERS INNOVATIONS PRIVATE LIMITED • BIDAR
-              </span>
-
-              <h2 style={{ color: '#FFFFFF', fontSize: '2.3rem', marginBottom: '1rem', lineHeight: 1.2 }}>
-                Ready to Create an Exceptional Celebration Invitation?
-              </h2>
-
-              <p style={{ color: '#CBD5E1', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2rem' }}>
-                Submit your celebration requirements in under 3 minutes. Our internal team begins crafting your bespoke preview immediately, backed by our zero-payment-until-approved commitment.
-              </p>
-
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <button
-                  className="btn btn-gold btn-lg"
-                  onClick={() => onNavigate('wizard')}
-                >
-                  <Sparkles size={18} />
-                  <span>Start Your Order Now</span>
-                  <ArrowRight size={16} />
-                </button>
-
-                <a
-                  href="https://wa.me/919880768222?text=Hello%20TechMasters%2C%20I%20would%20like%20to%20enquire%20about%20a%20digital%20invitation."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-outline btn-lg"
-                  style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)', textDecoration: 'none' }}
-                >
-                  <MessageCircle size={18} />
-                  <span>Talk with an Artisan on WhatsApp</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Subtle decorative emblem */}
-            <div
-              style={{
-                position: 'absolute',
-                right: '-40px',
-                bottom: '-40px',
-                fontSize: '18rem',
-                opacity: 0.05,
-                color: '#FFFFFF',
-                pointerEvents: 'none',
-                userSelect: 'none',
-                fontFamily: 'var(--font-serif)',
-              }}
-            >
-              TM
-            </div>
           </div>
         </div>
       </section>

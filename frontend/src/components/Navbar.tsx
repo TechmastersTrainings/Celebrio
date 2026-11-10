@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TechMastersLogo } from './TechMastersLogo';
-import { Menu, X, Sparkles, Search, Compass, PhoneCall, LogIn, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Sparkles, Search, Compass, PhoneCall, LogIn, LayoutDashboard, Code } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
@@ -64,22 +64,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
           </button>
 
           <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'services')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            Services
-          </button>
-
-          <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'how-it-works')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            How It Works
-          </button>
-
-          <button
             className={`nav-link ${currentView === 'catalog' ? 'active' : ''}`}
             onClick={() => handleNavClick('catalog')}
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
@@ -88,11 +72,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
           </button>
 
           <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'contact')}
+            className={`nav-link ${currentView === 'tracking' ? 'active' : ''}`}
+            onClick={() => handleNavClick('tracking')}
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            Contact
+            Track Order
           </button>
         </nav>
 
@@ -117,18 +101,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             <span>Create Invitation</span>
           </button>
 
-          {/* Staff Login / Workspace */}
-          {staffUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* Staff Portals / Workspace (Visible only when logged in) */}
+          {staffUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              {staffUser.is_admin && (
+                <button
+                  className={`btn btn-sm ${currentView === 'admin' ? 'btn-primary' : 'btn-navy'}`}
+                  onClick={() => handleNavClick('admin')}
+                  title="Admin Superman Command Center"
+                >
+                  <LayoutDashboard size={14} />
+                  <span className="desktop-only">Admin Portal</span>
+                </button>
+              )}
               <button
-                className="btn btn-navy btn-sm"
-                onClick={() => handleNavClick(staffUser.is_admin ? 'admin' : 'workspace')}
-                title={`Logged in as ${staffUser.full_name || staffUser.email}`}
+                className={`btn btn-sm ${currentView === 'workspace' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => handleNavClick('workspace')}
+                title="Developer Workspace & Studio"
               >
-                <LayoutDashboard size={14} />
-                <span className="desktop-only">
-                  {staffUser.is_admin ? 'Admin Center' : 'Workspace'}
-                </span>
+                <Code size={14} />
+                <span className="desktop-only">Developer Portal</span>
               </button>
               <button
                 className="btn btn-outline btn-sm"
@@ -139,14 +131,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
                 Exit
               </button>
             </div>
-          ) : (
-            <button
-              className="btn btn-outline btn-sm desktop-only"
-              onClick={() => handleNavClick('dev-auth')}
-            >
-              <LogIn size={14} />
-              <span>Staff Login</span>
-            </button>
           )}
 
           {/* Mobile hamburger button */}
@@ -188,32 +172,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             Invitation Designs Gallery
           </button>
           <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'services')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
-          >
-            Services &amp; Offerings
-          </button>
-          <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'how-it-works')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
-          >
-            How It Works (Process)
-          </button>
-          <button
             className={`nav-link ${currentView === 'catalog' ? 'active' : ''}`}
             onClick={() => handleNavClick('catalog')}
             style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
           >
             Packages &amp; Pricing
-          </button>
-          <button
-            className="nav-link"
-            onClick={() => handleNavClick('home', 'contact')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
-          >
-            Contact &amp; Location (Bidar)
           </button>
 
           <hr style={{ borderColor: 'var(--border-subtle)', margin: '0.5rem 0' }} />
@@ -227,15 +190,32 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             Track Order with Mobile OTP
           </button>
 
-          {!staffUser && (
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleNavClick('dev-auth')}
-              style={{ width: '100%', justifyContent: 'center' }}
-            >
-              <LogIn size={14} />
-              Internal Staff &amp; Developer Sign In
-            </button>
+          {staffUser && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {staffUser.is_admin && (
+                <button
+                  className="btn btn-navy btn-sm"
+                  onClick={() => handleNavClick('admin')}
+                  style={{ width: '100%', justifyContent: 'center' }}
+                >
+                  <LayoutDashboard size={14} /> Admin Superman Control Center
+                </button>
+              )}
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => handleNavClick('workspace')}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                <Code size={14} /> Developer Studio Workspace
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={onLogout}
+                style={{ width: '100%', justifyContent: 'center' }}
+              >
+                Sign Out
+              </button>
+            </div>
           )}
         </div>
       )}

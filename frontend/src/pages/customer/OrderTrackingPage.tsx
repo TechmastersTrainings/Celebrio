@@ -495,8 +495,8 @@ export const OrderTrackingPage: React.FC<OrderTrackingPageProps> = ({
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.5rem' }}>
                   <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>Payable Amount:</span>
-                  <strong style={{ fontSize: '1.3rem', color: 'var(--burgundy-rich)' }}>
-                    ₹{order.total_amount_inr}
+                  <strong style={{ fontSize: '1.45rem', color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', letterSpacing: '-0.02em' }}>
+                    ₹{parseFloat(String(order.total_amount_inr)).toFixed(2)}
                   </strong>
                 </div>
               </div>

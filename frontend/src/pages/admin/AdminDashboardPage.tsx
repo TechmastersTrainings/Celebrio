@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
-import { AdminMetrics, TicketSummary, CentralActivityLogItem } from '../../types';
+import {
+  AdminMetrics,
+  TicketSummary,
+  CentralActivityLogItem,
+  AdminUserItem,
+  AdminPaymentItem,
+  AdminFinancialsData,
+} from '../../types';
 import {
   Sparkles,
   RefreshCw,
@@ -22,20 +29,55 @@ import {
   Eye,
   Send,
   Sliders,
-  Check
+  Check,
+  Trash2,
+  Edit3,
+  CreditCard,
+  TrendingUp,
+  TrendingDown,
+  PieChart,
+  PlusCircle,
+  ArrowRight,
+  X,
 } from 'lucide-react';
 
+type AdminTab =
+  | 'tickets'
+  | 'users'
+  | 'developers'
+  | 'payments'
+  | 'revenue'
+  | 'pnl'
+  | 'catalog'
+  | 'audit';
+
 export const AdminDashboardPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'queue' | 'developers' | 'catalog' | 'audit'>('queue');
+  const [activeTab, setActiveTab] = useState<AdminTab>('tickets');
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
+  const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [developers, setDevelopers] = useState<any[]>([]);
+  const [payments, setPayments] = useState<AdminPaymentItem[]>([]);
+  const [financials, setFinancials] = useState<AdminFinancialsData | null>(null);
   const [occasions, setOccasions] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<CentralActivityLogItem[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionMsg, setActionMsg] = useState<string | null>(null);
+
+  // Filters
+  const [ticketStatusFilter, setTicketStatusFilter] = useState<string>('ALL');
+  const [userSearchQuery, setUserSearchQuery] = useState<string>('');
+  const [userRoleFilter, setUserRoleFilter] = useState<string>('ALL');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('ALL');
+  const [auditModule, setAuditModule] = useState<string>('');
+
+  // Ticket Status Change Modal State
+  const [statusModalTicket, setStatusModalTicket] = useState<TicketSummary | null>(null);
+  const [targetStatus, setTargetStatus] = useState<string>('WORK_IN_PROGRESS');
+  const [statusReason, setStatusReason] = useState<string>('Admin status update');
+  const [statusWorkNotes, setStatusWorkNotes] = useState<string>('');
 
   // Reassignment Modal State
   const [reassignTicketId, setReassignTicketId] = useState<string | null>(null);
@@ -46,25 +88,48 @@ export const AdminDashboardPage: React.FC = () => {
   const [customSlug, setCustomSlug] = useState<string>('');
   const [graceDays, setGraceDays] = useState<number>(30);
 
-  // Audit filter state
-  const [auditModule, setAuditModule] = useState<string>('');
+  // Manual Payment Verification Modal State
+  const [showManualPayModal, setShowManualPayModal] = useState<boolean>(false);
+  const [manualPayOrderRef, setManualPayOrderRef] = useState<string>('');
+  const [manualPayMethod, setManualPayMethod] = useState<string>('UPI_OFFLINE');
+  const [manualPayNotes, setManualPayNotes] = useState<string>('Verified bank/UPI receipt');
+
+  // User Edit Modal State
+  const [editingUser, setEditingUser] = useState<AdminUserItem | null>(null);
+  const [editRole, setEditRole] = useState<string>('');
+  const [editActive, setEditActive] = useState<boolean>(true);
+  const [editPassword, setEditPassword] = useState<string>('');
+  const [editMaxTickets, setEditMaxTickets] = useState<number>(3);
+  const [editCanVideo, setEditCanVideo] = useState<boolean>(false);
+
+  // P&L Parameters
+  const [devPayoutPct, setDevPayoutPct] = useState<number>(35);
+  const [gatewayFeePct, setGatewayFeePct] = useState<number>(2);
+  const [fixedOverhead, setFixedOverhead] = useState<number>(1500);
 
   const loadAll = async () => {
     try {
       setLoading(true);
       setError(null);
-      const [m, t, devs, occs, logs] = await Promise.all([
-        ApiService.getAdminMetrics(),
-        ApiService.getAdminTickets(),
-        ApiService.getAdminDevelopers(),
-        ApiService.getOccasions(),
-        ApiService.getAuditLogs(),
+      const [m, t, u, devs, p, f, occs, logs] = await Promise.all([
+        ApiService.getAdminMetrics().catch(() => null),
+        ApiService.getAdminTickets().catch(() => []),
+        ApiService.getAdminUsers().catch(() => []),
+        ApiService.getAdminDevelopers().catch(() => []),
+        ApiService.getAdminPayments().catch(() => []),
+        ApiService.getAdminFinancials(devPayoutPct, gatewayFeePct, fixedOverhead).catch(() => null),
+        ApiService.getOccasions().catch(() => []),
+        ApiService.getAuditLogs().catch(() => []),
       ]);
-      setMetrics(m as AdminMetrics);
-      setTickets(t as TicketSummary[]);
-      setDevelopers(devs as any[]);
-      setOccasions(occs as any[]);
-      setAuditLogs(logs as CentralActivityLogItem[]);
+
+      if (m) setMetrics(m as AdminMetrics);
+      setTickets((t as TicketSummary[]) || []);
+      setUsers((u as AdminUserItem[]) || []);
+      setDevelopers((devs as any[]) || []);
+      setPayments((p as AdminPaymentItem[]) || []);
+      if (f) setFinancials(f as AdminFinancialsData);
+      setOccasions((occs as any[]) || []);
+      setAuditLogs((logs as CentralActivityLogItem[]) || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load Admin telemetry');
     } finally {
@@ -76,14 +141,49 @@ export const AdminDashboardPage: React.FC = () => {
     loadAll();
   }, []);
 
-  const handleDeveloperAction = async (userId: string, action: string, canVideo?: boolean, maxTickets?: number) => {
+  // Update Financials when P&L inputs change
+  const reloadFinancials = async (devPct: number, gwPct: number, overhead: number) => {
+    try {
+      const f: any = await ApiService.getAdminFinancials(devPct, gwPct, overhead);
+      if (f) setFinancials(f);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  // --- TICKET HANDLERS ---
+  const handleUpdateTicketStatus = async () => {
+    if (!statusModalTicket) return;
     try {
       setLoading(true);
-      const res: any = await ApiService.updateDeveloperStatus(userId, action, canVideo, maxTickets);
-      setActionMsg(res.message);
+      const res: any = await ApiService.updateAdminTicketStatus(
+        statusModalTicket.id,
+        targetStatus,
+        statusReason,
+        statusWorkNotes
+      );
+      setActionMsg(res.message || `Ticket moved to ${targetStatus}`);
+      setStatusModalTicket(null);
+      setStatusWorkNotes('');
       await loadAll();
     } catch (err: any) {
-      setError(err.message || 'Developer action failed');
+      setError(err.message || 'Failed to update ticket status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string, ticketNumber: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete ticket ${ticketNumber} and its order?`)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const res: any = await ApiService.deleteAdminTicket(ticketId);
+      setActionMsg(res.message || 'Ticket deleted');
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete ticket');
     } finally {
       setLoading(false);
     }
@@ -122,7 +222,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       setLoading(true);
       const res: any = await ApiService.authorizePublishing(publishOrderRef, customSlug || undefined, graceDays);
-      setActionMsg(res.message);
+      setActionMsg(res.message || 'Celebration published and live!');
       setPublishOrderRef(null);
       setCustomSlug('');
       await loadAll();
@@ -133,6 +233,93 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  // --- USER HANDLERS ---
+  const handleOpenEditUser = (u: AdminUserItem) => {
+    setEditingUser(u);
+    setEditRole(u.role);
+    setEditActive(u.is_active);
+    setEditPassword('');
+    setEditMaxTickets(u.developer_profile?.max_active_tickets || 3);
+    setEditCanVideo(u.developer_profile?.can_produce_video || false);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+    try {
+      setLoading(true);
+      const payload: any = {
+        role: editRole,
+        is_active: editActive,
+        max_active_tickets: editMaxTickets,
+        can_produce_video: editCanVideo,
+      };
+      if (editPassword.trim()) {
+        payload.password = editPassword.trim();
+      }
+      const res: any = await ApiService.updateAdminUser(editingUser.id, payload);
+      setActionMsg(res.message || 'User updated successfully');
+      setEditingUser(null);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (u: AdminUserItem) => {
+    if (!window.confirm(`Are you sure you want to delete user ${u.email || u.full_name}?`)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const res: any = await ApiService.deleteAdminUser(u.id);
+      setActionMsg(res.message || 'User deleted');
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete user');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- DEVELOPER GOVERNANCE HANDLERS ---
+  const handleDeveloperAction = async (userId: string, action: string, canVideo?: boolean, maxTickets?: number) => {
+    try {
+      setLoading(true);
+      const res: any = await ApiService.updateDeveloperStatus(userId, action, canVideo, maxTickets);
+      setActionMsg(res.message);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Developer action failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- PAYMENT HANDLERS ---
+  const handleManualMarkPaid = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualPayOrderRef.trim()) return;
+    try {
+      setLoading(true);
+      const res: any = await ApiService.markAdminPaymentPaid(
+        manualPayOrderRef.trim(),
+        manualPayMethod,
+        manualPayNotes
+      );
+      setActionMsg(res.message || `Payment verified for ${manualPayOrderRef}!`);
+      setShowManualPayModal(false);
+      setManualPayOrderRef('');
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to record manual payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- PRICING HANDLER ---
   const handlePriceUpdate = async (packageId: string, newPrice: number) => {
     try {
       setLoading(true);
@@ -146,12 +333,45 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  // Filtered Tickets
+  const filteredTickets = tickets.filter((t) => {
+    if (ticketStatusFilter === 'ALL') return true;
+    return t.status === ticketStatusFilter;
+  });
+
+  // Filtered Users
+  const filteredUsers = users.filter((u) => {
+    const matchesRole = userRoleFilter === 'ALL' || u.role === userRoleFilter;
+    const q = userSearchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      u.full_name.toLowerCase().includes(q) ||
+      (u.email && u.email.toLowerCase().includes(q)) ||
+      (u.phone_number && u.phone_number.includes(q));
+    return matchesRole && matchesSearch;
+  });
+
+  // Filtered Payments
+  const filteredPayments = payments.filter((p) => {
+    if (paymentStatusFilter === 'ALL') return true;
+    return p.status === paymentStatusFilter;
+  });
+
+  // Filtered Audit Logs
   const filteredLogs = auditModule
     ? auditLogs.filter((log) => log.module === auditModule)
     : auditLogs;
 
+  const activeDevUsers = users.filter(
+    (u) =>
+      u.role === 'DEV_ACTIVE' ||
+      u.role === 'DEV_VIDEO' ||
+      u.role === 'SUPER_ADMIN' ||
+      u.role === 'OPS_ADMIN'
+  );
+
   return (
-    <div style={{ maxWidth: '1240px', margin: '3rem auto 5rem', padding: '0 1.5rem' }}>
+    <div style={{ maxWidth: '1280px', margin: '2.5rem auto 5rem', padding: '0 1.5rem' }}>
       {/* Admin Title Bar */}
       <div
         style={{
@@ -165,17 +385,26 @@ export const AdminDashboardPage: React.FC = () => {
       >
         <div>
           <span className="editorial-kicker">TECHMASTERS INNOVATIONS &bull; CENTRAL GOVERNANCE</span>
-          <h1 style={{ fontSize: '2.2rem', color: 'var(--navy-deep)' }}>
-            Admin Operations Command Center
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
+            Admin Superman Control Center
           </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '2px' }}>
-            Bidar Operations &bull; Real-time queue supervision, developer approval, and immutable audit telemetry.
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', margin: 0 }}>
+            Unified Operations: Users &bull; Developers &bull; Tickets &bull; Payments &bull; Revenue &bull; Profit &amp; Loss
           </p>
         </div>
 
-        <button className="btn btn-outline btn-sm" onClick={loadAll}>
-          <RefreshCw size={14} /> Refresh Telemetry
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button
+            className="btn btn-navy btn-sm"
+            onClick={() => setShowManualPayModal(true)}
+            title="Record offline payment or verify order payment"
+          >
+            <CreditCard size={14} /> Record Payment
+          </button>
+          <button className="btn btn-outline btn-sm" onClick={loadAll} disabled={loading}>
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Telemetry
+          </button>
+        </div>
       </div>
 
       {actionMsg && (
@@ -223,65 +452,73 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* KPI Metrics Dashboard Cards */}
       {metrics && (
-        <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2.5rem' }}>
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+        <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
+          <div className="card" style={{ padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
               Total Orders
             </span>
-            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
               {metrics.total_orders}
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              {metrics.unassigned_fifo_queue} Unassigned &bull; {metrics.work_in_progress} In Progress
+              {metrics.unassigned_fifo_queue} In Queue &bull; {metrics.closed_tickets} Delivered
             </span>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', background: 'var(--bg-cream)', borderTop: '3px solid var(--gold-primary)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
-              Unassigned FIFO Queue
+          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid var(--gold-primary)' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+              Total Users
             </span>
-            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              {metrics.unassigned_fifo_queue}
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              {users.length}
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              Available for developer self-claim
+              {metrics.active_developers} Active Devs &bull; {metrics.pending_developer_approvals} Pending
             </span>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
-              Ready for Publication
+          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #166534' }}>
+            <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+              Gross Revenue (Settled)
             </span>
-            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              {metrics.payment_done}
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#166534', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              ₹{metrics.total_revenue_inr}
             </div>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              Payment completed; requires Admin authorization
+              {metrics.payment_done + metrics.closed_tickets} Paid Orders
             </span>
           </div>
 
-          <div className="card" style={{ padding: '1.5rem', background: '#F0FDF4', border: '1px solid #BBF7D0' }}>
-            <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
-              Verified Revenue
+          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #0284C7' }}>
+            <span style={{ fontSize: '0.75rem', color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+              Estimated Net Profit
             </span>
-            <div style={{ fontSize: '2.2rem', fontWeight: 700, color: '#15803D', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              ₹{parseFloat(metrics.total_revenue_inr).toFixed(0)}
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0284C7', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+              ₹{financials?.profit_and_loss.net_profit_inr || '0.00'}
             </div>
-            <span style={{ fontSize: '0.78rem', color: '#166534', marginTop: '4px', display: 'block' }}>
-              {metrics.active_developers} Active Developers on duty
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+              Margin: {financials?.profit_and_loss.net_profit_margin_pct || '0.0'}%
             </span>
           </div>
         </div>
       )}
 
       {/* Admin Module Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem' }}>
+      <div style={{ display: 'flex', gap: '0.35rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button
-          className={`btn btn-sm ${activeTab === 'queue' ? 'btn-primary' : 'btn-outline'}`}
+          className={`btn btn-sm ${activeTab === 'tickets' ? 'btn-primary' : 'btn-outline'}`}
           style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('queue')}
+          onClick={() => setActiveTab('tickets')}
         >
-          Queue &amp; Ticket Operations ({tickets.length})
+          <Layers size={14} /> Tickets ({tickets.length})
+        </button>
+
+        <button
+          className={`btn btn-sm ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+          onClick={() => setActiveTab('users')}
+        >
+          <Users size={14} /> User Management ({users.length})
         </button>
 
         <button
@@ -289,7 +526,31 @@ export const AdminDashboardPage: React.FC = () => {
           style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('developers')}
         >
-          Developer Governance &amp; Approvals ({developers.length})
+          <UserCheck size={14} /> Developer Management ({developers.length})
+        </button>
+
+        <button
+          className={`btn btn-sm ${activeTab === 'payments' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+          onClick={() => setActiveTab('payments')}
+        >
+          <CreditCard size={14} /> Payment Management ({payments.length})
+        </button>
+
+        <button
+          className={`btn btn-sm ${activeTab === 'revenue' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+          onClick={() => setActiveTab('revenue')}
+        >
+          <DollarSign size={14} /> Revenue Telemetry
+        </button>
+
+        <button
+          className={`btn btn-sm ${activeTab === 'pnl' ? 'btn-primary' : 'btn-outline'}`}
+          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+          onClick={() => setActiveTab('pnl')}
+        >
+          <TrendingUp size={14} /> Profit &amp; Loss (P&amp;L)
         </button>
 
         <button
@@ -297,7 +558,7 @@ export const AdminDashboardPage: React.FC = () => {
           style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('catalog')}
         >
-          Catalog &amp; Dynamic Pricing
+          <Sliders size={14} /> Catalog &amp; Pricing
         </button>
 
         <button
@@ -305,89 +566,149 @@ export const AdminDashboardPage: React.FC = () => {
           style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
           onClick={() => setActiveTab('audit')}
         >
-          Central Immutable Audit Trail ({auditLogs.length})
+          <FileText size={14} /> Audit Trail ({auditLogs.length})
         </button>
       </div>
 
       {/* =========================================================================
-          TAB 1: QUEUE & TICKET OPERATIONS
+          TAB 1: TICKET MANAGEMENT & OPERATIONS
           ========================================================================= */}
-      {activeTab === 'queue' && (
+      {activeTab === 'tickets' && (
         <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              {['ALL', 'NEW_OPEN', 'ASSIGNED', 'WORK_IN_PROGRESS', 'AWAITING_CUSTOMER_RESPONSE', 'AWAITING_PAYMENT', 'PAYMENT_DONE', 'CLOSED'].map((st) => (
+                <button
+                  key={st}
+                  className={`btn btn-sm ${ticketStatusFilter === st ? 'btn-navy' : 'btn-outline'}`}
+                  onClick={() => setTicketStatusFilter(st)}
+                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem' }}
+                >
+                  {st.replace(/_/g, ' ')}
+                </button>
+              ))}
+            </div>
+
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Showing {filteredTickets.length} of {tickets.length} tickets
+            </span>
+          </div>
+
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Ticket / Order Ref</th>
-                  <th>Occasion</th>
+                  <th>Ticket / Order</th>
+                  <th>Occasion &amp; Package</th>
                   <th>Customer</th>
                   <th>Status</th>
-                  <th>Assigned Artisan</th>
-                  <th>Actions &amp; Authorization</th>
+                  <th>Assigned Developer</th>
+                  <th>Superman Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {tickets.map((t) => (
+                {filteredTickets.map((t) => (
                   <tr key={t.id}>
                     <td>
-                      <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1.05rem' }}>
+                      <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1rem' }}>
                         {t.ticket_number}
                       </strong>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.order_reference || t.ticket_number}</div>
                     </td>
-                    <td>{t.occasion_name || t.occasion}</td>
+                    <td>
+                      <div><strong>{t.occasion_name || t.occasion}</strong></div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t.package_name}</div>
+                    </td>
                     <td>{t.customer_name}</td>
                     <td>
-                      <span className={`badge ${t.status === 'DELIVERED' ? 'badge-published' : 'badge-wip'}`}>
+                      <span className={`badge ${t.status === 'CLOSED' ? 'badge-published' : t.status === 'PAYMENT_DONE' ? 'badge-approved' : 'badge-wip'}`}>
                         {t.status}
                       </span>
                     </td>
                     <td>
                       {t.assigned_developer ? (
-                        <strong>{t.assigned_developer}</strong>
+                        <strong>{t.assigned_developer_name || t.assigned_developer}</strong>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned (In FIFO)</span>
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned (In Queue)</span>
                       )}
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-                        {/* Authorize publication if payment done */}
-                        {t.status === 'PAYMENT_DONE' && (
-                          <button
-                            className="btn btn-gold btn-sm"
-                            onClick={() => {
-                              setPublishOrderRef(t.order_reference || t.ticket_number);
-                              setCustomSlug(t.customer_name.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-celebration');
-                            }}
-                          >
-                            Authorize Publication
-                          </button>
-                        )}
-
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {/* Quick Change Status */}
                         <button
-                          className="btn btn-outline btn-sm"
+                          className="btn btn-navy btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
                           onClick={() => {
-                            setReassignTicketId(t.id);
-                            const firstDev = developers.find((d) => d.is_approved);
-                            if (firstDev) setTargetDevId(firstDev.id);
+                            setStatusModalTicket(t);
+                            setTargetStatus(t.status);
+                            setStatusReason('Admin manual status override');
                           }}
+                          title="Override ticket status directly"
                         >
-                          Reassign
+                          <Edit3 size={13} /> Change Status
                         </button>
 
+                        {/* Reassign / Assign */}
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                          onClick={() => {
+                            setReassignTicketId(t.id);
+                            setTargetDevId(activeDevUsers[0]?.id || '');
+                          }}
+                          title="Assign or reassign developer"
+                        >
+                          <Users size={13} /> Reassign
+                        </button>
+
+                        {/* Release if assigned */}
                         {t.assigned_developer && (
                           <button
                             className="btn btn-outline btn-sm"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', color: '#B45309' }}
                             onClick={() => handleRelease(t.id)}
-                            title="Return ticket to available FIFO queue"
+                            title="Release back to unassigned FIFO queue"
                           >
                             Release
                           </button>
                         )}
+
+                        {/* Authorize Publishing if Payment Done */}
+                        {(t.status === 'PAYMENT_DONE' || t.status === 'CLOSED') && (
+                          <button
+                            className="btn btn-gold btn-sm"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                            onClick={() => {
+                              setPublishOrderRef(t.order_reference || t.ticket_number);
+                              setCustomSlug('');
+                            }}
+                            title="Authorize live celebration URL and QR code"
+                          >
+                            <Sparkles size={13} /> Publish Live
+                          </button>
+                        )}
+
+                        {/* Delete Ticket */}
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.5rem', color: 'var(--color-danger)' }}
+                          onClick={() => handleDeleteTicket(t.id, t.ticket_number)}
+                          title="Delete ticket & order"
+                        >
+                          <Trash2 size={13} />
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+
+                {filteredTickets.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                      No tickets matching this status filter. Submit an order from the website to test!
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -395,7 +716,125 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB 2: DEVELOPER GOVERNANCE & APPROVALS
+          TAB 2: USER MANAGEMENT
+          ========================================================================= */}
+      {activeTab === 'users' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: '260px' }}>
+                <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  className="form-control"
+                  style={{ paddingLeft: '32px', fontSize: '0.85rem' }}
+                  placeholder="Search name, email, phone..."
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <select
+                className="form-control"
+                style={{ width: '180px', fontSize: '0.85rem' }}
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+              >
+                <option value="ALL">All Roles</option>
+                <option value="SUPER_ADMIN">Super Administrator</option>
+                <option value="OPS_ADMIN">Operations Administrator</option>
+                <option value="DEV_ACTIVE">Approved Developer</option>
+                <option value="DEV_VIDEO">Video Specialist</option>
+                <option value="DEV_PENDING">Pending Developer</option>
+                <option value="AUTH_CUSTOMER">Verified Customer</option>
+                <option value="ANON_GUEST">Guest User</option>
+              </select>
+            </div>
+
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Total Users: {filteredUsers.length}
+            </span>
+          </div>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>User / Name</th>
+                  <th>Email &amp; Mobile</th>
+                  <th>Role</th>
+                  <th>Staff / Superuser</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((u) => (
+                  <tr key={u.id}>
+                    <td>
+                      <strong>{u.full_name}</strong>
+                    </td>
+                    <td>
+                      <div>{u.email || <span style={{ color: 'var(--text-muted)' }}>No Email</span>}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{u.phone_number || ''}</div>
+                    </td>
+                    <td>
+                      <span className={`badge ${u.role === 'SUPER_ADMIN' ? 'badge-primary' : u.role === 'DEV_ACTIVE' ? 'badge-approved' : 'badge-wip'}`}>
+                        {u.role_display || u.role}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.8rem' }}>
+                        {u.is_superuser ? 'Superuser 🛡️' : u.is_staff ? 'Staff Member' : 'Regular User'}
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ color: u.is_active ? '#166534' : 'var(--color-danger)', fontWeight: 600 }}>
+                        {u.is_active ? '● Active' : '○ Inactive'}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                          className="btn btn-navy btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                          onClick={() => handleOpenEditUser(u)}
+                          title="Edit user role, active status, and password"
+                        >
+                          <Edit3 size={13} /> Edit
+                        </button>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.5rem', color: 'var(--color-danger)' }}
+                          onClick={() => handleDeleteUser(u)}
+                          title="Delete user"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredUsers.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      No users match your search query.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 3: DEVELOPER GOVERNANCE & APPROVALS
           ========================================================================= */}
       {activeTab === 'developers' && (
         <div>
@@ -403,12 +842,12 @@ export const AdminDashboardPage: React.FC = () => {
             <table>
               <thead>
                 <tr>
-                  <th>Developer Name</th>
-                  <th>Email</th>
+                  <th>Developer</th>
                   <th>Approval Status</th>
-                  <th>Active Tickets</th>
-                  <th>Video Production</th>
-                  <th>Administrative Controls</th>
+                  <th>Capabilities</th>
+                  <th>Active Workload Quota</th>
+                  <th>Skills &amp; Portfolio</th>
+                  <th>Governance Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -416,50 +855,104 @@ export const AdminDashboardPage: React.FC = () => {
                   <tr key={dev.id}>
                     <td>
                       <strong>{dev.full_name}</strong>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dev.email}</div>
                     </td>
-                    <td>{dev.email}</td>
                     <td>
-                      <span className={`badge ${dev.is_approved ? 'badge-published' : 'badge-awaiting'}`}>
-                        {dev.approval_status || (dev.is_approved ? 'APPROVED' : 'PENDING')}
+                      <span
+                        className={`badge ${
+                          dev.developer_profile?.approval_status === 'APPROVED_ACTIVE'
+                            ? 'badge-approved'
+                            : dev.developer_profile?.approval_status === 'PENDING_APPROVAL'
+                            ? 'badge-pending'
+                            : 'badge-rejected'
+                        }`}
+                      >
+                        {dev.developer_profile?.approval_status || 'PENDING'}
                       </span>
                     </td>
                     <td>
-                      {dev.active_tickets_count} / {dev.max_active_tickets || 3}
+                      <span style={{ fontSize: '0.8rem' }}>
+                        {dev.developer_profile?.can_produce_video ? '🎬 Video Specialist' : '🎨 Graphic & Web'}
+                      </span>
                     </td>
                     <td>
-                      <span className={`badge ${dev.can_produce_video ? 'badge-published' : 'badge-closed'}`}>
-                        {dev.can_produce_video ? 'Authorized' : 'Restricted'}
-                      </span>
+                      <strong>{dev.developer_profile?.max_active_tickets || 3} tickets max</strong>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        {dev.developer_profile?.skills?.join(', ') || 'Standard Digital Invitation Crafting'}
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                        {!dev.is_approved ? (
+                        {dev.developer_profile?.approval_status !== 'APPROVED_ACTIVE' && (
                           <button
                             className="btn btn-primary btn-sm"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#166534', borderColor: '#166534' }}
                             onClick={() => handleDeveloperAction(dev.id, 'APPROVE')}
                           >
-                            <UserCheck size={14} /> Approve Access
+                            <Check size={13} /> Approve
                           </button>
-                        ) : (
-                          <>
-                            <button
-                              className="btn btn-outline btn-sm"
-                              onClick={() => handleDeveloperAction(dev.id, 'SUSPEND')}
-                            >
-                              <UserX size={14} /> Suspend
-                            </button>
-                            <button
-                              className="btn btn-outline btn-sm"
-                              onClick={() => handleDeveloperAction(dev.id, 'TOGGLE_VIDEO', !dev.can_produce_video)}
-                            >
-                              <Video size={14} /> {dev.can_produce_video ? 'Revoke Video' : 'Grant Video'}
-                            </button>
-                          </>
                         )}
+
+                        {dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' && (
+                          <button
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', color: '#B45309' }}
+                            onClick={() => handleDeveloperAction(dev.id, 'SUSPEND')}
+                          >
+                            Suspend
+                          </button>
+                        )}
+
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                          onClick={() => {
+                            const newCap = prompt(
+                              `Set max active tickets for ${dev.full_name}:`,
+                              dev.developer_profile?.max_active_tickets || 3
+                            );
+                            if (newCap && !isNaN(parseInt(newCap))) {
+                              handleDeveloperAction(
+                                dev.id,
+                                dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' ? 'APPROVE' : 'UPDATE',
+                                dev.developer_profile?.can_produce_video,
+                                parseInt(newCap)
+                              );
+                            }
+                          }}
+                        >
+                          Quota
+                        </button>
+
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
+                          onClick={() => {
+                            const toggleVideo = !dev.developer_profile?.can_produce_video;
+                            handleDeveloperAction(
+                              dev.id,
+                              dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' ? 'APPROVE' : 'UPDATE',
+                              toggleVideo,
+                              dev.developer_profile?.max_active_tickets
+                            );
+                          }}
+                        >
+                          <Video size={13} /> Toggle Video
+                        </button>
                       </div>
                     </td>
                   </tr>
                 ))}
+
+                {developers.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      No developer applications found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -467,55 +960,422 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB 3: CATALOG & DYNAMIC PRICING CONFIGURATION
+          TAB 4: PAYMENT MANAGEMENT
           ========================================================================= */}
-      {activeTab === 'catalog' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)', padding: '1.5rem' }}>
-            <span className="editorial-kicker">PRICING GOVERNANCE</span>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.35rem' }}>Dynamic Package Pricing</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
-              Prices are never hardcoded. Changes take effect instantly in the customer order wizard with immutable audit tracking.
-            </p>
+      {activeTab === 'payments' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
+              {['ALL', 'PAID', 'CREATED', 'FAILED'].map((st) => (
+                <button
+                  key={st}
+                  className={`btn btn-sm ${paymentStatusFilter === st ? 'btn-navy' : 'btn-outline'}`}
+                  onClick={() => setPaymentStatusFilter(st)}
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => setShowManualPayModal(true)}
+            >
+              <PlusCircle size={14} /> Record / Verify Payment
+            </button>
           </div>
 
-          <div className="grid grid-cols-2">
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Order Reference</th>
+                  <th>Customer</th>
+                  <th>Occasion &amp; Package</th>
+                  <th>Amount (INR)</th>
+                  <th>Status</th>
+                  <th>Gateway Details</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredPayments.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)' }}>
+                        {p.order_reference}
+                      </strong>
+                    </td>
+                    <td>
+                      <div><strong>{p.customer_name}</strong></div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.customer_email || p.customer_phone}</div>
+                    </td>
+                    <td>
+                      <div>{p.occasion}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.package_name}</div>
+                    </td>
+                    <td>
+                      <strong style={{ fontSize: '1.05rem', color: p.status === 'PAID' ? '#166534' : 'inherit' }}>
+                        ₹{p.amount_inr}
+                      </strong>
+                    </td>
+                    <td>
+                      <span className={`badge ${p.status === 'PAID' ? 'badge-approved' : 'badge-pending'}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.78rem' }}><strong>{p.gateway_provider}</strong></div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        Order: {p.gateway_order_id}
+                        {p.gateway_payment_id && ` | Pay: ${p.gateway_payment_id}`}
+                      </div>
+                    </td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {new Date(p.created_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+
+                {filteredPayments.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                      No payment records found. Payments completed by users or marked via "Record Payment" appear here.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 5: REVENUE TELEMETRY
+          ========================================================================= */}
+      {activeTab === 'revenue' && financials && (
+        <div>
+          <div className="grid grid-cols-3" style={{ gap: '1.25rem', marginBottom: '2rem' }}>
+            <div className="card" style={{ padding: '1.5rem', borderTop: '3px solid #166534' }}>
+              <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
+                Total Gross Revenue
+              </span>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: '#166534', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                ₹{financials.revenue.gross_revenue_inr}
+              </div>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
+                Collected across all completed transactions
+              </span>
+            </div>
+
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+                Paid Order Volume
+              </span>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                {financials.revenue.paid_orders_count}
+              </div>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
+                Orders settled via payment gateway or manual approval
+              </span>
+            </div>
+
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>
+                Average Order Value (AOV)
+              </span>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                ₹{financials.revenue.average_order_value_inr}
+              </div>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '6px', display: 'block' }}>
+                Revenue per settled celebration package
+              </span>
+            </div>
+          </div>
+
+          {/* Revenue Breakdown */}
+          <div className="grid grid-cols-2" style={{ gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', color: 'var(--navy-deep)' }}>
+                Revenue by Occasion Category
+              </h3>
+              {financials.revenue.by_occasion.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {financials.revenue.by_occasion.map((item) => (
+                    <div key={item.occasion} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                      <strong>{item.occasion}</strong>
+                      <span style={{ fontWeight: 700, color: '#166534' }}>₹{item.amount_inr}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No settled transactions recorded yet.</p>
+              )}
+            </div>
+
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', marginBottom: '1.25rem', color: 'var(--navy-deep)' }}>
+                Revenue by Package Tier
+              </h3>
+              {financials.revenue.by_package.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  {financials.revenue.by_package.map((item) => (
+                    <div key={item.package} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                      <strong>{item.package}</strong>
+                      <span style={{ fontWeight: 700, color: '#166534' }}>₹{item.amount_inr}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No settled transactions recorded yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          <div className="card" style={{ padding: '1.5rem' }}>
+            <h3 style={{ fontSize: '1.15rem', marginBottom: '1rem', color: 'var(--navy-deep)' }}>
+              Recent Settled Transactions
+            </h3>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Payment ID</th>
+                    <th>Order Reference</th>
+                    <th>Customer</th>
+                    <th>Occasion</th>
+                    <th>Settled Amount</th>
+                    <th>Verified At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {financials.revenue.recent_transactions.map((tx) => (
+                    <tr key={tx.id}>
+                      <td style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>{tx.gateway_payment_id}</td>
+                      <td><strong>{tx.order_reference}</strong></td>
+                      <td>{tx.customer_name}</td>
+                      <td>{tx.occasion}</td>
+                      <td style={{ fontWeight: 700, color: '#166534' }}>₹{tx.amount_inr}</td>
+                      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{new Date(tx.verified_at).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {financials.revenue.recent_transactions.length === 0 && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '1.5rem', color: 'var(--text-muted)' }}>
+                        No transactions recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 6: PROFIT AND LOSS (P&L) STATEMENT
+          ========================================================================= */}
+      {activeTab === 'pnl' && financials && (
+        <div>
+          {/* P&L Cost Assumption Controls */}
+          <div className="card" style={{ padding: '1.25rem 1.5rem', marginBottom: '1.75rem', background: 'var(--bg-cream)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+              <span className="editorial-kicker">FINANCIAL MARGIN MODELING &bull; ADJUSTABLE PARAMETERS</span>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => reloadFinancials(devPayoutPct, gatewayFeePct, fixedOverhead)}
+              >
+                Recalculate Statement
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3" style={{ gap: '1rem' }}>
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem' }}>Developer Compensation Payout (%)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={devPayoutPct}
+                  onChange={(e) => setDevPayoutPct(parseFloat(e.target.value) || 0)}
+                  min={0}
+                  max={100}
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem' }}>Gateway Processing Fee (%)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={gatewayFeePct}
+                  onChange={(e) => setGatewayFeePct(parseFloat(e.target.value) || 0)}
+                  min={0}
+                  max={10}
+                  step={0.1}
+                />
+              </div>
+
+              <div>
+                <label className="form-label" style={{ fontSize: '0.8rem' }}>Fixed Monthly Overhead (₹ Server/Domain)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={fixedOverhead}
+                  onChange={(e) => setFixedOverhead(parseFloat(e.target.value) || 0)}
+                  min={0}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Formal P&L Statement Card */}
+          <div className="card" style={{ padding: '2rem' }}>
+            <div style={{ borderBottom: '2px solid var(--border-subtle)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.6rem', color: 'var(--navy-deep)', margin: 0, fontFamily: 'var(--font-serif)' }}>
+                TechMasters Digital Celebrations &bull; Profit &amp; Loss Statement
+              </h2>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Bidar Operations &bull; Real-time GAAP/ITIL synchronized ledger
+              </span>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
+              <tbody>
+                {/* 1. REVENUE */}
+                <tr style={{ background: '#F8FAFC' }}>
+                  <td style={{ padding: '0.85rem', fontWeight: 700, fontSize: '1.05rem', color: 'var(--navy-deep)' }}>
+                    1. GROSS OPERATING REVENUE
+                  </td>
+                  <td style={{ padding: '0.85rem', textAlign: 'right', fontWeight: 700, fontSize: '1.1rem', color: '#166534' }}>
+                    ₹{financials.profit_and_loss.gross_revenue_inr}
+                  </td>
+                </tr>
+
+                {/* 2. COGS */}
+                <tr>
+                  <td style={{ padding: '0.85rem 0.85rem 0.35rem', fontWeight: 600, color: '#B91C1C' }}>
+                    2. COST OF GOODS SOLD (COGS) &bull; DIRECT DELIVERY
+                  </td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.35rem 1.5rem', color: 'var(--text-muted)' }}>
+                    &bull; Developer &amp; Artisan Payout ({financials.profit_and_loss.cogs.dev_payout_pct}%)
+                  </td>
+                  <td style={{ padding: '0.35rem 0.85rem', textAlign: 'right', color: '#B91C1C' }}>
+                    - ₹{financials.profit_and_loss.cogs.developer_payouts_inr}
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.35rem 1.5rem', color: 'var(--text-muted)' }}>
+                    &bull; Payment Gateway Processing Fees ({financials.profit_and_loss.cogs.gateway_fee_pct}%)
+                  </td>
+                  <td style={{ padding: '0.35rem 0.85rem', textAlign: 'right', color: '#B91C1C' }}>
+                    - ₹{financials.profit_and_loss.cogs.gateway_processing_fees_inr}
+                  </td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '0.35rem 1.5rem', color: 'var(--text-muted)' }}>
+                    &bull; Cloudflare R2 Media Vault &amp; SMS Gateway Delivery (₹50/order)
+                  </td>
+                  <td style={{ padding: '0.35rem 0.85rem', textAlign: 'right', color: '#B91C1C' }}>
+                    - ₹{financials.profit_and_loss.cogs.cloud_and_sms_delivery_inr}
+                  </td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '0.5rem 1.5rem 0.85rem', fontWeight: 600, color: 'var(--text-body)' }}>
+                    Total Direct Delivery Costs (COGS)
+                  </td>
+                  <td style={{ padding: '0.5rem 0.85rem 0.85rem', textAlign: 'right', fontWeight: 600, color: '#B91C1C' }}>
+                    - ₹{financials.profit_and_loss.cogs.total_cogs_inr}
+                  </td>
+                </tr>
+
+                {/* 3. GROSS PROFIT */}
+                <tr style={{ background: '#F0FDF4', borderBottom: '2px solid #BBF7D0' }}>
+                  <td style={{ padding: '0.85rem', fontWeight: 700, fontSize: '1.05rem', color: '#166534' }}>
+                    3. GROSS PROFIT (Gross Revenue - COGS)
+                  </td>
+                  <td style={{ padding: '0.85rem', textAlign: 'right', fontWeight: 700, fontSize: '1.15rem', color: '#166534' }}>
+                    ₹{financials.profit_and_loss.gross_profit_inr}
+                  </td>
+                </tr>
+
+                {/* 4. OPEX */}
+                <tr>
+                  <td style={{ padding: '0.85rem 0.85rem 0.35rem', fontWeight: 600, color: '#B91C1C' }}>
+                    4. OPERATING EXPENSES (OpEx)
+                  </td>
+                  <td></td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  <td style={{ padding: '0.35rem 1.5rem 0.85rem', color: 'var(--text-muted)' }}>
+                    &bull; Vercel Server, Infrastructure, Domains &amp; Maintenance
+                  </td>
+                  <td style={{ padding: '0.35rem 0.85rem 0.85rem', textAlign: 'right', color: '#B91C1C' }}>
+                    - ₹{financials.profit_and_loss.opex.fixed_server_and_maintenance_inr}
+                  </td>
+                </tr>
+
+                {/* 5. NET PROFIT */}
+                <tr style={{ background: '#EFF6FF', borderTop: '2px solid #93C5FD' }}>
+                  <td style={{ padding: '1rem 0.85rem', fontWeight: 800, fontSize: '1.2rem', color: '#1E40AF' }}>
+                    5. NET OPERATING PROFIT (EBITDA)
+                  </td>
+                  <td style={{ padding: '1rem 0.85rem', textAlign: 'right', fontWeight: 800, fontSize: '1.35rem', color: '#1E40AF' }}>
+                    ₹{financials.profit_and_loss.net_profit_inr}
+                  </td>
+                </tr>
+
+                <tr style={{ background: '#F8FAFC' }}>
+                  <td style={{ padding: '0.65rem 0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                    Net Profit Margin
+                  </td>
+                  <td style={{ padding: '0.65rem 0.85rem', textAlign: 'right', fontWeight: 700, color: '#1E40AF' }}>
+                    {financials.profit_and_loss.net_profit_margin_pct}%
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 7: CATALOG & PRICING
+          ========================================================================= */}
+      {activeTab === 'catalog' && (
+        <div>
+          <div className="grid grid-cols-2" style={{ gap: '1.5rem' }}>
             {occasions.map((occ) => (
-              <div key={occ.id} className="editorial-card" style={{ padding: '2rem' }}>
-                <h3 style={{ fontSize: '1.35rem', color: 'var(--navy-deep)', marginBottom: '1.25rem' }}>
-                  {occ.display_name}
-                </h3>
+              <div key={occ.id} className="card" style={{ padding: '1.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', margin: 0, color: 'var(--navy-deep)' }}>
+                    {occ.display_name}
+                  </h3>
+                  <span className="badge badge-primary">{occ.packages?.length || 0} Tiers</span>
+                </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   {occ.packages?.map((pkg: any) => (
-                    <div
-                      key={pkg.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '0.85rem 1rem',
-                        background: 'var(--bg-champagne)',
-                        borderRadius: 'var(--radius-sm)',
-                      }}
-                    >
+                    <div key={pkg.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-ivory)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)' }}>
                       <div>
                         <strong>{pkg.name}</strong>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block' }}>
-                          Code: {pkg.code}
-                        </span>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pkg.code} &bull; {pkg.included_revisions} revisions</div>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--burgundy-rich)' }}>
-                          ₹{pkg.base_price_inr}
-                        </span>
+                        <strong style={{ fontSize: '1.1rem', color: 'var(--burgundy-rich)' }}>₹{pkg.base_price_inr}</strong>
                         <button
                           className="btn btn-outline btn-sm"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                           onClick={() => {
-                            const newP = prompt(`Enter new price in INR for ${pkg.name}:`, String(pkg.base_price_inr));
-                            if (newP && !isNaN(Number(newP))) {
-                              handlePriceUpdate(pkg.id, Number(newP));
+                            const newPrice = prompt(`Enter new price in INR for ${pkg.name}:`, pkg.base_price_inr);
+                            if (newPrice && !isNaN(parseFloat(newPrice))) {
+                              handlePriceUpdate(pkg.id, parseFloat(newPrice));
                             }
                           }}
                         >
@@ -532,27 +1392,21 @@ export const AdminDashboardPage: React.FC = () => {
       )}
 
       {/* =========================================================================
-          TAB 4: CENTRAL IMMUTABLE AUDIT TRAIL
+          TAB 8: CENTRAL AUDIT TRAIL
           ========================================================================= */}
       {activeTab === 'audit' && (
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-            <div>
-              <span className="editorial-kicker">DATABASE-LEVEL IMMUTABLE LOG</span>
-              <h3 style={{ fontSize: '1.35rem' }}>Audit Telemetry</h3>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {['', 'CATALOG', 'TICKETS', 'ASSIGNMENT', 'ACCOUNTS', 'PUBLISHING', 'PAYMENT'].map((mod) => (
-                <button
-                  key={mod}
-                  className={`btn btn-sm ${auditModule === mod ? 'btn-primary' : 'btn-outline'}`}
-                  onClick={() => setAuditModule(mod)}
-                >
-                  {mod || 'All Modules'}
-                </button>
-              ))}
-            </div>
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            {['', 'ACCOUNTS', 'ORDERS', 'TICKETS', 'ASSIGNMENTS', 'DESIGNS', 'PAYMENTS', 'PUBLISHING'].map((mod) => (
+              <button
+                key={mod}
+                className={`btn btn-sm ${auditModule === mod ? 'btn-navy' : 'btn-outline'}`}
+                onClick={() => setAuditModule(mod)}
+                style={{ fontSize: '0.75rem' }}
+              >
+                {mod || 'ALL MODULES'}
+              </button>
+            ))}
           </div>
 
           <div className="table-container">
@@ -560,87 +1414,110 @@ export const AdminDashboardPage: React.FC = () => {
               <thead>
                 <tr>
                   <th>Timestamp</th>
-                  <th>Actor</th>
                   <th>Module</th>
                   <th>Action</th>
-                  <th>Remarks &amp; State Diff</th>
+                  <th>Actor</th>
+                  <th>Role</th>
+                  <th>IP Address</th>
+                  <th>Remarks / Diff</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredLogs.map((log) => (
                   <tr key={log.id}>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
-                    <td>
-                      <strong>{log.actor_name || log.actor_email}</strong>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>{log.actor_role}</span>
-                    </td>
-                    <td>
-                      <span className="badge badge-assigned">{log.module}</span>
-                    </td>
-                    <td>
-                      <strong>{log.action}</strong>
-                    </td>
-                    <td style={{ fontSize: '0.86rem', color: 'var(--text-body)' }}>
-                      {log.remarks}
-                      {log.new_value && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Diff: <code>{JSON.stringify(log.new_value)}</code>
-                        </div>
-                      )}
-                    </td>
+                    <td><span className="badge badge-wip">{log.module}</span></td>
+                    <td><strong>{log.action}</strong></td>
+                    <td>{log.actor_name || 'System'}</td>
+                    <td><span style={{ fontSize: '0.75rem' }}>{log.actor_role}</span></td>
+                    <td style={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>{log.ip_address || 'Internal'}</td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-body)' }}>{log.remarks || JSON.stringify(log.new_value)}</td>
                   </tr>
                 ))}
+                {filteredLogs.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      No audit events recorded for this module filter.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* Publishing Authorization Modal */}
-      {publishOrderRef && (
-        <div className="modal-backdrop" onClick={() => setPublishOrderRef(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-cream)' }}>
-              <span className="editorial-kicker">FINAL RELEASE GATE</span>
-              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Authorize Public Invitation Release</h3>
+      {/* =========================================================================
+          MODAL 1: TICKET STATUS OVERRIDE
+          ========================================================================= */}
+      {statusModalTicket && (
+        <div className="modal-backdrop" onClick={() => setStatusModalTicket(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)' }}>
+                Admin Ticket Status Override
+              </h3>
+              <button onClick={() => setStatusModalTicket(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
             </div>
 
-            <div style={{ padding: '1.75rem' }}>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.6 }}>
-                Authorizing publication for order <strong>{publishOrderRef}</strong> will generate the live public invitation URL on your neutral host and unlock print-ready 300 DPI deliverables.
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+                Ticket: <strong>{statusModalTicket.ticket_number}</strong> ({statusModalTicket.customer_name})<br />
+                Current Status: <span className="badge badge-wip">{statusModalTicket.status}</span>
               </p>
 
               <div className="form-group">
-                <label className="form-label">Custom Invitation Slug</label>
+                <label className="form-label">New Target Status *</label>
+                <select
+                  className="form-control"
+                  value={targetStatus}
+                  onChange={(e) => setTargetStatus(e.target.value)}
+                >
+                  <option value="NEW_OPEN">NEW_OPEN (New / Open)</option>
+                  <option value="ASSIGNED">ASSIGNED (Assigned to Dev)</option>
+                  <option value="WORK_IN_PROGRESS">WORK_IN_PROGRESS (Designing)</option>
+                  <option value="INTERNAL_REVIEW">INTERNAL_REVIEW (Quality Review)</option>
+                  <option value="AWAITING_CUSTOMER_RESPONSE">AWAITING_CUSTOMER_RESPONSE (Preview Ready)</option>
+                  <option value="AWAITING_PAYMENT">AWAITING_PAYMENT (Design Approved)</option>
+                  <option value="PAYMENT_DONE">PAYMENT_DONE (Payment Confirmed)</option>
+                  <option value="CLOSED">CLOSED (Resolved &amp; Delivered)</option>
+                  <option value="ON_HOLD">ON_HOLD (Clarification Needed)</option>
+                  <option value="CANCELLED">CANCELLED (Order Cancelled)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Reason for Status Override</label>
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="e.g. arjun-sneha-wedding"
-                  value={customSlug}
-                  onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="e.g. User approved design over phone, customer offline payment verified..."
+                  value={statusReason}
+                  onChange={(e) => setStatusReason(e.target.value)}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Post-Event Expiration Grace Period (Days)</label>
-                <input
-                  type="number"
+                <label className="form-label">Internal Work Notes</label>
+                <textarea
                   className="form-control"
-                  value={graceDays}
-                  onChange={(e) => setGraceDays(parseInt(e.target.value) || 30)}
-                  min={7}
-                  max={180}
+                  rows={2}
+                  placeholder="Optional internal log note..."
+                  value={statusWorkNotes}
+                  onChange={(e) => setStatusWorkNotes(e.target.value)}
                 />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => setPublishOrderRef(null)}>
+                <button className="btn btn-outline" onClick={() => setStatusModalTicket(null)}>
                   Cancel
                 </button>
-                <button className="btn btn-gold btn-sm" onClick={handleAuthorizePublish} disabled={loading}>
-                  <Check size={14} /> Authorize &amp; Publish Live
+                <button className="btn btn-primary" onClick={handleUpdateTicketStatus} disabled={loading}>
+                  Confirm Status Change
                 </button>
               </div>
             </div>
@@ -648,38 +1525,264 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Reassign Ticket Modal */}
-      {reassignTicketId && (
-        <div className="modal-backdrop" onClick={() => setReassignTicketId(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-cream)' }}>
-              <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Reassign Ticket to Developer</h3>
+      {/* =========================================================================
+          MODAL 2: USER EDIT MODAL
+          ========================================================================= */}
+      {editingUser && (
+        <div className="modal-backdrop" onClick={() => setEditingUser(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)' }}>
+                Edit User: {editingUser.full_name}
+              </h3>
+              <button onClick={() => setEditingUser(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
             </div>
 
-            <div style={{ padding: '1.75rem' }}>
+            <div style={{ padding: '1.5rem' }}>
               <div className="form-group">
-                <label className="form-label">Select Target Artisan / Developer</label>
+                <label className="form-label">System Role *</label>
+                <select
+                  className="form-control"
+                  value={editRole}
+                  onChange={(e) => setEditRole(e.target.value)}
+                >
+                  <option value="SUPER_ADMIN">System Super Administrator</option>
+                  <option value="OPS_ADMIN">Operations Administrator</option>
+                  <option value="DEV_ACTIVE">Approved Creative Developer</option>
+                  <option value="DEV_VIDEO">Video Production Specialist</option>
+                  <option value="DEV_PENDING">Pending Developer</option>
+                  <option value="AUTH_CUSTOMER">Verified Customer</option>
+                  <option value="ANON_GUEST">Anonymous Guest</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <input
+                  type="checkbox"
+                  id="userActiveCheck"
+                  checked={editActive}
+                  onChange={(e) => setEditActive(e.target.checked)}
+                />
+                <label htmlFor="userActiveCheck" style={{ margin: 0, fontWeight: 600 }}>
+                  Account Active (Uncheck to suspend / disable user)
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Reset Password (leave empty to keep unchanged)</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder="New password..."
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                />
+              </div>
+
+              {(editRole === 'DEV_ACTIVE' || editRole === 'DEV_VIDEO') && (
+                <>
+                  <div className="form-group">
+                    <label className="form-label">Max Active Workload Quota (Tickets)</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={editMaxTickets}
+                      onChange={(e) => setEditMaxTickets(parseInt(e.target.value) || 3)}
+                      min={1}
+                      max={15}
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <input
+                      type="checkbox"
+                      id="devVideoCheck"
+                      checked={editCanVideo}
+                      onChange={(e) => setEditCanVideo(e.target.checked)}
+                    />
+                    <label htmlFor="devVideoCheck" style={{ margin: 0, fontWeight: 600 }}>
+                      Video Production Permission (can render MP4 motion cards)
+                    </label>
+                  </div>
+                </>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-outline" onClick={() => setEditingUser(null)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={handleSaveUser} disabled={loading}>
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 3: MANUAL PAYMENT RECORD MODAL
+          ========================================================================= */}
+      {showManualPayModal && (
+        <div className="modal-backdrop" onClick={() => setShowManualPayModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)' }}>
+                Record Manual / Offline Payment
+              </h3>
+              <button onClick={() => setShowManualPayModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleManualMarkPaid} style={{ padding: '1.5rem' }}>
+              <div className="form-group">
+                <label className="form-label">Order Reference *</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. TC-2026-00001"
+                  value={manualPayOrderRef}
+                  onChange={(e) => setManualPayOrderRef(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Payment Method</label>
+                <select
+                  className="form-control"
+                  value={manualPayMethod}
+                  onChange={(e) => setManualPayMethod(e.target.value)}
+                >
+                  <option value="UPI_OFFLINE">Direct UPI Transfer (GPay / PhonePe / Paytm)</option>
+                  <option value="NEFT_IMPS">Bank Transfer (NEFT / IMPS / RTGS)</option>
+                  <option value="CASH_DIRECT">Cash Payment (Bidar Office)</option>
+                  <option value="ADMIN_COMPLIMENTARY">Admin Fee Waiver / Complimentary</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Transaction Reference / Audit Notes</label>
+                <textarea
+                  className="form-control"
+                  rows={2}
+                  placeholder="e.g. UTR #1234567890 verified in bank statement..."
+                  value={manualPayNotes}
+                  onChange={(e) => setManualPayNotes(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowManualPayModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  Verify &amp; Advance Ticket
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 4: REASSIGN DEVELOPER MODAL
+          ========================================================================= */}
+      {reassignTicketId && (
+        <div className="modal-backdrop" onClick={() => setReassignTicketId(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)' }}>
+                Reassign Ticket to Developer
+              </h3>
+              <button onClick={() => setReassignTicketId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              <div className="form-group">
+                <label className="form-label">Select Target Developer *</label>
                 <select
                   className="form-control"
                   value={targetDevId}
                   onChange={(e) => setTargetDevId(e.target.value)}
                 >
-                  {developers
-                    .filter((d) => d.is_approved)
-                    .map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.full_name} ({d.active_tickets_count} active tickets)
-                      </option>
-                    ))}
+                  <option value="">-- Choose Developer --</option>
+                  {activeDevUsers.map((dev) => (
+                    <option key={dev.id} value={dev.id}>
+                      {dev.full_name} ({dev.email}) [{dev.role}]
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => setReassignTicketId(null)}>
+                <button className="btn btn-outline" onClick={() => setReassignTicketId(null)}>
                   Cancel
                 </button>
-                <button className="btn btn-primary btn-sm" onClick={handleReassign} disabled={loading}>
+                <button className="btn btn-primary" onClick={handleReassign} disabled={loading || !targetDevId}>
                   Confirm Reassignment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 5: AUTHORIZE PUBLISHING MODAL
+          ========================================================================= */}
+      {publishOrderRef && (
+        <div className="modal-backdrop" onClick={() => setPublishOrderRef(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)' }}>
+                Authorize Live Celebration Publishing
+              </h3>
+              <button onClick={() => setPublishOrderRef(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+                Authorizing publication for order: <strong>{publishOrderRef}</strong>.
+                This generates the unbranded live guest invitation path and dynamic QR code pass.
+              </p>
+
+              <div className="form-group">
+                <label className="form-label">Custom Slug (leave empty for auto-generated clean slug)</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. anand-priya-wedding"
+                  value={customSlug}
+                  onChange={(e) => setCustomSlug(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Live Hosting Duration (Days after ceremony)</label>
+                <input
+                  type="number"
+                  className="form-control"
+                  value={graceDays}
+                  onChange={(e) => setGraceDays(parseInt(e.target.value) || 30)}
+                  min={7}
+                  max={365}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+                <button className="btn btn-outline" onClick={() => setPublishOrderRef(null)}>
+                  Cancel
+                </button>
+                <button className="btn btn-primary" onClick={handleAuthorizePublish} disabled={loading}>
+                  <Sparkles size={15} /> Authorize &amp; Launch Live
                 </button>
               </div>
             </div>

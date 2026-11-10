@@ -336,5 +336,67 @@ export class ApiService {
     if (statusFilter) params.append('status', statusFilter);
     return this.request(`/admin-ops/audit-logs/?${params.toString()}`);
   }
+
+  // --- Superman Admin Controls (Users, Tickets, Payments, Financials) ---
+  static async getAdminUsers(role?: string, search?: string) {
+    const params = new URLSearchParams();
+    if (role) params.append('role', role);
+    if (search) params.append('search', search);
+    return this.request(`/admin-ops/users/?${params.toString()}`);
+  }
+
+  static async updateAdminUser(userId: string, data: {
+    role?: string;
+    is_active?: boolean;
+    full_name?: string;
+    password?: string;
+    max_active_tickets?: number;
+    can_produce_video?: boolean;
+  }) {
+    return this.request(`/admin-ops/users/${userId}/update/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteAdminUser(userId: string) {
+    return this.request(`/admin-ops/users/${userId}/delete/`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async updateAdminTicketStatus(ticketId: string, status: string, reason?: string, workNotes?: string) {
+    return this.request(`/admin-ops/tickets/${ticketId}/status/`, {
+      method: 'POST',
+      body: JSON.stringify({ status, reason, work_notes: workNotes }),
+    });
+  }
+
+  static async deleteAdminTicket(ticketId: string) {
+    return this.request(`/admin-ops/tickets/${ticketId}/delete/`, {
+      method: 'DELETE',
+    });
+  }
+
+  static async getAdminPayments(statusFilter?: string) {
+    const q = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : '';
+    return this.request(`/admin-ops/payments/${q}`);
+  }
+
+  static async markAdminPaymentPaid(orderReference: string, paymentMethod = 'MANUAL_UPI_CASH', notes?: string) {
+    return this.request('/admin-ops/payments/mark-paid/', {
+      method: 'POST',
+      body: JSON.stringify({ order_reference: orderReference, payment_method: paymentMethod, notes }),
+    });
+  }
+
+  static async getAdminFinancials(devPayoutPct = 35.0, gatewayFeePct = 2.0, fixedOverhead = 1500.0) {
+    const params = new URLSearchParams({
+      dev_payout_pct: devPayoutPct.toString(),
+      gateway_fee_pct: gatewayFeePct.toString(),
+      fixed_overhead: fixedOverhead.toString(),
+    });
+    return this.request(`/admin-ops/financials/?${params.toString()}`);
+  }
 }
 
