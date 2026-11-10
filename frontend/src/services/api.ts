@@ -1,5 +1,6 @@
-const PRIMARY_API = '/api/v1';
-const FALLBACK_API = 'http://127.0.0.1:8000/api/v1';
+const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '');
+const PRIMARY_API = envApi ? `${envApi}/api/v1` : '/api/v1';
+const FALLBACK_API = envApi ? `${envApi}/api/v1` : 'http://127.0.0.1:8000/api/v1';
 
 export class ApiService {
   private static getHeaders(isCustomer = false, isMultipart = false): HeadersInit {
