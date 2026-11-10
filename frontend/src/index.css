@@ -90,6 +90,7 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  overflow-x: hidden;
 }
 
 body {
@@ -99,6 +100,8 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .app-container {
@@ -106,6 +109,7 @@ body {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-ivory);
+  overflow-x: hidden;
 }
 
 .main-content {
@@ -974,7 +978,90 @@ tr:hover td {
 @media (max-width: 960px) {
   .designs-page-layout {
     grid-template-columns: 1fr;
-    gap: 1.75rem;
+    gap: 1.5rem;
+  }
+  .designs-sidebar {
+    position: static !important;
+  }
+  .designs-sidebar-header {
+    padding: 0.85rem 1rem !important;
+  }
+  .designs-sidebar-nav {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding: 0.65rem !important;
+    gap: 0.5rem !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .designs-sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .designs-sidebar-nav button {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    padding: 0.5rem 0.9rem !important;
+    border-radius: var(--radius-full) !important;
+  }
+}
+
+/* =========================================================================
+   COMPREHENSIVE MOBILE & TABLET RESPONSIVENESS SUITE
+   ========================================================================= */
+.nav-track-btn {
+  display: inline-flex;
+}
+
+@media (max-width: 768px) {
+  .nav-track-btn {
+    display: none !important;
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .occasion-filter-bar {
+    justify-content: flex-start !important;
+  }
+
+  .package-pricing-box {
+    padding: 1.25rem !important;
+  }
+
+  .occasion-pricing-card {
+    padding: 1.25rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .form-control {
+    font-size: 16px !important; /* Prevents auto-zoom in mobile Safari / iOS */
+  }
+
+  .btn {
+    padding: 0.65rem 1.1rem;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 1.25rem;
+  }
+
+  /* Make modal touch-friendly on small devices */
+  .modal-backdrop {
+    padding: 0.75rem;
+  }
+  .modal-content {
+    max-height: 95vh;
   }
 }
 

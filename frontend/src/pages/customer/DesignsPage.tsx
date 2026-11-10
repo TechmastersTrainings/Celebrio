@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
 import { Occasion } from '../../types';
+import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
 import { Sparkles, Smartphone, Monitor, Eye, ArrowRight, X, Heart, Calendar, MapPin, Layers, CheckCircle2 } from 'lucide-react';
 
 interface DesignsPageProps {
@@ -24,8 +25,8 @@ interface GalleryItem {
 }
 
 export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavigate }) => {
-  const [occasions, setOccasions] = useState<Occasion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [occasions, setOccasions] = useState<Occasion[]>(OFFICIAL_OCCASIONS);
+  const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
@@ -222,6 +223,7 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
               LEFT SIDEBAR: CATEGORIES & THEMES MENU
               ========================================================================= */}
           <aside
+            className="designs-sidebar"
             style={{
               background: '#FFFFFF',
               border: '1px solid var(--border-subtle)',
@@ -234,6 +236,7 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
           >
             {/* Sidebar Title */}
             <div
+              className="designs-sidebar-header"
               style={{
                 padding: '1.25rem 1.5rem',
                 borderBottom: '1px solid var(--border-subtle)',
@@ -251,8 +254,8 @@ export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavi
               </h3>
             </div>
 
-            {/* Vertical Category Links */}
-            <nav style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            {/* Category Links (Vertical on desktop, scrollable chips on mobile) */}
+            <nav className="designs-sidebar-nav" style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {categories.map((c) => {
                 const isActive = selectedCategory === c.key;
 

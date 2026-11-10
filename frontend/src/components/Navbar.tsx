@@ -84,12 +84,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Track Order */}
           <button
-            className={`btn btn-sm ${currentView === 'tracking' ? 'btn-navy' : 'btn-outline'}`}
+            className={`btn btn-sm nav-track-btn ${currentView === 'tracking' ? 'btn-navy' : 'btn-outline'}`}
             onClick={() => handleNavClick('tracking')}
-            style={{ display: 'none', '@media (min-width: 768px)': { display: 'inline-flex' } } as any}
           >
             <Search size={14} />
-            <span className="desktop-only">Track Order</span>
+            <span>Track Order</span>
           </button>
 
           {/* Primary CTA: Create Invitation */}

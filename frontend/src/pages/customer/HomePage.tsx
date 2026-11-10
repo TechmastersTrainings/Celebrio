@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
 import { Occasion } from '../../types';
+import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
 import {
   Sparkles,
   ArrowRight,
@@ -31,8 +32,8 @@ interface HomePageProps {
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate }) => {
-  const [occasions, setOccasions] = useState<Occasion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [occasions, setOccasions] = useState<Occasion[]>(OFFICIAL_OCCASIONS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadOccasions();

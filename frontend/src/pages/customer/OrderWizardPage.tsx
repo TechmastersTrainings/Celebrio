@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ApiService } from '../../services/api';
 import { Occasion, Package, OrderEvent } from '../../types';
+import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
 import {
   Sparkles,
   ArrowRight,
@@ -50,7 +51,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
   onCancel,
 }) => {
   const [step, setStep] = useState(1);
-  const [occasions, setOccasions] = useState<Occasion[]>([]);
+  const [occasions, setOccasions] = useState<Occasion[]>(OFFICIAL_OCCASIONS);
   const [selectedOccasionId, setSelectedOccasionId] = useState(initialOccasionId || '');
   const [selectedPackageId, setSelectedPackageId] = useState(initialPackageId || '');
   const [customerName, setCustomerName] = useState('');
