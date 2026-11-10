@@ -16,3 +16,4 @@ echo "===> Seeding catalog & essential admin account..."
 python manage.py seed_catalog
 
 echo "===> Build complete!"
+

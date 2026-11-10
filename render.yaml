@@ -22,3 +22,4 @@ services:
         value: Fri10Feb@2023
       - key: SEED_DEV_PASSWORD
         value: Fri10Feb@2023
+

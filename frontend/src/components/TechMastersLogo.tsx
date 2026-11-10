@@ -17,9 +17,9 @@ export const TechMastersLogo: React.FC<TechMastersLogoProps> = ({
   const isDark = variant === 'dark' || variant === 'footer';
 
   const iconSizes = {
-    sm: { width: 30, height: 34 },
-    md: { width: 38, height: 43 },
-    lg: { width: 48, height: 55 },
+    sm: { width: 32, height: 35 },
+    md: { width: 42, height: 46 },
+    lg: { width: 54, height: 59 },
   };
 
   const currentSize = iconSizes[size];
