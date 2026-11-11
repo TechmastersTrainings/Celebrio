@@ -82,12 +82,23 @@ DATABASES = {
     }
 }
 
-# In production if DATABASE_URL is configured (Render PostgreSQL or external DB)
-DATABASE_URL = os.getenv('DATABASE_URL')
+# In production if DATABASE_URL is configured (Render PostgreSQL, Aiven, or external DB)
+DATABASE_URL = (
+    os.getenv('DATABASE_URL')
+    or os.getenv('DB_URL')
+    or os.getenv('DATABASE_URI')
+    or os.getenv('POSTGRES_URL')
+    or os.getenv('POSTGRESQL_URL')
+    or os.getenv('AIVEN_DATABASE_URL')
+    or os.getenv('AIVEN_URL')
+    or os.getenv('DB_CONNECTION_STRING')
+    or ''
+).strip().strip("'").strip('"')
+
 if DATABASE_URL:
     try:
         import dj_database_url
-        is_internal_render = 'dpg-' in DATABASE_URL or '127.0.0.1' in DATABASE_URL or 'localhost' in DATABASE_URL
+        is_internal_render = any(k in DATABASE_URL for k in ['dpg-', '127.0.0.1', 'localhost', 'sqlite'])
         DATABASES['default'] = dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
@@ -99,13 +110,13 @@ if DATABASE_URL:
         url = urlparse.urlparse(DATABASE_URL)
         DATABASES['default'] = {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': url.path[1:],
+            'NAME': url.path.lstrip('/'),
             'USER': url.username,
             'PASSWORD': url.password,
             'HOST': url.hostname,
             'PORT': url.port or 5432,
         }
-        if 'dpg-' not in DATABASE_URL:
+        if not any(k in DATABASE_URL for k in ['dpg-', '127.0.0.1', 'localhost']):
             DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 # Password validation & Argon2 Hasher

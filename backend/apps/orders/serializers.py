@@ -8,6 +8,9 @@ from apps.video_production.models import VideoTask, VideoTaskStatus
 from apps.audit.services import log_activity
 
 class OrderEventSerializer(serializers.ModelSerializer):
+    venue_address = serializers.CharField(required=False, allow_blank=True, default='')
+    venue_name = serializers.CharField(required=False, allow_blank=True, default='Celebration Venue')
+
     class Meta:
         model = OrderEvent
         fields = [
@@ -21,6 +24,12 @@ class OrderEventSerializer(serializers.ModelSerializer):
             'google_maps_url',
             'dress_code',
         ]
+        extra_kwargs = {
+            'venue_address': {'required': False, 'allow_blank': True},
+            'google_maps_url': {'required': False, 'allow_blank': True},
+            'dress_code': {'required': False, 'allow_blank': True},
+            'end_time': {'required': False, 'allow_null': True},
+        }
 
 class CustomerAssetSerializer(serializers.ModelSerializer):
     class Meta:

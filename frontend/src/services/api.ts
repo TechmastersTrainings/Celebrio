@@ -55,6 +55,9 @@ export class ApiService {
     try {
       data = text ? JSON.parse(text) : {};
     } catch {
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}. Database connection or server initializing.`);
+      }
       throw new Error(`Invalid response format from server`);
     }
 
