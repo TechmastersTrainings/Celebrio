@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TechMastersLogo } from './TechMastersLogo';
 import { LegalModal, PolicyType } from './LegalModal';
-import { Phone, Mail, MapPin, Globe, MessageCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Phone, Mail, MapPin, Globe, MessageCircle, ExternalLink, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (view: string, param?: string) => void;
@@ -12,172 +12,134 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
   return (
     <>
-      <footer className="footer-editorial" style={{ padding: '2rem 0 1.5rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      <footer className="footer-editorial" style={{ padding: '3.25rem 0 1.75rem' }}>
         <div className="container" style={{ maxWidth: '1200px' }}>
-          {/* Top Row: Brand Lockup + Horizontal Navigation + Direct WhatsApp */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1.25rem',
-              paddingBottom: '1.5rem',
-              borderBottom: '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
-            {/* Brand Logo with Authentic 3D Hexagon */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <TechMastersLogo variant="footer" size="sm" />
+          {/* Main 3-Column Architectural Grid */}
+          <div className="footer-grid">
+            {/* Column 1: Brand & Direct Concierge */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <TechMastersLogo variant="footer" size="md" />
+              <p
+                style={{
+                  color: '#94A3B8',
+                  fontSize: '0.84rem',
+                  lineHeight: 1.6,
+                  marginTop: '1.1rem',
+                  marginBottom: '1.25rem',
+                  maxWidth: '340px',
+                }}
+              >
+                Artisan digital celebration suites, bespoke wedding invitations &amp; high-resolution 300 DPI print stationery.
+              </p>
+
+              {/* WhatsApp Action Button */}
+              <a
+                href="https://wa.me/919880768222?text=Hello%20TechMasters%2C%20I%20would%20like%20to%20enquire%20about%20a%20digital%20invitation."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer-whatsapp-pill"
+              >
+                <MessageCircle size={16} />
+                <span>WhatsApp Us</span>
+              </a>
             </div>
 
-            {/* Horizontal Quick Links Bar */}
-            <nav style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-              <button
-                className="footer-link-btn"
-                onClick={() => onNavigate('home')}
-                style={{ fontSize: '0.84rem' }}
-              >
-                Home
-              </button>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
-              <button
-                className="footer-link-btn"
-                onClick={() => onNavigate('designs')}
-                style={{ fontSize: '0.84rem' }}
-              >
-                Invitation Designs
-              </button>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
-              <button
-                className="footer-link-btn"
-                onClick={() => onNavigate('catalog')}
-                style={{ fontSize: '0.84rem' }}
-              >
-                Packages &amp; Pricing
-              </button>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
-              <button
-                className="footer-link-btn"
-                onClick={() => onNavigate('tracking')}
-                style={{ fontSize: '0.84rem' }}
-              >
-                Track Order
-              </button>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
-              <button
-                className="footer-link-btn"
-                onClick={() => onNavigate('wizard')}
-                style={{ fontSize: '0.84rem', color: 'var(--gold-soft)' }}
-              >
-                Create Invitation
-              </button>
-            </nav>
-
-            {/* WhatsApp Contact Action */}
-            <a
-              href="https://wa.me/919880768222?text=Hello%20TechMasters%2C%20I%20would%20like%20to%20enquire%20about%20a%20digital%20invitation."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-sm btn-gold"
-              style={{ textDecoration: 'none', padding: '0.4rem 0.9rem', fontSize: '0.80rem' }}
-            >
-              <MessageCircle size={14} />
-              <span>WhatsApp Us</span>
-            </a>
-          </div>
-
-          {/* Middle Row: Contact & Corporate Coordinates (Horizontal Bar) */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1rem',
-              padding: '1.25rem 0',
-              fontSize: '0.80rem',
-              color: '#94A3B8',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <MapPin size={14} style={{ color: 'var(--gold-soft)', flexShrink: 0 }} />
-              <span>Mailoor Road, Near GND College, Bidar, Karnataka 585403</span>
+            {/* Column 2: Navigation */}
+            <div>
+              <div className="footer-col-title">
+                <span>Navigation</span>
+              </div>
+              <nav className="footer-nav-list">
+                <button className="footer-nav-link" onClick={() => onNavigate('home')}>
+                  <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
+                  <span>Home</span>
+                </button>
+                <button className="footer-nav-link" onClick={() => onNavigate('designs')}>
+                  <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
+                  <span>Invitation Designs</span>
+                </button>
+                <button className="footer-nav-link" onClick={() => onNavigate('catalog')}>
+                  <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
+                  <span>Packages &amp; Pricing</span>
+                </button>
+                <button className="footer-nav-link" onClick={() => onNavigate('tracking')}>
+                  <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
+                  <span>Track Order</span>
+                </button>
+                <button className="footer-nav-link accent" onClick={() => onNavigate('wizard')}>
+                  <Sparkles size={13} style={{ color: 'var(--gold-soft)' }} />
+                  <span>Create Invitation</span>
+                </button>
+              </nav>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                <Phone size={13} style={{ color: 'var(--gold-soft)', flexShrink: 0 }} />
-                <a href="tel:+919880768222" style={{ color: '#E2E8F0', textDecoration: 'none' }}>
-                  +91 9880768222 | +91 9916354338
-                </a>
+            {/* Column 3: Studio & Contact Coordinates */}
+            <div>
+              <div className="footer-col-title">
+                <span>Studio &amp; Contact</span>
               </div>
+              <div className="footer-contact-list">
+                {/* Physical Location */}
+                <div className="footer-contact-item">
+                  <MapPin size={16} style={{ color: 'var(--gold-soft)', flexShrink: 0, marginTop: '3px' }} />
+                  <span>Mailoor Road, Near GND College, Bidar, Karnataka 585403</span>
+                </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                <Mail size={13} style={{ color: 'var(--gold-soft)', flexShrink: 0 }} />
-                <a href="mailto:support@techmastersinnovations.in" style={{ color: '#E2E8F0', textDecoration: 'none' }}>
-                  support@techmastersinnovations.in
-                </a>
-              </div>
+                {/* Telephone */}
+                <div className="footer-contact-item">
+                  <Phone size={15} style={{ color: 'var(--gold-soft)', flexShrink: 0, marginTop: '3px' }} />
+                  <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                    <a href="tel:+919880768222">+91 9880768222</a>
+                    <span style={{ color: '#475569' }}>|</span>
+                    <a href="tel:+919916354338">+91 9916354338</a>
+                  </div>
+                </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                <Globe size={13} style={{ color: 'var(--gold-soft)', flexShrink: 0 }} />
-                <a
-                  href="https://techmastersinnovations.in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#E2E8F0', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
-                >
-                  techmastersinnovations.in <ExternalLink size={10} />
-                </a>
+                {/* Email */}
+                <div className="footer-contact-item">
+                  <Mail size={15} style={{ color: 'var(--gold-soft)', flexShrink: 0, marginTop: '3px' }} />
+                  <a href="mailto:support@techmastersinnovations.in">
+                    support@techmastersinnovations.in
+                  </a>
+                </div>
+
+                {/* Corporate Website */}
+                <div className="footer-contact-item">
+                  <Globe size={15} style={{ color: 'var(--gold-soft)', flexShrink: 0, marginTop: '3px' }} />
+                  <a
+                    href="https://techmastersinnovations.in"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    techmastersinnovations.in <ExternalLink size={11} />
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-
-
-          {/* Bottom Bar: Copyright + Legal Policies */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              paddingTop: '1rem',
-              fontSize: '0.76rem',
-              color: '#64748B',
-            }}
-          >
+          {/* Bottom Bar: Copyright & Legal Policies */}
+          <div className="footer-bottom-bar">
             <div>
               &copy; 2026 <strong>TechMasters Digital Services</strong>. All rights reserved.
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setActivePolicy('privacy')}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '0.76rem', padding: 0 }}
-              >
+              <button className="footer-policy-link" onClick={() => setActivePolicy('privacy')}>
                 Privacy Policy
               </button>
-              <span>&bull;</span>
-              <button
-                onClick={() => setActivePolicy('terms')}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '0.76rem', padding: 0 }}
-              >
+              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
+              <button className="footer-policy-link" onClick={() => setActivePolicy('terms')}>
                 Terms &amp; Conditions
               </button>
-              <span>&bull;</span>
-              <button
-                onClick={() => setActivePolicy('refund')}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '0.76rem', padding: 0 }}
-              >
+              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
+              <button className="footer-policy-link" onClick={() => setActivePolicy('refund')}>
                 Refund Policy
               </button>
-              <span>&bull;</span>
+              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: '#94A3B8' }}>
-                <ShieldCheck size={12} style={{ color: 'var(--gold-soft)' }} />
+                <ShieldCheck size={13} style={{ color: 'var(--gold-soft)' }} />
                 Bidar, Karnataka
               </span>
             </div>
