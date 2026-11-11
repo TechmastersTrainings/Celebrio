@@ -24,7 +24,7 @@ export const AdminAuthPage: React.FC<AdminAuthPageProps> = ({ onLoginSuccess, on
     try {
       setLoading(true);
       setError(null);
-      const user = await ApiService.staffLogin(email, password);
+      const user = await ApiService.staffLogin(email.trim().toLowerCase(), password);
 
       // Enforce Admin Role Gate
       if (!user.is_admin && user.role !== 'SUPER_ADMIN' && user.role !== 'OPS_ADMIN') {

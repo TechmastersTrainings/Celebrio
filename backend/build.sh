@@ -9,11 +9,4 @@ pip install -r requirements.txt
 echo "===> Collecting static assets..."
 python manage.py collectstatic --no-input
 
-echo "===> Running database migrations..."
-python manage.py migrate --no-input
-
-echo "===> Seeding catalog & essential admin account..."
-python manage.py seed_catalog
-
-echo "===> Build complete!"
-
+echo "===> Build completed successfully!"

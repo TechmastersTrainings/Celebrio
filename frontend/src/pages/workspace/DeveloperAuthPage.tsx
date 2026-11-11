@@ -30,7 +30,7 @@ export const DeveloperAuthPage: React.FC<DeveloperAuthPageProps> = ({ onLoginSuc
     try {
       setLoading(true);
       setError(null);
-      const user = await ApiService.staffLogin(email, password);
+      const user = await ApiService.staffLogin(email.trim().toLowerCase(), password);
 
       // Validate developer status or admin supervision
       if (user.approval_status === 'REJECTED' || user.approval_status === 'SUSPENDED') {

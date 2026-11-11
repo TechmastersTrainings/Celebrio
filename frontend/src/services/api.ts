@@ -87,7 +87,12 @@ export class ApiService {
     }
 
     const text = await res.text();
-    const data = text ? JSON.parse(text) : {};
+    let data: any = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      throw new Error(`Backend service returned HTTP ${res.status}. Server may be initializing migrations.`);
+    }
     if (!res.ok) throw new Error(data?.error?.message || data?.detail || 'Invalid credentials');
     
     const token = data?.access || data?.data?.access;

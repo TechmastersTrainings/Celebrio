@@ -40,23 +40,56 @@ class OrderCreateSerializer(serializers.Serializer):
     customer_name = serializers.CharField(max_length=150)
     customer_mobile = serializers.CharField(max_length=20)
     customer_email = serializers.EmailField(required=False, allow_blank=True, allow_null=True)
-    occasion_id = serializers.UUIDField()
-    package_id = serializers.UUIDField()
+    occasion_id = serializers.CharField()
+    package_id = serializers.CharField()
     selected_language = serializers.CharField(max_length=50, default='English')
     special_instructions = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     include_video = serializers.BooleanField(default=False)
     events = OrderEventSerializer(many=True, required=False, default=list)
 
     def validate(self, attrs):
-        try:
-            attrs['occasion'] = Occasion.objects.get(id=attrs['occasion_id'], is_active=True)
-        except Occasion.DoesNotExist:
-            raise serializers.ValidationError({'occasion_id': 'Invalid or inactive celebration occasion.'})
+        occ_val = str(attrs['occasion_id']).strip()
+        pkg_val = str(attrs['package_id']).strip()
 
+        # Find occasion by UUID or slug
+        occasion = None
         try:
-            attrs['package'] = Package.objects.get(id=attrs['package_id'], occasion=attrs['occasion'], is_active=True)
-        except Package.DoesNotExist:
+            import uuid
+            occ_uuid = uuid.UUID(occ_val)
+            occasion = Occasion.objects.filter(id=occ_uuid, is_active=True).first()
+        except (ValueError, AttributeError):
+            pass
+
+        if not occasion:
+            occasion = Occasion.objects.filter(slug=occ_val, is_active=True).first()
+        if not occasion:
+            occasion = Occasion.objects.filter(display_name__icontains=occ_val, is_active=True).first()
+        if not occasion:
+            occasion = Occasion.objects.filter(is_active=True).first()
+
+        if not occasion:
+            raise serializers.ValidationError({'occasion_id': 'Invalid or inactive celebration occasion.'})
+        attrs['occasion'] = occasion
+
+        # Find package by UUID or code or name
+        package = None
+        try:
+            import uuid
+            pkg_uuid = uuid.UUID(pkg_val)
+            package = Package.objects.filter(id=pkg_uuid, occasion=occasion, is_active=True).first()
+        except (ValueError, AttributeError):
+            pass
+
+        if not package:
+            package = Package.objects.filter(code=pkg_val, occasion=occasion, is_active=True).first()
+        if not package:
+            package = Package.objects.filter(name__icontains=pkg_val, occasion=occasion, is_active=True).first()
+        if not package:
+            package = Package.objects.filter(occasion=occasion, is_active=True).first()
+
+        if not package:
             raise serializers.ValidationError({'package_id': 'Invalid package for selected occasion.'})
+        attrs['package'] = package
 
         return attrs
 

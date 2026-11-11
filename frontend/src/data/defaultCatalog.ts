@@ -2,15 +2,15 @@ import { Occasion, Addon } from '../types';
 
 export const OFFICIAL_OCCASIONS: Occasion[] = [
   {
-    id: 'occ-marriage',
+    id: 'a1000000-0000-0000-0000-000000000001',
     slug: 'marriage',
     display_name: 'Marriage & Wedding Reception',
     description: 'Grand multi-day Indian wedding celebrations with complete itineraries, Muhurtham timings, venue directions, and family blessings.',
     icon_name: 'heart',
     packages: [
       {
-        id: 'pkg-marriage-standard',
-        occasion: 'occ-marriage',
+        id: 'b1000000-0000-0000-0000-000000000001',
+        occasion: 'a1000000-0000-0000-0000-000000000001',
         code: 'PKG_MARRIAGE_STANDARD',
         name: 'Marriage Classic Web & Card Suite',
         base_price_inr: '499.00',
@@ -26,8 +26,8 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
         is_active: true,
       },
       {
-        id: 'pkg-marriage-premium',
-        occasion: 'occ-marriage',
+        id: 'b1000000-0000-0000-0000-000000000002',
+        occasion: 'a1000000-0000-0000-0000-000000000001',
         code: 'PKG_MARRIAGE_PREMIUM',
         name: 'Royal Heritage Grand Wedding Suite',
         base_price_inr: '999.00',
@@ -48,15 +48,15 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
     ],
   },
   {
-    id: 'occ-naming-ceremony',
+    id: 'a1000000-0000-0000-0000-000000000002',
     slug: 'naming-ceremony',
     display_name: 'Naming Ceremony (Namakarana)',
     description: 'Auspicious cradle, naming, and barasala celebrations welcoming your little one with family blessings.',
     icon_name: 'gift',
     packages: [
       {
-        id: 'pkg-naming-classic',
-        occasion: 'occ-naming-ceremony',
+        id: 'b1000000-0000-0000-0000-000000000003',
+        occasion: 'a1000000-0000-0000-0000-000000000002',
         code: 'PKG_NAMING_CLASSIC',
         name: 'Namakarana Blessing Suite',
         base_price_inr: '399.00',
@@ -72,8 +72,8 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
         is_active: true,
       },
       {
-        id: 'pkg-naming-grand',
-        occasion: 'occ-naming-ceremony',
+        id: 'b1000000-0000-0000-0000-000000000004',
+        occasion: 'a1000000-0000-0000-0000-000000000002',
         code: 'PKG_NAMING_GRAND',
         name: 'Royal Cradle Celebration Suite',
         base_price_inr: '699.00',
@@ -92,15 +92,15 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
     ],
   },
   {
-    id: 'occ-birthday',
+    id: 'a1000000-0000-0000-0000-000000000003',
     slug: 'birthday',
     display_name: 'Birthday Celebration',
     description: 'Vibrant, joyful birthday invitations for milestone 1st birthdays, sweet sixteens, and jubilee celebrations.',
     icon_name: 'sparkles',
     packages: [
       {
-        id: 'pkg-birthday-basic',
-        occasion: 'occ-birthday',
+        id: 'b1000000-0000-0000-0000-000000000005',
+        occasion: 'a1000000-0000-0000-0000-000000000003',
         code: 'PKG_BIRTHDAY_BASIC',
         name: 'Birthday Party Essential',
         base_price_inr: '299.00',
@@ -116,8 +116,8 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
         is_active: true,
       },
       {
-        id: 'pkg-birthday-grand',
-        occasion: 'occ-birthday',
+        id: 'b1000000-0000-0000-0000-000000000006',
+        occasion: 'a1000000-0000-0000-0000-000000000003',
         code: 'PKG_BIRTHDAY_GRAND',
         name: 'Birthday Grand Fiesta Suite',
         base_price_inr: '499.00',
@@ -136,15 +136,15 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
     ],
   },
   {
-    id: 'occ-engagement',
+    id: 'a1000000-0000-0000-0000-000000000004',
     slug: 'engagement',
     display_name: 'Engagement Ceremony (Nischitartha)',
     description: 'Mark the promise of a lifetime with graceful ring ceremony digital invites, family introductions, and muhurtham details.',
     icon_name: 'heart',
     packages: [
       {
-        id: 'pkg-engagement-elegance',
-        occasion: 'occ-engagement',
+        id: 'b1000000-0000-0000-0000-000000000007',
+        occasion: 'a1000000-0000-0000-0000-000000000004',
         code: 'PKG_ENGAGEMENT_ELEGANCE',
         name: 'Engagement Elegance Suite',
         base_price_inr: '399.00',
@@ -162,15 +162,15 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
     ],
   },
   {
-    id: 'occ-anniversary',
+    id: 'a1000000-0000-0000-0000-000000000005',
     slug: 'anniversary',
     display_name: 'Wedding Anniversary',
     description: 'Honor decades of love, togetherness, and milestone silver or golden jubilees with timeless elegance.',
     icon_name: 'calendar',
     packages: [
       {
-        id: 'pkg-anniversary-joy',
-        occasion: 'occ-anniversary',
+        id: 'b1000000-0000-0000-0000-000000000008',
+        occasion: 'a1000000-0000-0000-0000-000000000005',
         code: 'PKG_ANNIVERSARY_JOY',
         name: 'Anniversary Jubilee Suite',
         base_price_inr: '399.00',
@@ -191,7 +191,7 @@ export const OFFICIAL_OCCASIONS: Occasion[] = [
 
 export const OFFICIAL_ADDONS: Addon[] = [
   {
-    id: 'addon-video-30',
+    id: 'c1000000-0000-0000-0000-000000000001',
     code: 'ADDON_VIDEO_BASIC',
     name: '30-Second Motion Teaser Video',
     description: 'Short dynamic invitation video for WhatsApp Status and Instagram Reels with ceremony music.',
@@ -199,7 +199,7 @@ export const OFFICIAL_ADDONS: Addon[] = [
     addon_type: 'VIDEO',
   },
   {
-    id: 'addon-video-60',
+    id: 'c1000000-0000-0000-0000-000000000002',
     code: 'ADDON_VIDEO_PREMIUM',
     name: '60-Second Full Story Video Invite',
     description: 'Cinematic animated story with photo transitions, audio sync, and complete ceremony schedules.',
@@ -207,7 +207,7 @@ export const OFFICIAL_ADDONS: Addon[] = [
     addon_type: 'VIDEO',
   },
   {
-    id: 'addon-rush',
+    id: 'c1000000-0000-0000-0000-000000000003',
     code: 'ADDON_RUSH_DELIVERY',
     name: 'Expedited Rush Delivery (< 12 Hours)',
     description: 'Priority fast-track in developer queue. Receive your initial draft preview in under 12 hours.',

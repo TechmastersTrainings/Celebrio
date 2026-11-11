@@ -17,6 +17,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        if 'email' in attrs:
+            attrs['email'] = str(attrs['email']).strip().lower()
         data = super().validate(attrs)
         user = self.user
         profile = getattr(user, 'developer_profile', None)

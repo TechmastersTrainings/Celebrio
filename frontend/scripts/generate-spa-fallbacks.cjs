@@ -38,3 +38,4 @@ routes.forEach((route) => {
 });
 
 console.log('All SPA fallbacks generated successfully!');
+

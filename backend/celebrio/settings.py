@@ -87,11 +87,12 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     try:
         import dj_database_url
-        DATABASES['default'] = dj_database_url.config(
-            default=DATABASE_URL,
+        is_internal_render = 'dpg-' in DATABASE_URL or '127.0.0.1' in DATABASE_URL or 'localhost' in DATABASE_URL
+        DATABASES['default'] = dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
-            ssl_require=True,
+            ssl_require=False if is_internal_render else True,
         )
     except Exception:
         import urllib.parse as urlparse
@@ -103,10 +104,9 @@ if DATABASE_URL:
             'PASSWORD': url.password,
             'HOST': url.hostname,
             'PORT': url.port or 5432,
-            'OPTIONS': {
-                'sslmode': 'require',
-            }
         }
+        if 'dpg-' not in DATABASE_URL:
+            DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 # Password validation & Argon2 Hasher
 PASSWORD_HASHERS = [
