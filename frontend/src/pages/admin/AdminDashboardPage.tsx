@@ -339,8 +339,9 @@ export const AdminDashboardPage: React.FC = () => {
     return t.status === ticketStatusFilter;
   });
 
-  // Filtered Users
-  const filteredUsers = users.filter((u) => {
+  // Filtered Users — EXCLUDE developers from User Management (they belong in Developer Governance)
+  const nonDevUsers = users.filter(u => !['DEV_ACTIVE', 'DEV_VIDEO'].includes(u.role));
+  const filteredUsers = nonDevUsers.filter((u) => {
     const matchesRole = userRoleFilter === 'ALL' || u.role === userRoleFilter;
     const q = userSearchQuery.toLowerCase();
     const matchesSearch =
@@ -400,7 +401,7 @@ export const AdminDashboardPage: React.FC = () => {
           >
             <div className="admin-nav-icon"><Users size={16} /></div>
             <span className="admin-nav-label">User Management</span>
-            <span className="admin-nav-badge">{users.length}</span>
+            <span className="admin-nav-badge">{users.filter(u => !['DEV_ACTIVE', 'DEV_VIDEO'].includes(u.role)).length}</span>
           </button>
 
           <button
@@ -564,7 +565,9 @@ export const AdminDashboardPage: React.FC = () => {
         )}
 
         {/* KPI Metrics Dashboard Cards */}
-        {metrics && (
+        {metrics && (() => {
+          const nonDevUsers = users.filter(u => !['DEV_ACTIVE', 'DEV_VIDEO'].includes(u.role));
+          return (
           <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
             <div className="card" style={{ padding: '1.25rem' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
@@ -580,13 +583,25 @@ export const AdminDashboardPage: React.FC = () => {
 
             <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid var(--gold-primary)' }}>
               <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-                Total Users
+                Customers
               </span>
               <div style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-                {users.length}
+                {nonDevUsers.length}
               </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                {metrics.active_developers} Active Devs &bull; {metrics.pending_developer_approvals} Pending
+                Registered customer accounts
+              </span>
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #0284C7' }}>
+              <span style={{ fontSize: '0.75rem', color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+                Active Developers
+              </span>
+              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: '#0284C7', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                {metrics.active_developers}
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                {metrics.pending_developer_approvals} Pending Approval
               </span>
             </div>
 
@@ -601,20 +616,9 @@ export const AdminDashboardPage: React.FC = () => {
                 {metrics.payment_done + metrics.closed_tickets} Paid Orders
               </span>
             </div>
-
-            <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #0284C7' }}>
-              <span style={{ fontSize: '0.75rem', color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-                Estimated Net Profit
-              </span>
-              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: '#0284C7', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-                ₹{financials?.profit_and_loss.net_profit_inr || '0.00'}
-              </div>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                Margin: {financials?.profit_and_loss.net_profit_margin_pct || '0.0'}%
-              </span>
-            </div>
           </div>
-        )}
+          );
+        })()}
 
       {/* =========================================================================
           TAB 1: TICKET MANAGEMENT & OPERATIONS
@@ -789,16 +793,13 @@ export const AdminDashboardPage: React.FC = () => {
                 <option value="ALL">All Roles</option>
                 <option value="SUPER_ADMIN">Super Administrator</option>
                 <option value="OPS_ADMIN">Operations Administrator</option>
-                <option value="DEV_ACTIVE">Approved Developer</option>
-                <option value="DEV_VIDEO">Video Specialist</option>
-                <option value="DEV_PENDING">Pending Developer</option>
                 <option value="AUTH_CUSTOMER">Verified Customer</option>
                 <option value="ANON_GUEST">Guest User</option>
               </select>
             </div>
 
             <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Total Users: {filteredUsers.length}
+              {filteredUsers.length} customer{filteredUsers.length !== 1 ? 's' : ''} &bull; Developers managed separately in Developer Governance
             </span>
           </div>
 
@@ -884,124 +885,148 @@ export const AdminDashboardPage: React.FC = () => {
           ========================================================================= */}
       {activeTab === 'developers' && (
         <div>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Developer</th>
-                  <th>Approval Status</th>
-                  <th>Capabilities</th>
-                  <th>Active Workload Quota</th>
-                  <th>Skills &amp; Portfolio</th>
-                  <th>Governance Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {developers.map((dev) => (
-                  <tr key={dev.id}>
-                    <td>
-                      <strong>{dev.full_name}</strong>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{dev.email}</div>
-                    </td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          dev.developer_profile?.approval_status === 'APPROVED_ACTIVE'
-                            ? 'badge-approved'
-                            : dev.developer_profile?.approval_status === 'PENDING_APPROVAL'
-                            ? 'badge-pending'
-                            : 'badge-rejected'
-                        }`}
-                      >
-                        {dev.developer_profile?.approval_status || 'PENDING'}
-                      </span>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.8rem' }}>
-                        {dev.developer_profile?.can_produce_video ? '🎬 Video Specialist' : '🎨 Graphic & Web'}
-                      </span>
-                    </td>
-                    <td>
-                      <strong>{dev.developer_profile?.max_active_tickets || 3} tickets max</strong>
-                    </td>
-                    <td>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        {dev.developer_profile?.skills?.join(', ') || 'Standard Digital Invitation Crafting'}
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                        {dev.developer_profile?.approval_status !== 'APPROVED_ACTIVE' && (
-                          <button
-                            className="btn btn-primary btn-sm"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', background: '#166534', borderColor: '#166534' }}
-                            onClick={() => handleDeveloperAction(dev.id, 'APPROVE')}
-                          >
-                            <Check size={13} /> Approve
-                          </button>
-                        )}
-
-                        {dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' && (
-                          <button
-                            className="btn btn-outline btn-sm"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', color: '#B45309' }}
-                            onClick={() => handleDeveloperAction(dev.id, 'SUSPEND')}
-                          >
-                            Suspend
-                          </button>
-                        )}
-
-                        <button
-                          className="btn btn-outline btn-sm"
-                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
-                          onClick={() => {
-                            const newCap = prompt(
-                              `Set max active tickets for ${dev.full_name}:`,
-                              dev.developer_profile?.max_active_tickets || 3
-                            );
-                            if (newCap && !isNaN(parseInt(newCap))) {
-                              handleDeveloperAction(
-                                dev.id,
-                                dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' ? 'APPROVE' : 'UPDATE',
-                                dev.developer_profile?.can_produce_video,
-                                parseInt(newCap)
-                              );
-                            }
-                          }}
-                        >
-                          Quota
-                        </button>
-
-                        <button
-                          className="btn btn-outline btn-sm"
-                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }}
-                          onClick={() => {
-                            const toggleVideo = !dev.developer_profile?.can_produce_video;
-                            handleDeveloperAction(
-                              dev.id,
-                              dev.developer_profile?.approval_status === 'APPROVED_ACTIVE' ? 'APPROVE' : 'UPDATE',
-                              toggleVideo,
-                              dev.developer_profile?.max_active_tickets
-                            );
-                          }}
-                        >
-                          <Video size={13} /> Toggle Video
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-
-                {developers.length === 0 && (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                      No developer applications found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          {/* Summary strip */}
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.75rem', flexWrap: 'wrap' }}>
+            <div className="card" style={{ padding: '1rem 1.5rem', flex: '1 1 160px', borderTop: '3px solid #166534' }}>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#166534', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Approved</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#166534' }}>
+                {developers.filter(d => d.developer_profile?.approval_status === 'APPROVED_ACTIVE').length}
+              </div>
+            </div>
+            <div className="card" style={{ padding: '1rem 1.5rem', flex: '1 1 160px', borderTop: '3px solid #B45309' }}>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#B45309', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Pending Review</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#B45309' }}>
+                {developers.filter(d => d.developer_profile?.approval_status === 'PENDING_APPROVAL').length}
+              </div>
+            </div>
+            <div className="card" style={{ padding: '1rem 1.5rem', flex: '1 1 160px', borderTop: '3px solid #DC2626' }}>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: '#DC2626', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Suspended / Rejected</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: '#DC2626' }}>
+                {developers.filter(d => ['SUSPENDED', 'REJECTED'].includes(d.developer_profile?.approval_status)).length}
+              </div>
+            </div>
+            <div className="card" style={{ padding: '1rem 1.5rem', flex: '1 1 160px' }}>
+              <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700, letterSpacing: '0.08em', marginBottom: '0.3rem' }}>Total Developers</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 700, fontFamily: 'var(--font-serif)', color: 'var(--navy-deep)' }}>
+                {developers.length}
+              </div>
+            </div>
           </div>
+
+          {/* Developer Cards Grid */}
+          {developers.length === 0 ? (
+            <div className="card" style={{ textAlign: 'center', padding: '3rem 2rem', color: 'var(--text-muted)' }}>
+              <UserCheck size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+              <p>No developer applications found. When developers register, they appear here for review.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+              {developers.map((dev) => {
+                const status = dev.developer_profile?.approval_status || 'PENDING_APPROVAL';
+                const isApproved = status === 'APPROVED_ACTIVE';
+                const isPending = status === 'PENDING_APPROVAL';
+                const isSuspended = status === 'SUSPENDED';
+                const statusColor = isApproved ? '#166534' : isPending ? '#B45309' : '#DC2626';
+                const statusBg = isApproved ? '#F0FDF4' : isPending ? '#FFFBEB' : '#FEF2F2';
+
+                return (
+                  <div
+                    key={dev.id}
+                    className="card"
+                    style={{ padding: '1.5rem', borderTop: `3px solid ${statusColor}`, display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                  >
+                    {/* Developer Identity */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--navy-deep)' }}>{dev.full_name}</div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '2px' }}>{dev.email}</div>
+                      </div>
+                      <span
+                        style={{
+                          fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.07em',
+                          padding: '3px 10px', borderRadius: '20px',
+                          background: statusBg, color: statusColor,
+                          textTransform: 'uppercase', whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {isApproved ? 'Active' : isPending ? 'Pending' : isSuspended ? 'Suspended' : 'Rejected'}
+                      </span>
+                    </div>
+
+                    {/* Meta Info */}
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                      <span>🎨 {dev.developer_profile?.can_produce_video ? 'Video + Graphic' : 'Graphic & Web'}</span>
+                      <span>📋 Max {dev.developer_profile?.max_active_tickets || 3} orders</span>
+                      {dev.created_at && (
+                        <span>🗓 Joined {new Date(dev.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+                      {!isApproved && (
+                        <button
+                          className="btn btn-sm"
+                          style={{ background: '#166534', color: '#fff', border: 'none', padding: '0.4rem 0.9rem', fontSize: '0.8rem', borderRadius: 'var(--radius-sm)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                          onClick={() => handleDeveloperAction(dev.id, 'APPROVE')}
+                          disabled={loading}
+                        >
+                          <Check size={13} /> Approve
+                        </button>
+                      )}
+
+                      {isApproved && (
+                        <button
+                          className="btn btn-sm btn-outline"
+                          style={{ color: '#B45309', borderColor: '#B45309', padding: '0.4rem 0.9rem', fontSize: '0.8rem' }}
+                          onClick={() => handleDeveloperAction(dev.id, 'SUSPEND')}
+                          disabled={loading}
+                        >
+                          Suspend
+                        </button>
+                      )}
+
+                      {isSuspended && (
+                        <button
+                          className="btn btn-sm btn-outline"
+                          style={{ color: '#166534', borderColor: '#166534', padding: '0.4rem 0.9rem', fontSize: '0.8rem' }}
+                          onClick={() => handleDeveloperAction(dev.id, 'APPROVE')}
+                          disabled={loading}
+                        >
+                          Re-activate
+                        </button>
+                      )}
+
+                      {isPending && (
+                        <button
+                          className="btn btn-sm btn-outline"
+                          style={{ color: '#DC2626', borderColor: '#DC2626', padding: '0.4rem 0.9rem', fontSize: '0.8rem' }}
+                          onClick={() => handleDeveloperAction(dev.id, 'REJECT')}
+                          disabled={loading}
+                        >
+                          Reject
+                        </button>
+                      )}
+
+                      <button
+                        className="btn btn-sm btn-outline"
+                        style={{ color: 'var(--color-danger)', padding: '0.4rem 0.75rem', fontSize: '0.8rem', marginLeft: 'auto' }}
+                        onClick={() => {
+                          if (window.confirm(`Delete developer ${dev.full_name}? This cannot be undone.`)) {
+                            handleDeleteUser(dev);
+                          }
+                        }}
+                        disabled={loading}
+                        title="Permanently delete developer account"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -1596,9 +1621,6 @@ export const AdminDashboardPage: React.FC = () => {
                 >
                   <option value="SUPER_ADMIN">System Super Administrator</option>
                   <option value="OPS_ADMIN">Operations Administrator</option>
-                  <option value="DEV_ACTIVE">Approved Creative Developer</option>
-                  <option value="DEV_VIDEO">Video Production Specialist</option>
-                  <option value="DEV_PENDING">Pending Developer</option>
                   <option value="AUTH_CUSTOMER">Verified Customer</option>
                   <option value="ANON_GUEST">Anonymous Guest</option>
                 </select>
@@ -1626,34 +1648,6 @@ export const AdminDashboardPage: React.FC = () => {
                   onChange={(e) => setEditPassword(e.target.value)}
                 />
               </div>
-
-              {(editRole === 'DEV_ACTIVE' || editRole === 'DEV_VIDEO') && (
-                <>
-                  <div className="form-group">
-                    <label className="form-label">Max Active Workload Quota (Tickets)</label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      value={editMaxTickets}
-                      onChange={(e) => setEditMaxTickets(parseInt(e.target.value) || 3)}
-                      min={1}
-                      max={15}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <input
-                      type="checkbox"
-                      id="devVideoCheck"
-                      checked={editCanVideo}
-                      onChange={(e) => setEditCanVideo(e.target.checked)}
-                    />
-                    <label htmlFor="devVideoCheck" style={{ margin: 0, fontWeight: 600 }}>
-                      Video Production Permission (can render MP4 motion cards)
-                    </label>
-                  </div>
-                </>
-              )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
                 <button className="btn btn-outline" onClick={() => setEditingUser(null)}>

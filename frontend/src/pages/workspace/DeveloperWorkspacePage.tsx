@@ -284,12 +284,12 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
       <div style={{ maxWidth: '680px', margin: '4rem auto', padding: '0 1rem' }}>
         <div className="card" style={{ textAlign: 'center', padding: '3.5rem 2rem' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
-          <span className="editorial-kicker">GOVERNANCE &bull; ACCESS PENDING</span>
+          <span className="editorial-kicker">DEVELOPER ACCESS &bull; PENDING APPROVAL</span>
           <h2 style={{ fontSize: '1.9rem', color: 'var(--navy-deep)', marginBottom: '0.75rem' }}>
-            Artisan Account Pending Administrator Approval
+            Your Account is Pending Administrator Approval
           </h2>
           <p style={{ color: 'var(--text-muted)', lineHeight: 1.65, marginBottom: '2rem' }}>
-            Your developer profile has been registered and is under review by a TechMasters Operations Administrator. Access to customer celebration orders and the ServiceNow ITIL queue will activate once Admin approval is granted.
+            Your developer profile has been registered and is under review by a TechMasters Administrator. Access to customer celebration orders will activate once your account is approved.
           </p>
           <div style={{ background: 'var(--bg-champagne)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '1rem', fontSize: '0.88rem' }}>
             Profile Status: <span className="badge badge-assigned">{currentUser.developer_profile?.approval_status || 'PENDING_APPROVAL'}</span>
@@ -324,7 +324,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
 
   return (
     <div style={{ maxWidth: '1280px', margin: '2.5rem auto 5rem', padding: '0 1.5rem' }}>
-      {/* Top Banner / ServiceNow Agent Workspace Header */}
+      {/* Developer Workspace Header */}
       <div
         style={{
           background: 'linear-gradient(135deg, #0B1B3D 0%, #152A56 100%)',
@@ -341,19 +341,14 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.35rem' }}>
-            <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#E5C07B', fontWeight: 700 }}>
-              ITIL SERVICE MANAGEMENT &bull; AGENT CONSOLE
-            </span>
-            <span style={{ background: 'rgba(255,255,255,0.15)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem' }}>
-              ServiceNow Flow
-            </span>
-          </div>
+          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#E5C07B', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+            TECHMASTERS DIGITAL SERVICES &bull; DEVELOPER WORKSPACE
+          </span>
           <h1 style={{ fontSize: '1.85rem', margin: 0, color: '#FFFFFF', fontWeight: 600 }}>
             TechMasters Creative Developer Workspace
           </h1>
           <p style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.88rem', marginTop: '4px', margin: 0 }}>
-            Agent: <strong>{currentUser.full_name}</strong> &bull; Assignment Group: <strong>Creative Artisan Engineering</strong> &bull; Role: <strong>{currentUser.role}</strong>
+            Welcome, <strong>{currentUser.full_name}</strong> &bull; Manage your assigned celebration orders below
           </p>
         </div>
 
@@ -368,7 +363,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
               color: '#FFFFFF'
             }}
           >
-            Workload Quota: <strong>{assignedTickets.filter(t => t.status !== 'CLOSED').length} / {currentUser.developer_profile?.max_active_tickets || 3}</strong> Active
+            Active Orders: <strong>{assignedTickets.filter(t => t.status !== 'CLOSED').length} / {currentUser.developer_profile?.max_active_tickets || 3}</strong>
           </div>
           <button
             className="btn btn-sm"
