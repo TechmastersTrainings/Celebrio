@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TechMastersLogo } from './TechMastersLogo';
-import { Menu, X, Sparkles, Search, Compass, PhoneCall, LogIn, LayoutDashboard, Code } from 'lucide-react';
+import { Menu, X, Sparkles, Search, LogOut, LayoutDashboard, Code } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
@@ -11,6 +11,12 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUser, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Strict Admin Check: Only techmastersinnovations@gmail.com has Admin access
+  const isActualAdmin = Boolean(
+    staffUser &&
+    staffUser.email?.toLowerCase() === 'techmastersinnovations@gmail.com'
+  );
 
   const handleNavClick = (view: string, hash?: string) => {
     setMobileMenuOpen(false);
@@ -81,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
         </nav>
 
         {/* Action CTAs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           {/* Track Order */}
           <button
             className={`btn btn-sm nav-track-btn ${currentView === 'tracking' ? 'btn-navy' : 'btn-outline'}`}
@@ -100,36 +106,41 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             <span>Create Invitation</span>
           </button>
 
-          {/* Staff Portals / Workspace (Visible only when logged in) */}
+          {/* Admin Portal Button: ONLY visible for techmastersinnovations@gmail.com and when not already on admin */}
+          {isActualAdmin && currentView !== 'admin' && (
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => handleNavClick('admin')}
+              title="Admin Control Center"
+            >
+              <LayoutDashboard size={14} />
+              <span className="desktop-only">Admin Portal</span>
+            </button>
+          )}
+
+          {/* Developer Workspace Button: Only visible when browsing customer pages */}
+          {staffUser && !isActualAdmin && currentView !== 'workspace' && (
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => handleNavClick('workspace')}
+              title="Developer Workspace"
+            >
+              <Code size={14} />
+              <span className="desktop-only">Developer Workspace</span>
+            </button>
+          )}
+
+          {/* Clean Logout Button for all logged in staff */}
           {staffUser && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              {staffUser.is_admin && (
-                <button
-                  className={`btn btn-sm ${currentView === 'admin' ? 'btn-primary' : 'btn-navy'}`}
-                  onClick={() => handleNavClick('admin')}
-                  title="Admin Superman Command Center"
-                >
-                  <LayoutDashboard size={14} />
-                  <span className="desktop-only">Admin Portal</span>
-                </button>
-              )}
-              <button
-                className={`btn btn-sm ${currentView === 'workspace' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => handleNavClick('workspace')}
-                title="Developer Workspace & Studio"
-              >
-                <Code size={14} />
-                <span className="desktop-only">Developer Portal</span>
-              </button>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={onLogout}
-                style={{ padding: '0.45rem 0.7rem' }}
-                title="Sign out of staff account"
-              >
-                Exit
-              </button>
-            </div>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={onLogout}
+              style={{ padding: '0.45rem 0.75rem', gap: '0.35rem' }}
+              title="Sign out of account"
+            >
+              <LogOut size={13} />
+              <span>Logout</span>
+            </button>
           )}
 
           {/* Mobile hamburger button */}
@@ -159,62 +170,66 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
           <button
             className={`nav-link ${currentView === 'home' ? 'active' : ''}`}
             onClick={() => handleNavClick('home')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
           >
             Home
           </button>
+
           <button
             className={`nav-link ${currentView === 'designs' ? 'active' : ''}`}
             onClick={() => handleNavClick('designs')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
           >
-            Invitation Designs Gallery
+            Invitation Designs
           </button>
+
           <button
             className={`nav-link ${currentView === 'catalog' ? 'active' : ''}`}
             onClick={() => handleNavClick('catalog')}
-            style={{ textAlign: 'left', padding: '0.6rem 0', background: 'none', border: 'none', fontSize: '1rem' }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
           >
             Packages &amp; Pricing
           </button>
 
-          <hr style={{ borderColor: 'var(--border-subtle)', margin: '0.5rem 0' }} />
-
           <button
-            className="btn btn-navy btn-sm"
+            className={`nav-link ${currentView === 'tracking' ? 'active' : ''}`}
             onClick={() => handleNavClick('tracking')}
-            style={{ width: '100%', justifyContent: 'center' }}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
           >
-            <Search size={14} />
-            Track Order with Mobile OTP
+            Track Order
           </button>
 
+          {isActualAdmin && (
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => handleNavClick('admin')}
+              style={{ justifyContent: 'center', marginTop: '0.5rem' }}
+            >
+              <LayoutDashboard size={14} /> Admin Portal
+            </button>
+          )}
+
+          {staffUser && !isActualAdmin && currentView !== 'workspace' && (
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => handleNavClick('workspace')}
+              style={{ justifyContent: 'center', marginTop: '0.5rem' }}
+            >
+              <Code size={14} /> Developer Workspace
+            </button>
+          )}
+
           {staffUser && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {staffUser.is_admin && (
-                <button
-                  className="btn btn-navy btn-sm"
-                  onClick={() => handleNavClick('admin')}
-                  style={{ width: '100%', justifyContent: 'center' }}
-                >
-                  <LayoutDashboard size={14} /> Admin Superman Control Center
-                </button>
-              )}
-              <button
-                className="btn btn-primary btn-sm"
-                onClick={() => handleNavClick('workspace')}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                <Code size={14} /> Developer Studio Workspace
-              </button>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={onLogout}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
-                Sign Out
-              </button>
-            </div>
+            <button
+              className="btn btn-outline btn-sm"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onLogout();
+              }}
+              style={{ justifyContent: 'center', gap: '0.4rem', color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+            >
+              <LogOut size={14} /> Logout
+            </button>
           )}
         </div>
       )}

@@ -46,22 +46,22 @@ class Command(BaseCommand):
         admin_prof.save()
         self.stdout.write(self.style.SUCCESS(f"Configured Admin: {admin_email}"))
 
-        # 2. Create / Update Super Admin & Lead Developer: sachin@techmastersinnovations.in
+        # 2. Create / Update Lead Developer: sachin@techmastersinnovations.in
         sachin_email = 'sachin@techmastersinnovations.in'
         sachin_user, _ = User.objects.get_or_create(
             email=sachin_email,
             defaults={
-                'full_name': 'Sachin (Lead Creative Developer & Admin)',
-                'role': UserRole.SUPER_ADMIN,
+                'full_name': 'Sachin (Lead Creative Artisan)',
+                'role': UserRole.DEV_ACTIVE,
                 'is_staff': True,
-                'is_superuser': True,
+                'is_superuser': False,
                 'is_active': True,
             }
         )
         sachin_user.set_password(admin_pwd)
-        sachin_user.role = UserRole.SUPER_ADMIN
+        sachin_user.role = UserRole.DEV_ACTIVE
         sachin_user.is_staff = True
-        sachin_user.is_superuser = True
+        sachin_user.is_superuser = False
         sachin_user.is_active = True
         sachin_user.save()
 
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         sachin_prof.approval_status = ApprovalStatus.APPROVED_ACTIVE
         sachin_prof.can_produce_video = True
         sachin_prof.save()
-        self.stdout.write(self.style.SUCCESS(f"Configured Lead Developer/Admin: {sachin_email}"))
+        self.stdout.write(self.style.SUCCESS(f"Configured Lead Developer: {sachin_email}"))
 
         # 3. Create / Update Standard Developer: developer@techmastersinnovations.in
         dev_email = 'developer@techmastersinnovations.in'

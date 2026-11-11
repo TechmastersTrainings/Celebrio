@@ -122,9 +122,10 @@ export const App: React.FC = () => {
       return;
     }
 
-    // 6. Admin Portal: /admin/login
+    // 6. Admin Portal: /admin/login (Strict Admin: techmastersinnovations@gmail.com)
     if (pathname === '/admin/login' || pathname === '/admin/login/') {
-      if (user && user.is_admin) {
+      const isActualAdmin = Boolean(user && user.email?.toLowerCase() === 'techmastersinnovations@gmail.com' && user.is_admin);
+      if (isActualAdmin) {
         // Authenticated Admin: navigate to Admin Control Center
         setCurrentView('admin');
         window.history.replaceState({}, '', '/admin');
@@ -136,15 +137,10 @@ export const App: React.FC = () => {
 
     // 7. Admin Portal Dashboard: /admin or /admin/dashboard
     if (pathname === '/admin' || pathname === '/admin/' || pathname === '/admin/dashboard') {
-      if (!user) {
-        // Unauthenticated access -> redirect to Admin login
-        setCurrentView('admin-login');
-        window.history.replaceState({}, '', '/admin/login');
-        return;
-      }
-      if (!user.is_admin) {
+      const isActualAdmin = Boolean(user && user.email?.toLowerCase() === 'techmastersinnovations@gmail.com' && user.is_admin);
+      if (!isActualAdmin) {
         // Non-admin attempting admin dashboard -> role protection
-        if (user.is_approved_developer) {
+        if (user && user.is_approved_developer) {
           setCurrentView('workspace');
           window.history.replaceState({}, '', '/developers');
         } else {

@@ -371,204 +371,250 @@ export const AdminDashboardPage: React.FC = () => {
   );
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '2.5rem auto 5rem', padding: '0 1.5rem' }}>
-      {/* Admin Title Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '2rem',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
-        <div>
-          <span className="editorial-kicker">TECHMASTERS DIGITAL SERVICES &bull; CENTRAL GOVERNANCE</span>
-          <h1 style={{ fontSize: '2.2rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
-            Admin Superman Control Center
-          </h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', margin: 0 }}>
-            Unified Operations: Users &bull; Developers &bull; Tickets &bull; Payments &bull; Revenue &bull; Profit &amp; Loss
-          </p>
+    <div className="admin-console-wrapper">
+      {/* Left Sidebar Menu */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-header">
+          <div className="admin-badge">
+            <ShieldCheck size={13} style={{ color: 'var(--gold-soft)' }} />
+            <span>SUPER ADMIN</span>
+          </div>
+          <h2 className="admin-sidebar-title">Central Governance</h2>
+          <span className="admin-sidebar-user">techmastersinnovations@gmail.com</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        {/* Navigation Menu */}
+        <nav className="admin-sidebar-nav">
+          <button
+            className={`admin-nav-item ${activeTab === 'tickets' ? 'active' : ''}`}
+            onClick={() => setActiveTab('tickets')}
+          >
+            <div className="admin-nav-icon"><Layers size={16} /></div>
+            <span className="admin-nav-label">Tickets</span>
+            <span className="admin-nav-badge">{tickets.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'users' ? 'active' : ''}`}
+            onClick={() => setActiveTab('users')}
+          >
+            <div className="admin-nav-icon"><Users size={16} /></div>
+            <span className="admin-nav-label">User Management</span>
+            <span className="admin-nav-badge">{users.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'developers' ? 'active' : ''}`}
+            onClick={() => setActiveTab('developers')}
+          >
+            <div className="admin-nav-icon"><UserCheck size={16} /></div>
+            <span className="admin-nav-label">Developer Governance</span>
+            <span className="admin-nav-badge">{developers.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'payments' ? 'active' : ''}`}
+            onClick={() => setActiveTab('payments')}
+          >
+            <div className="admin-nav-icon"><CreditCard size={16} /></div>
+            <span className="admin-nav-label">Payment Operations</span>
+            <span className="admin-nav-badge">{payments.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'revenue' ? 'active' : ''}`}
+            onClick={() => setActiveTab('revenue')}
+          >
+            <div className="admin-nav-icon"><DollarSign size={16} /></div>
+            <span className="admin-nav-label">Revenue Telemetry</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'pnl' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pnl')}
+          >
+            <div className="admin-nav-icon"><TrendingUp size={16} /></div>
+            <span className="admin-nav-label">Profit &amp; Loss (P&amp;L)</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'catalog' ? 'active' : ''}`}
+            onClick={() => setActiveTab('catalog')}
+          >
+            <div className="admin-nav-icon"><Sliders size={16} /></div>
+            <span className="admin-nav-label">Catalog &amp; Pricing</span>
+            <span className="admin-nav-badge">{occasions.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'audit' ? 'active' : ''}`}
+            onClick={() => setActiveTab('audit')}
+          >
+            <div className="admin-nav-icon"><FileText size={16} /></div>
+            <span className="admin-nav-label">Audit Trail</span>
+            <span className="admin-nav-badge">{auditLogs.length}</span>
+          </button>
+        </nav>
+
+        {/* Sidebar Actions */}
+        <div className="admin-sidebar-footer">
           <button
             className="btn btn-navy btn-sm"
+            style={{ width: '100%', justifyContent: 'center', marginBottom: '0.5rem' }}
             onClick={() => setShowManualPayModal(true)}
-            title="Record offline payment or verify order payment"
           >
             <CreditCard size={14} /> Record Payment
           </button>
-          <button className="btn btn-outline btn-sm" onClick={loadAll} disabled={loading}>
+          <button
+            className="btn btn-outline btn-sm"
+            style={{ width: '100%', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', color: '#CBD5E1', borderColor: 'rgba(255,255,255,0.15)' }}
+            onClick={loadAll}
+            disabled={loading}
+          >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Telemetry
           </button>
         </div>
-      </div>
+      </aside>
 
-      {actionMsg && (
+      {/* Main Content Area */}
+      <main className="admin-main-content">
+        {/* Admin Title Bar */}
         <div
           style={{
-            background: '#F0FDF4',
-            border: '1px solid #BBF7D0',
-            color: '#166534',
-            padding: '0.85rem 1.25rem',
-            borderRadius: 'var(--radius-sm)',
-            marginBottom: '1.5rem',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            marginBottom: '1.75rem',
+            flexWrap: 'wrap',
+            gap: '1rem',
           }}
         >
-          <span>{actionMsg}</span>
-          <button
-            onClick={() => setActionMsg(null)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#166534', fontWeight: 'bold' }}
+          <div>
+            <span className="editorial-kicker">TECHMASTERS CENTRAL GOVERNANCE</span>
+            <h1 style={{ fontSize: '1.9rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
+              {activeTab === 'tickets' && 'Production Tickets Console'}
+              {activeTab === 'users' && 'Staff & Customer User Directory'}
+              {activeTab === 'developers' && 'Developer Artisan Governance'}
+              {activeTab === 'payments' && 'Payment Verification & Audit'}
+              {activeTab === 'revenue' && 'Revenue & Financial Telemetry'}
+              {activeTab === 'pnl' && 'Profit & Loss Statement (P&L)'}
+              {activeTab === 'catalog' && 'Celebration Catalog & Package Pricing'}
+              {activeTab === 'audit' && 'Immutable System Activity Logs'}
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
+              Enterprise Operations Control &bull; Super Admin: techmastersinnovations@gmail.com
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              className="btn btn-navy btn-sm"
+              onClick={() => setShowManualPayModal(true)}
+              title="Record offline payment or verify order payment"
+            >
+              <CreditCard size={14} /> Record Payment
+            </button>
+            <button className="btn btn-outline btn-sm" onClick={loadAll} disabled={loading}>
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
+            </button>
+          </div>
+        </div>
+
+        {actionMsg && (
+          <div
+            style={{
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              color: '#166534',
+              padding: '0.85rem 1.25rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
           >
-            &times;
-          </button>
-        </div>
-      )}
-
-      {error && (
-        <div
-          style={{
-            background: '#FEF2F2',
-            border: '1px solid #FECACA',
-            color: 'var(--color-danger)',
-            padding: '0.85rem 1.25rem',
-            borderRadius: 'var(--radius-sm)',
-            marginBottom: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-          }}
-        >
-          <AlertCircle size={16} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* KPI Metrics Dashboard Cards */}
-      {metrics && (
-        <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-              Total Orders
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              {metrics.total_orders}
-            </div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              {metrics.unassigned_fifo_queue} In Queue &bull; {metrics.closed_tickets} Delivered
-            </span>
+            <span>{actionMsg}</span>
+            <button
+              onClick={() => setActionMsg(null)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#166534', fontWeight: 'bold' }}
+            >
+              &times;
+            </button>
           </div>
+        )}
 
-          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid var(--gold-primary)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-              Total Users
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              {users.length}
-            </div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              {metrics.active_developers} Active Devs &bull; {metrics.pending_developer_approvals} Pending
-            </span>
+        {error && (
+          <div
+            style={{
+              background: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: 'var(--color-danger)',
+              padding: '0.85rem 1.25rem',
+              borderRadius: 'var(--radius-sm)',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <AlertCircle size={16} />
+            <span>{error}</span>
           </div>
+        )}
 
-          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #166534' }}>
-            <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-              Gross Revenue (Settled)
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#166534', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              ₹{metrics.total_revenue_inr}
+        {/* KPI Metrics Dashboard Cards */}
+        {metrics && (
+          <div className="grid grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                Total Orders
+              </span>
+              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--navy-deep)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                {metrics.total_orders}
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                {metrics.unassigned_fifo_queue} In Queue &bull; {metrics.closed_tickets} Delivered
+              </span>
             </div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              {metrics.payment_done + metrics.closed_tickets} Paid Orders
-            </span>
-          </div>
 
-          <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #0284C7' }}>
-            <span style={{ fontSize: '0.75rem', color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-              Estimated Net Profit
-            </span>
-            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#0284C7', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
-              ₹{financials?.profit_and_loss.net_profit_inr || '0.00'}
+            <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid var(--gold-primary)' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+                Total Users
+              </span>
+              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                {users.length}
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                {metrics.active_developers} Active Devs &bull; {metrics.pending_developer_approvals} Pending
+              </span>
             </div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-              Margin: {financials?.profit_and_loss.net_profit_margin_pct || '0.0'}%
-            </span>
+
+            <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #166534' }}>
+              <span style={{ fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+                Gross Revenue (Settled)
+              </span>
+              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: '#166534', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                ₹{metrics.total_revenue_inr}
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                {metrics.payment_done + metrics.closed_tickets} Paid Orders
+              </span>
+            </div>
+
+            <div className="card" style={{ padding: '1.25rem', borderTop: '3px solid #0284C7' }}>
+              <span style={{ fontSize: '0.75rem', color: '#0284C7', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
+                Estimated Net Profit
+              </span>
+              <div style={{ fontSize: '1.85rem', fontWeight: 700, color: '#0284C7', fontFamily: 'var(--font-serif)', lineHeight: 1 }}>
+                ₹{financials?.profit_and_loss.net_profit_inr || '0.00'}
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                Margin: {financials?.profit_and_loss.net_profit_margin_pct || '0.0'}%
+              </span>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Admin Module Navigation Tabs */}
-      <div style={{ display: 'flex', gap: '0.35rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <button
-          className={`btn btn-sm ${activeTab === 'tickets' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('tickets')}
-        >
-          <Layers size={14} /> Tickets ({tickets.length})
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'users' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('users')}
-        >
-          <Users size={14} /> User Management ({users.length})
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'developers' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('developers')}
-        >
-          <UserCheck size={14} /> Developer Management ({developers.length})
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'payments' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('payments')}
-        >
-          <CreditCard size={14} /> Payment Management ({payments.length})
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'revenue' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('revenue')}
-        >
-          <DollarSign size={14} /> Revenue Telemetry
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'pnl' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('pnl')}
-        >
-          <TrendingUp size={14} /> Profit &amp; Loss (P&amp;L)
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'catalog' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('catalog')}
-        >
-          <Sliders size={14} /> Catalog &amp; Pricing
-        </button>
-
-        <button
-          className={`btn btn-sm ${activeTab === 'audit' ? 'btn-primary' : 'btn-outline'}`}
-          style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
-          onClick={() => setActiveTab('audit')}
-        >
-          <FileText size={14} /> Audit Trail ({auditLogs.length})
-        </button>
-      </div>
+        )}
 
       {/* =========================================================================
           TAB 1: TICKET MANAGEMENT & OPERATIONS
@@ -1789,6 +1835,7 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 };
