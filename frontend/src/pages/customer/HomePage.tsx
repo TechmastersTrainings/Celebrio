@@ -320,66 +320,53 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
       {/* =========================================================================
           SECTION 2: OCCASION CATEGORIES (WARM CHAMPAGNE AMBER)
           ========================================================================= */}
-      <section
-        className="section"
-        id="occasions"
-        style={{
-          padding: '3.75rem 0',
-          background: 'linear-gradient(180deg, #F9F4EB 0%, #F5ECE0 100%)',
-          borderTop: '1px solid #E8DDD0',
-          borderBottom: '1px solid #E8DDD0',
-        }}
-      >
+      <section className="milestone-section" id="occasions">
         <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 2.75rem' }}>
-            <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
+          <div className="milestone-header">
+            <h2>
               Invitations for Life's Milestones
             </h2>
-            <p className="lead-text" style={{ color: '#475569' }}>
+            <p className="lead-text">
               Every occasion possesses its own rhythm, family emotion, and cultural beauty. We tailor each experience with respectful typography, interactive schedules, and custom media.
             </p>
           </div>
 
-          <div className="grid grid-cols-3">
+          <div className="milestone-grid">
             {occasions.map((occ) => {
               const imgUrl = categoryImages[occ.slug] || categoryImages['marriage'];
               const startPrice = getStartingPrice(occ);
 
               return (
-                <div key={occ.id} className="showcase-card" style={{ background: '#FFFFFF', border: '1px solid #E5D9CC' }}>
-                  <div style={{ position: 'relative', overflow: 'hidden' }}>
-                    <img src={imgUrl} alt={occ.display_name} className="showcase-card-img" />
+                <div key={occ.id} className="milestone-card">
+                  <div className="milestone-card-img-wrap">
+                    <img src={imgUrl} alt={occ.display_name} className="milestone-card-img" />
                   </div>
 
-                  <div className="showcase-card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-                      <h3 style={{ fontSize: '1.32rem', margin: 0, color: '#0A192F' }}>{occ.display_name}</h3>
+                  <div className="milestone-card-body">
+                    <div className="milestone-card-header">
+                      <h3 className="milestone-card-title">{occ.display_name}</h3>
                       {startPrice && (
-                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '0.75rem' }}>
-                          <span className="card-price-value">
-                            <span className="card-price-currency">₹</span>
-                            <span className="card-price-amount">{Math.floor(parseFloat(String(startPrice)))}</span>
-                            <span className="card-price-decimals">.00</span>
-                          </span>
+                        <div className="milestone-price-value">
+                          <span className="milestone-price-currency">₹</span>
+                          <span className="milestone-price-amount">{Math.floor(parseFloat(String(startPrice)))}</span>
+                          <span className="milestone-price-decimals">.00</span>
                         </div>
                       )}
                     </div>
 
-                    <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
+                    <p className="milestone-card-desc">
                       {occ.description}
                     </p>
 
-                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid #E8DDD0', paddingTop: '1rem' }}>
+                    <div className="milestone-card-footer">
                       <button
-                        className="btn btn-outline btn-sm"
-                        style={{ flex: 1, color: '#0A192F', borderColor: '#CBD5E1', background: '#FFFFFF' }}
+                        className="milestone-btn-outline"
                         onClick={() => onNavigate('designs')}
                       >
                         Explore Designs
                       </button>
                       <button
-                        className="btn btn-primary btn-sm"
-                        style={{ flex: 1 }}
+                        className="milestone-btn-primary"
                         onClick={() => onSelectOccasion(occ.id)}
                       >
                         <span>Customise</span>
