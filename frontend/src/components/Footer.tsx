@@ -135,42 +135,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Operational Systems: Developer & Admin Portal Links */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '0.75rem',
-              padding: '0.75rem 0',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-              fontSize: '0.78rem',
-              color: '#64748B',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <span style={{ textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, color: '#94A3B8' }}>
-                Operational Portals:
-              </span>
-              <button
-                onClick={() => onNavigate('dev-login')}
-                style={{ background: 'none', border: 'none', color: '#E2E8F0', cursor: 'pointer', padding: 0, fontSize: '0.78rem', fontWeight: 500 }}
-              >
-                Developer Workspace (/developers/login)
-              </button>
-              <span style={{ color: 'rgba(255,255,255,0.2)' }}>&bull;</span>
-              <button
-                onClick={() => onNavigate('admin-login')}
-                style={{ background: 'none', border: 'none', color: '#E2E8F0', cursor: 'pointer', padding: 0, fontSize: '0.78rem', fontWeight: 500 }}
-              >
-                Admin Control Centre (/admin/login)
-              </button>
-            </div>
-            <div style={{ color: '#94A3B8', fontSize: '0.76rem' }}>
-              Bidar Innovation Hub &bull; ITIL Service Operations
-            </div>
-          </div>
+
 
           {/* Bottom Bar: Copyright + Legal Policies */}
           <div
