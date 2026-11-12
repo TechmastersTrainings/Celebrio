@@ -81,6 +81,7 @@ export interface CustomerAsset {
   file_size_bytes: number;
   asset_category: string;
   uploaded_at: string;
+  url?: string;
 }
 
 export interface OrderDetail {

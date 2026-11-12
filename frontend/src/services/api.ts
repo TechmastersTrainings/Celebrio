@@ -226,8 +226,26 @@ export class ApiService {
     });
   }
 
-  static async getAssignedTickets(): Promise<any[]> {
-    return this.request('/workspace/tickets/assigned/');
+  static getMediaUrl(fileKeyOrUrl: string): string {
+    if (!fileKeyOrUrl) return '';
+    if (fileKeyOrUrl.startsWith('http://') || fileKeyOrUrl.startsWith('https://') || fileKeyOrUrl.startsWith('data:')) {
+      return fileKeyOrUrl;
+    }
+    const base = envApi || '';
+    const cleanKey = fileKeyOrUrl.replace(/^\/+/, '');
+    if (cleanKey.startsWith('media/')) {
+      return `${base}/${cleanKey}`;
+    }
+    return `${base}/media/${cleanKey}`;
+  }
+
+  static async getAssignedTickets(scope?: string): Promise<any[]> {
+    const qs = scope ? `?scope=${encodeURIComponent(scope)}` : '';
+    return this.request(`/workspace/tickets/assigned/${qs}`);
+  }
+
+  static async getClosedTickets(): Promise<any[]> {
+    return this.getAssignedTickets('closed');
   }
 
   static async uploadDesignVersion(ticketId: string, webPayload: any, watermark?: string) {

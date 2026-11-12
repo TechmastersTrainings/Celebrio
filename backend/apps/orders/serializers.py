@@ -32,6 +32,8 @@ class OrderEventSerializer(serializers.ModelSerializer):
         }
 
 class CustomerAssetSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomerAsset
         fields = [
@@ -42,8 +44,14 @@ class CustomerAssetSerializer(serializers.ModelSerializer):
             'file_size_bytes',
             'asset_category',
             'uploaded_at',
+            'url',
         ]
-        read_only_fields = ['id', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at', 'url']
+
+    def get_url(self, obj):
+        if obj.file_key:
+            return f"/media/{obj.file_key}"
+        return None
 
 class OrderCreateSerializer(serializers.Serializer):
     customer_name = serializers.CharField(max_length=150)

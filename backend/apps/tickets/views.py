@@ -23,13 +23,14 @@ class TicketDetailView(views.APIView):
         except Ticket.DoesNotExist:
             return Response({'success': False, 'error': {'message': 'Ticket not found'}}, status=status.HTTP_404_NOT_FOUND)
 
-        # Scoping check: Admins can view all tickets; approved developers can view their assigned tickets or unassigned queue tickets
+        # Scoping check: Admins can view all tickets; approved developers can view their assigned tickets, closed reference tickets, or unassigned queue tickets
         user = request.user
         if not user.is_admin_role:
-            if ticket.assigned_developer and ticket.assigned_developer != user:
-                return Response({'success': False, 'error': {'message': 'Access forbidden to ticket assigned to another developer.'}}, status=status.HTTP_403_FORBIDDEN)
-            if not ticket.assigned_developer and not user.is_approved_developer:
-                return Response({'success': False, 'error': {'message': 'Only approved developers can view queue tickets.'}}, status=status.HTTP_403_FORBIDDEN)
+            if ticket.status != TicketStatus.CLOSED:
+                if ticket.assigned_developer and ticket.assigned_developer != user:
+                    return Response({'success': False, 'error': {'message': 'Access forbidden to ticket assigned to another developer.'}}, status=status.HTTP_403_FORBIDDEN)
+                if not ticket.assigned_developer and not user.is_approved_developer:
+                    return Response({'success': False, 'error': {'message': 'Only approved developers can view queue tickets.'}}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = TicketDetailSerializer(ticket)
         return Response({'success': True, 'data': serializer.data})

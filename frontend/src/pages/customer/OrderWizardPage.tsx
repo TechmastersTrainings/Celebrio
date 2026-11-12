@@ -193,7 +193,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
             Celebration Order Registered!
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', marginBottom: '2rem', lineHeight: 1.65 }}>
-            Your order has been entered into the active FIFO queue for our internal creative team. You will receive an SMS/WhatsApp notification once your draft preview is ready.
+            Your order has been received by our internal creative design team. You will receive an SMS/WhatsApp notification once your draft preview is ready.
           </p>
 
           <div

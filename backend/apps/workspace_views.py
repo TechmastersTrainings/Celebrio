@@ -85,13 +85,22 @@ class WorkspaceAssignedTicketsView(views.APIView):
     permission_classes = [IsApprovedDeveloper]
 
     def get(self, request):
-        my_tickets = (
-            Ticket.objects.select_related('order', 'order__occasion', 'order__package')
-            .filter(assigned_developer=request.user)
-            .exclude(status=TicketStatus.CLOSED)
-            .order_by('-updated_at')
-        )
-        serializer = TicketListSerializer(my_tickets, many=True)
+        scope = request.query_params.get('scope', 'assigned')
+        if scope == 'closed':
+            # Returns all closed / resolved tickets so developer can review delivered orders
+            tickets = (
+                Ticket.objects.select_related('order', 'order__occasion', 'order__package', 'assigned_developer')
+                .filter(status=TicketStatus.CLOSED)
+                .order_by('-updated_at')
+            )
+        else:
+            # Returns all tickets assigned to this developer (both active and completed)
+            tickets = (
+                Ticket.objects.select_related('order', 'order__occasion', 'order__package', 'assigned_developer')
+                .filter(assigned_developer=request.user)
+                .order_by('-updated_at')
+            )
+        serializer = TicketListSerializer(tickets, many=True)
         return Response({'success': True, 'data': serializer.data})
 
 class WorkspaceUploadDesignView(views.APIView):

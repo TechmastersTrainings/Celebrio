@@ -636,7 +636,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
                 Artisan Designs
               </h4>
               <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Ticket enters FIFO queue. TechMasters designers craft bespoke previews.
+                Order assigned to dedicated designers who craft bespoke previews.
               </p>
             </div>
 

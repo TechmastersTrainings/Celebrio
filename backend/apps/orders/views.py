@@ -66,10 +66,17 @@ class CustomerAssetUploadView(views.APIView):
         category = request.data.get('asset_category', 'COUPLE_PHOTO')
         file_name = request.data.get('file_name', uploaded_file.name if uploaded_file else 'uploaded_file.jpg')
 
-        # Store file in media or mock storage
+        # Store file in media storage
         file_key = f"assets/{order.order_reference}/{file_name}"
         file_size = uploaded_file.size if uploaded_file else 1024
         file_type = uploaded_file.content_type if uploaded_file else 'image/jpeg'
+
+        if uploaded_file:
+            from django.core.files.storage import default_storage
+            from django.core.files.base import ContentFile
+            if default_storage.exists(file_key):
+                default_storage.delete(file_key)
+            default_storage.save(file_key, ContentFile(uploaded_file.read()))
 
         asset = CustomerAsset.objects.create(
             order=order,

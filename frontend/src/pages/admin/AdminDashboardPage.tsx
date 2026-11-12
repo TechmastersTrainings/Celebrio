@@ -717,7 +717,7 @@ export const AdminDashboardPage: React.FC = () => {
                             className="btn btn-outline btn-sm"
                             style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', color: '#B45309' }}
                             onClick={() => handleRelease(t.id)}
-                            title="Release back to unassigned FIFO queue"
+                            title="Release back to open production queue"
                           >
                             Release
                           </button>

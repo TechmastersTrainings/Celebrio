@@ -31,7 +31,11 @@ import {
   X,
   Phone,
   Mail,
-  FolderOpen
+  FolderOpen,
+  Download,
+  Inbox,
+  Code,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface DeveloperWorkspacePageProps {
@@ -39,12 +43,12 @@ interface DeveloperWorkspacePageProps {
   onOpenPreview: (previewUrl: string) => void;
 }
 
-const ITIL_STAGES = [
-  { key: 'NEW_OPEN', label: '1. New / Open' },
+const ORDER_STAGES = [
+  { key: 'NEW_OPEN', label: '1. New Order' },
   { key: 'ASSIGNED', label: '2. Assigned' },
-  { key: 'WORK_IN_PROGRESS', label: '3. Work in Progress' },
+  { key: 'WORK_IN_PROGRESS', label: '3. In Production' },
   { key: 'AWAITING_CUSTOMER_RESPONSE', label: '4. Awaiting Customer' },
-  { key: 'CLOSED', label: '5. Closed / Resolved' }
+  { key: 'CLOSED', label: '5. Delivered & Live' }
 ];
 
 export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
@@ -54,6 +58,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
   const [activeTab, setActiveTab] = useState<'assigned' | 'queue' | 'awaiting' | 'closed' | 'video'>('assigned');
   const [availableTickets, setAvailableTickets] = useState<TicketSummary[]>([]);
   const [assignedTickets, setAssignedTickets] = useState<TicketSummary[]>([]);
+  const [closedTickets, setClosedTickets] = useState<TicketSummary[]>([]);
   const [videoTasks, setVideoTasks] = useState<any[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [ticketDetail, setTicketDetail] = useState<TicketDetail | null>(null);
@@ -63,13 +68,18 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
   const [actionMsg, setActionMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Image Lightbox Modal State
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string; category?: string } | null>(null);
+  const [uploadingAsset, setUploadingAsset] = useState<boolean>(false);
+  const [assetCategory, setAssetCategory] = useState<string>('COUPLE_PHOTO');
+
   // Design Studio State
   const [themeColor, setThemeColor] = useState('#6B1728');
   const [accentColor, setAccentColor] = useState('#B88E3E');
   const [watermark, setWatermark] = useState('TECHMASTERS PREVIEW - NOT FINAL');
   const [internalNoteText, setInternalNoteText] = useState('');
 
-  // ITIL Closure Modal State
+  // Closure Modal State
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [closureCode, setClosureCode] = useState('Fulfilled — Invitation Delivered & Live');
   const [closureNotes, setClosureNotes] = useState('');
@@ -83,15 +93,17 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const [avail, myTickets] = await Promise.all([
-        ApiService.getAvailableTickets(),
-        ApiService.getAssignedTickets(),
+      const [avail, myTickets, closedAll] = await Promise.all([
+        ApiService.getAvailableTickets().catch(() => []),
+        ApiService.getAssignedTickets().catch(() => []),
+        ApiService.getClosedTickets().catch(() => []),
       ]);
       setAvailableTickets(avail || []);
       setAssignedTickets(myTickets || []);
+      setClosedTickets(closedAll || []);
 
       if (canVideo) {
-        const vTasks = await ApiService.getVideoTasks();
+        const vTasks = await ApiService.getVideoTasks().catch(() => []);
         setVideoTasks(vTasks || []);
       }
     } catch (err: any) {
@@ -119,20 +131,20 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
     }
   };
 
-  // FIFO Queue Claim
+  // Queue Claim (claim next available order)
   const handleClaimFIFO = async () => {
     try {
       setLoading(true);
       setError(null);
       const res: any = await ApiService.claimNextFIFOTicket();
-      setActionMsg(res.message || 'Next FIFO ticket assigned to you successfully!');
+      setActionMsg(res.message || 'Next available order assigned to you successfully!');
       await loadData();
       if (res.ticket_id) {
         await loadTicketDetail(res.ticket_id);
         setActiveTab('assigned');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to claim next FIFO ticket');
+      setError(err.message || 'Failed to claim next available order');
     } finally {
       setLoading(false);
     }
@@ -144,14 +156,31 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
       setLoading(true);
       setError(null);
       const res: any = await ApiService.claimSpecificTicket(ticketId);
-      setActionMsg(res.message || 'Ticket assigned to you successfully!');
+      setActionMsg(res.message || 'Order assigned to you successfully!');
       await loadData();
       await loadTicketDetail(ticketId);
       setActiveTab('assigned');
     } catch (err: any) {
-      setError(err.message || 'Failed to assign ticket');
+      setError(err.message || 'Failed to assign order');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Developer upload additional order attachment (customer photos received via WhatsApp/email)
+  const handleUploadAdditionalAsset = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!ticketDetail?.order?.order_reference || !e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    try {
+      setUploadingAsset(true);
+      await ApiService.uploadAsset(ticketDetail.order.order_reference, file, assetCategory);
+      setActionMsg(`Attachment "${file.name}" uploaded to order successfully!`);
+      await loadTicketDetail(ticketDetail.id);
+    } catch (err: any) {
+      setError(err.message || 'Failed to upload attachment');
+    } finally {
+      setUploadingAsset(false);
+      e.target.value = '';
     }
   };
 
@@ -273,11 +302,16 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
     );
   };
 
-  // Filtered Lists for Tabs
+  // Filtered Lists for Tabs & Sidebar
   const myActiveList = filterList(assignedTickets.filter((t) => t.status !== 'CLOSED'));
   const awaitingCustomerList = filterList(assignedTickets.filter((t) => t.status === 'AWAITING_CUSTOMER_RESPONSE'));
-  const closedList = filterList(assignedTickets.filter((t) => t.status === 'CLOSED'));
   const queueList = filterList(availableTickets);
+
+  // Combine developer's own closed tickets and system-wide delivered celebrations
+  const allClosedMap = new Map<string, TicketSummary>();
+  assignedTickets.filter((t) => t.status === 'CLOSED').forEach((t) => allClosedMap.set(t.id, t));
+  closedTickets.forEach((t) => allClosedMap.set(t.id, t));
+  const allClosedList = filterList(Array.from(allClosedMap.values()));
 
   if (!isApproved) {
     return (
@@ -323,57 +357,158 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
     ticketDetail?.assigned_developer_name === currentUser.full_name;
 
   return (
-    <div style={{ maxWidth: '1280px', margin: '2.5rem auto 5rem', padding: '0 1.5rem' }}>
-      {/* Developer Workspace Header */}
-      <div
-        style={{
-          background: 'linear-gradient(135deg, #0B1B3D 0%, #152A56 100%)',
-          color: '#FFFFFF',
-          borderRadius: 'var(--radius-md)',
-          padding: '1.5rem 2rem',
-          marginBottom: '2rem',
-          boxShadow: '0 4px 20px rgba(11, 27, 61, 0.15)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.25rem'
-        }}
-      >
-        <div>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#E5C07B', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>
-            TECHMASTERS DIGITAL SERVICES &bull; DEVELOPER WORKSPACE
-          </span>
-          <h1 style={{ fontSize: '1.85rem', margin: 0, color: '#FFFFFF', fontWeight: 600 }}>
-            TechMasters Creative Developer Workspace
-          </h1>
-          <p style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.88rem', marginTop: '4px', margin: 0 }}>
-            Welcome, <strong>{currentUser.full_name}</strong> &bull; Manage your assigned celebration orders below
-          </p>
+    <div className="admin-console-wrapper">
+      {/* Left Sidebar Menu */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-header">
+          <div className="admin-badge">
+            <Code size={13} style={{ color: 'var(--gold-soft)' }} />
+            <span>CREATIVE DEVELOPER</span>
+          </div>
+          <h2 className="admin-sidebar-title">Developer Console</h2>
+          <span className="admin-sidebar-user">{currentUser.email || currentUser.full_name}</span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        {/* Navigation Menu */}
+        <nav className="admin-sidebar-nav">
+          <button
+            className={`admin-nav-item ${activeTab === 'assigned' && !selectedTicketId ? 'active' : ''}`}
+            onClick={() => { setSelectedTicketId(null); setActiveTab('assigned'); }}
+          >
+            <div className="admin-nav-icon"><Layers size={16} /></div>
+            <span className="admin-nav-label">My Active Orders</span>
+            <span className="admin-nav-badge">{myActiveList.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'queue' && !selectedTicketId ? 'active' : ''}`}
+            onClick={() => { setSelectedTicketId(null); setActiveTab('queue'); }}
+          >
+            <div className="admin-nav-icon"><Inbox size={16} /></div>
+            <span className="admin-nav-label">Open Queue</span>
+            <span className="admin-nav-badge">{availableTickets.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'awaiting' && !selectedTicketId ? 'active' : ''}`}
+            onClick={() => { setSelectedTicketId(null); setActiveTab('awaiting'); }}
+          >
+            <div className="admin-nav-icon"><MessageSquare size={16} /></div>
+            <span className="admin-nav-label">Awaiting Customer</span>
+            <span className="admin-nav-badge">{awaitingCustomerList.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'closed' && !selectedTicketId ? 'active' : ''}`}
+            onClick={() => { setSelectedTicketId(null); setActiveTab('closed'); }}
+          >
+            <div className="admin-nav-icon"><CheckCircle2 size={16} /></div>
+            <span className="admin-nav-label">Closed / Delivered</span>
+            <span className="admin-nav-badge">{allClosedList.length}</span>
+          </button>
+
+          {canVideo && (
+            <button
+              className={`admin-nav-item ${activeTab === 'video' && !selectedTicketId ? 'active' : ''}`}
+              onClick={() => { setSelectedTicketId(null); setActiveTab('video'); }}
+            >
+              <div className="admin-nav-icon"><Video size={16} /></div>
+              <span className="admin-nav-label">Video Tasks</span>
+              <span className="admin-nav-badge">{videoTasks.length}</span>
+            </button>
+          )}
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="admin-sidebar-footer">
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: 'var(--radius-sm)',
-              padding: '0.55rem 1rem',
-              fontSize: '0.86rem',
-              color: '#FFFFFF'
+              padding: '0.65rem 0.85rem',
+              marginBottom: '0.75rem',
+              fontSize: '0.8rem',
+              color: '#CBD5E1'
             }}
           >
-            Active Orders: <strong>{assignedTickets.filter(t => t.status !== 'CLOSED').length} / {currentUser.developer_profile?.max_active_tickets || 3}</strong>
+            Active Orders: <strong style={{ color: '#FFFFFF' }}>{myActiveList.length} / {currentUser.developer_profile?.max_active_tickets || 3}</strong>
           </div>
+
+          {activeTab === 'queue' && availableTickets.length > 0 && (
+            <button
+              className="btn btn-gold btn-sm"
+              style={{ width: '100%', justifyContent: 'center', marginBottom: '0.5rem' }}
+              onClick={handleClaimFIFO}
+              disabled={loading || myActiveList.length >= (currentUser.developer_profile?.max_active_tickets || 3)}
+            >
+              <Sparkles size={14} /> Claim Next Order
+            </button>
+          )}
+
           <button
-            className="btn btn-sm"
+            className="btn btn-outline btn-sm"
+            style={{ width: '100%', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', color: '#CBD5E1', borderColor: 'rgba(255,255,255,0.15)' }}
             onClick={loadData}
-            style={{ background: '#FFFFFF', color: '#0B1B3D', border: 'none', fontWeight: 600 }}
+            disabled={loading}
           >
-            <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh
+            <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh Orders
           </button>
         </div>
-      </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <main className="admin-main-content">
+        {/* Title Bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.75rem',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <span className="editorial-kicker">TECHMASTERS CREATIVE DEVELOPER WORKSPACE</span>
+            <h1 style={{ fontSize: '1.9rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
+              {selectedTicketId ? `Order Inspection & Design: ${ticketDetail?.ticket_number || ''}` :
+               activeTab === 'assigned' ? 'My Active Production Orders' :
+               activeTab === 'queue' ? 'Open Production Queue' :
+               activeTab === 'awaiting' ? 'Orders Awaiting Customer Feedback' :
+               activeTab === 'closed' ? 'Delivered & Resolved Celebrations' :
+               'Video Specialist Production Tasks'}
+            </h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
+              Creative Artisan Engineering &bull; Developer: <strong>{currentUser.full_name}</strong>
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {selectedTicketId && (
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => setSelectedTicketId(null)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <ArrowLeft size={14} /> Back to Orders
+              </button>
+            )}
+            {activeTab === 'queue' && availableTickets.length > 0 && !selectedTicketId && (
+              <button
+                className="btn btn-gold btn-sm"
+                onClick={handleClaimFIFO}
+                disabled={loading || myActiveList.length >= (currentUser.developer_profile?.max_active_tickets || 3)}
+              >
+                <Sparkles size={14} /> Claim Next Order
+              </button>
+            )}
+            <button className="btn btn-outline btn-sm" onClick={loadData} disabled={loading}>
+              <RefreshCw size={14} className={loading ? 'spin' : ''} /> Refresh
+            </button>
+          </div>
+        </div>
 
       {/* Success Notification */}
       {actionMsg && (
@@ -432,11 +567,11 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
       )}
 
       {/* =========================================================================
-          VIEW MODE 1: TICKET DETAIL & SERVICENOW FORM (When a ticket is selected)
+          VIEW MODE 1: TICKET DETAIL & ORDER INSPECTION (When a ticket is selected)
           ========================================================================= */}
       {selectedTicketId && ticketDetail ? (
         <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
-          {/* ServiceNow Header & Action Ribbon */}
+          {/* Action Ribbon & Navigation */}
           <div
             style={{
               background: '#FFFFFF',
@@ -454,7 +589,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                   onClick={() => setSelectedTicketId(null)}
                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                 >
-                  <ArrowLeft size={14} /> Back to Incidents Queue
+                  <ArrowLeft size={14} /> Back to Orders
                 </button>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -467,7 +602,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       {ticketDetail.priority || 'NORMAL'} PRIORITY
                     </span>
                     <span className="badge badge-wip">
-                      STATE: {ticketDetail.status}
+                      STATUS: {ticketDetail.status}
                     </span>
                   </div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
@@ -476,7 +611,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 </div>
               </div>
 
-              {/* ServiceNow ITIL Action Buttons */}
+              {/* Order Action Buttons */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
                 {/* 1-Click Self Assignment */}
                 {(!ticketDetail.assigned_developer || !isAssignedToMe) && (
@@ -489,7 +624,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                   </button>
                 )}
 
-                {/* State Transitions for Assigned Agent / Admin */}
+                {/* State Transitions for Assigned Developer / Admin */}
                 {ticketDetail.status !== 'WORK_IN_PROGRESS' && ticketDetail.status !== 'CLOSED' && (
                   <button
                     className="btn btn-navy btn-sm"
@@ -517,10 +652,10 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                     className="btn btn-primary btn-sm"
                     onClick={() => handleStatusTransition('CLOSED')}
                     disabled={loading}
-                    title="Resolve & Close this ticket (requires mandatory work notes)"
+                    title="Deliver celebration & close this order"
                     style={{ background: '#166534', borderColor: '#166534' }}
                   >
-                    <CheckCircle2 size={14} /> Resolve &amp; Close Ticket
+                    <CheckCircle2 size={14} /> Deliver &amp; Close Order
                   </button>
                 )}
 
@@ -536,7 +671,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
               </div>
             </div>
 
-            {/* ServiceNow Process Chevron Bar (ITIL Stages) */}
+            {/* Order Progress Stages */}
             <div
               style={{
                 display: 'grid',
@@ -548,7 +683,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 border: '1px solid var(--border-subtle)'
               }}
             >
-              {ITIL_STAGES.map((stg, idx) => {
+              {ORDER_STAGES.map((stg, idx) => {
                 const currentStageIdx = getStageIndex(ticketDetail.status);
                 const isPassed = idx < currentStageIdx;
                 const isCurrent = idx === currentStageIdx;
@@ -581,26 +716,26 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
             </div>
           </div>
 
-          {/* ServiceNow Two-Column Form Layout */}
+          {/* Two-Column Form Layout */}
           <div style={{ display: 'grid', gridTemplateColumns: '1.45fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
-            {/* LEFT COLUMN: Specification, Ceremonies, Customer Requirements & Studio */}
+            {/* LEFT COLUMN: Specification, Attachments, Ceremonies & Studio */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Card 1: Incident Specifications & Caller Data */}
+              {/* Card 1: Order Specifications */}
               <div className="card" style={{ padding: '1.75rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
                   <h3 style={{ fontSize: '1.15rem', color: 'var(--navy-deep)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FileText size={18} color="var(--burgundy-rich)" />
-                    Incident Specification &amp; Customer Order
+                    Celebration Order Specifications
                   </h3>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Assigned Agent: <strong>{ticketDetail.assigned_developer_name || 'Unassigned'}</strong>
+                    Assigned Developer: <strong>{ticketDetail.assigned_developer_name || 'Unassigned'}</strong>
                   </span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
                   <div>
                     <label style={{ fontSize: '0.74rem', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.06em', display: 'block', marginBottom: '3px' }}>
-                      Caller / Host Name
+                      Customer / Host Name
                     </label>
                     <div style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--text-heading)' }}>
                       {ticketDetail.customer_name || ticketDetail.order?.customer_name}
@@ -642,15 +777,207 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                   </div>
                 </div>
 
-                {/* Captured Special Instructions (As-Is) */}
+                {/* Captured Special Instructions */}
                 {(ticketDetail.customer_requirements || ticketDetail.order?.special_instructions) && (
                   <div style={{ background: '#FFFDF9', border: '1px solid #F3EBDD', borderLeft: '4px solid var(--gold-accent)', borderRadius: 'var(--radius-sm)', padding: '1rem', marginTop: '0.5rem' }}>
                     <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--gold-accent)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.35rem' }}>
-                      Captured Customer Instructions (As-Is)
+                      Captured Customer Instructions
                     </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-body)', lineHeight: 1.5, fontStyle: 'italic' }}>
                       "{ticketDetail.customer_requirements || ticketDetail.order?.special_instructions}"
                     </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Card 1.5: Customer Media & Attachments */}
+              <div className="card" style={{ padding: '1.75rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <h3 style={{ fontSize: '1.15rem', color: 'var(--navy-deep)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <FolderOpen size={18} color="var(--burgundy-rich)" />
+                    Order Attachments &amp; Customer Photos
+                    <span style={{ fontSize: '0.78rem', background: 'var(--bg-champagne)', color: 'var(--burgundy-rich)', border: '1px solid var(--border-subtle)', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                      {(ticketDetail.order?.assets || []).length} Files
+                    </span>
+                  </h3>
+
+                  {/* Add Attachment Button */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <select
+                      className="form-control"
+                      value={assetCategory}
+                      onChange={(e) => setAssetCategory(e.target.value)}
+                      style={{ fontSize: '0.78rem', height: '32px', padding: '2px 8px' }}
+                    >
+                      <option value="COUPLE_PHOTO">Couple / Portrait Photo</option>
+                      <option value="FAMILY_PHOTO">Family Photo</option>
+                      <option value="BACKGROUND_AUDIO">Audio Track</option>
+                      <option value="LOGO_ASSET">Logo / Crest</option>
+                      <option value="OTHER">Other Media</option>
+                    </select>
+
+                    <label
+                      className="btn btn-outline btn-sm"
+                      style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.78rem' }}
+                    >
+                      <Upload size={13} />
+                      <span>{uploadingAsset ? 'Uploading...' : 'Attach File'}</span>
+                      <input
+                        type="file"
+                        accept="image/*,audio/*,.pdf"
+                        style={{ display: 'none' }}
+                        disabled={uploadingAsset}
+                        onChange={handleUploadAdditionalAsset}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Attachments Grid */}
+                {(ticketDetail.order?.assets && ticketDetail.order.assets.length > 0) ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                    {ticketDetail.order.assets.map((asset) => {
+                      const mediaUrl = ApiService.getMediaUrl(asset.file_key || (asset as any).url);
+                      const isImage = !asset.file_type || asset.file_type.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(asset.file_name);
+
+                      return (
+                        <div
+                          key={asset.id}
+                          style={{
+                            background: '#FAF7F2',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 'var(--radius-sm)',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                          }}
+                        >
+                          {/* Thumbnail Preview Area */}
+                          <div
+                            style={{
+                              position: 'relative',
+                              height: '140px',
+                              background: '#E2E8F0',
+                              cursor: 'pointer',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                            onClick={() => setLightboxImage({ url: mediaUrl, title: asset.file_name, category: asset.asset_category })}
+                            title="Click to inspect photo in high resolution"
+                          >
+                            {isImage ? (
+                              <img
+                                src={mediaUrl}
+                                alt={asset.file_name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                onError={(e: any) => {
+                                  e.target.onerror = null;
+                                  e.target.style.display = 'none';
+                                  if (e.target.parentElement) {
+                                    e.target.parentElement.innerHTML = '<div style="padding:1rem;text-align:center;color:#64748B;font-size:0.75rem;"><span style="font-size:1.5rem;display:block;">🖼️</span>Attachment Image</div>';
+                                  }
+                                }}
+                              />
+                            ) : (
+                              <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-muted)' }}>
+                                <FileText size={32} style={{ marginBottom: '0.25rem', color: 'var(--burgundy-rich)' }} />
+                                <div style={{ fontSize: '0.72rem' }}>{asset.file_type || 'Document'}</div>
+                              </div>
+                            )}
+
+                            {/* Hover overlay hint */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(11, 27, 61, 0.55)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0,
+                                transition: 'opacity 0.2s ease',
+                                color: '#FFFFFF',
+                                gap: '0.35rem',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.opacity = '0'; }}
+                            >
+                              <Eye size={16} /> Click to Inspect
+                            </div>
+                          </div>
+
+                          {/* Metadata & Actions */}
+                          <div style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', flex: 1, justifyContent: 'space-between' }}>
+                            <div>
+                              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--navy-deep)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={asset.file_name}>
+                                {asset.file_name}
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                <span>{asset.asset_category?.replace(/_/g, ' ') || 'Photo'}</span>
+                                {asset.file_size_bytes ? (
+                                  <span>{(asset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB</span>
+                                ) : null}
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.4rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.45rem' }}>
+                              <button
+                                className="btn btn-navy btn-sm"
+                                style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.74rem', justifyContent: 'center' }}
+                                onClick={() => setLightboxImage({ url: mediaUrl, title: asset.file_name, category: asset.asset_category })}
+                                title="Inspect attachment in full-size preview"
+                              >
+                                <Eye size={12} /> Inspect
+                              </button>
+                              <a
+                                href={mediaUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.74rem' }}
+                                title="Open in new tab"
+                              >
+                                <ExternalLink size={12} />
+                              </a>
+                              <a
+                                href={mediaUrl}
+                                download={asset.file_name}
+                                className="btn btn-outline btn-sm"
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.74rem' }}
+                                title="Download original file"
+                              >
+                                <Download size={12} />
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      textAlign: 'center',
+                      padding: '2rem 1.5rem',
+                      background: 'var(--bg-champagne)',
+                      border: '1px dashed var(--border-subtle)',
+                      borderRadius: 'var(--radius-sm)',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.88rem',
+                    }}
+                  >
+                    <FolderOpen size={32} style={{ marginBottom: '0.5rem', opacity: 0.4, color: 'var(--burgundy-rich)' }} />
+                    <p style={{ margin: '0 0 0.5rem' }}>
+                      No customer media files were attached during initial checkout.
+                    </p>
+                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                      If the customer sent photographs via WhatsApp or email, choose a category and click "Attach File" above.
+                    </span>
                   </div>
                 )}
               </div>
@@ -948,62 +1275,9 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
         </div>
       ) : (
         /* =========================================================================
-            VIEW MODE 2: SERVICENOW INCIDENTS LIST VIEW & QUEUES
+            VIEW MODE 2: PRODUCTION ORDERS LIST VIEW & QUEUES
             ========================================================================= */
         <div>
-          {/* Navigation Tabs (ServiceNow Queues) */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.4rem',
-              borderBottom: '2px solid var(--border-subtle)',
-              marginBottom: '1.5rem',
-              overflowX: 'auto'
-            }}
-          >
-            <button
-              className={`btn btn-sm ${activeTab === 'assigned' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '0.65rem 1.25rem' }}
-              onClick={() => setActiveTab('assigned')}
-            >
-              Assigned to Me ({assignedTickets.filter(t => t.status !== 'CLOSED').length})
-            </button>
-
-            <button
-              className={`btn btn-sm ${activeTab === 'queue' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '0.65rem 1.25rem' }}
-              onClick={() => setActiveTab('queue')}
-            >
-              Open Queue &bull; FIFO Self-Claim ({availableTickets.length})
-            </button>
-
-            <button
-              className={`btn btn-sm ${activeTab === 'awaiting' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '0.65rem 1.25rem' }}
-              onClick={() => setActiveTab('awaiting')}
-            >
-              Awaiting Customer ({assignedTickets.filter(t => t.status === 'AWAITING_CUSTOMER_RESPONSE').length})
-            </button>
-
-            <button
-              className={`btn btn-sm ${activeTab === 'closed' ? 'btn-primary' : 'btn-outline'}`}
-              style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '0.65rem 1.25rem' }}
-              onClick={() => setActiveTab('closed')}
-            >
-              Closed / Resolved ({assignedTickets.filter(t => t.status === 'CLOSED').length})
-            </button>
-
-            {canVideo && (
-              <button
-                className={`btn btn-sm ${activeTab === 'video' ? 'btn-primary' : 'btn-outline'}`}
-                style={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, padding: '0.65rem 1.25rem' }}
-                onClick={() => setActiveTab('video')}
-              >
-                <Video size={14} /> Video Specialist Tasks ({videoTasks.length})
-              </button>
-            )}
-          </div>
-
           {/* Search & Actions Ribbon */}
           <div
             style={{
@@ -1027,7 +1301,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
               />
             </div>
 
-            {/* FIFO Claim Action Button */}
+            {/* Claim Action Button */}
             {activeTab === 'queue' && (
               <button
                 className="btn btn-gold btn-sm"
@@ -1035,23 +1309,23 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 disabled={loading || assignedTickets.filter(t => t.status !== 'CLOSED').length >= (currentUser.developer_profile?.max_active_tickets || 3)}
                 style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}
               >
-                <Sparkles size={15} /> Claim Oldest Ticket (FIFO Locking)
+                <Sparkles size={15} /> Claim Next Available Order
               </button>
             )}
           </div>
 
-          {/* Incidents Table */}
+          {/* Orders Table */}
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: '150px' }}>Incident Ref</th>
-                  <th>Customer / Caller</th>
+                  <th style={{ width: '160px' }}>Order / Ticket #</th>
+                  <th>Customer</th>
                   <th>Occasion</th>
-                  <th>Package Tier</th>
-                  <th>State</th>
+                  <th>Package</th>
+                  <th>Status</th>
                   <th>Priority</th>
-                  <th>Assigned Artisan</th>
+                  <th>Assigned Developer</th>
                   <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
@@ -1095,13 +1369,13 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                           loadTicketDetail(t.id);
                         }}
                       >
-                        Open Ticket &rarr;
+                        <Eye size={13} /> Inspect &rarr;
                       </button>
                     </td>
                   </tr>
                 ))}
 
-                {/* TAB 2: Available Queue (Unassigned) */}
+                {/* TAB 2: Available Open Queue */}
                 {activeTab === 'queue' && queueList.map((t) => (
                   <tr
                     key={t.id}
@@ -1128,7 +1402,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       </span>
                     </td>
                     <td>
-                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned (In Queue)</span>
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Open (Unassigned)</span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
@@ -1149,7 +1423,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                             loadTicketDetail(t.id);
                           }}
                         >
-                          Inspect
+                          <Eye size={12} /> Inspect
                         </button>
                       </div>
                     </td>
@@ -1167,6 +1441,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1.02rem' }}>
                         {t.ticket_number}
                       </strong>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{t.order_reference}</div>
                     </td>
                     <td>{t.customer_name}</td>
                     <td>{t.occasion_name || t.occasion}</td>
@@ -1175,7 +1450,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       <span className="badge badge-wip">AWAITING_CUSTOMER_RESPONSE</span>
                     </td>
                     <td>{t.priority}</td>
-                    <td>{currentUser.full_name}</td>
+                    <td>{t.assigned_developer_name || currentUser.full_name}</td>
                     <td style={{ textAlign: 'right' }}>
                       <button
                         className="btn btn-outline btn-sm"
@@ -1184,14 +1459,14 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                           loadTicketDetail(t.id);
                         }}
                       >
-                        Inspect &rarr;
+                        <Eye size={12} /> Inspect &rarr;
                       </button>
                     </td>
                   </tr>
                 ))}
 
                 {/* TAB 4: Closed / Resolved */}
-                {activeTab === 'closed' && closedList.map((t) => (
+                {activeTab === 'closed' && allClosedList.map((t) => (
                   <tr
                     key={t.id}
                     onClick={() => loadTicketDetail(t.id)}
@@ -1201,6 +1476,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1.02rem' }}>
                         {t.ticket_number}
                       </strong>
+                      <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{t.order_reference}</div>
                     </td>
                     <td>{t.customer_name}</td>
                     <td>{t.occasion_name || t.occasion}</td>
@@ -1209,7 +1485,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                       <span className="badge badge-published">CLOSED / DELIVERED</span>
                     </td>
                     <td>{t.priority}</td>
-                    <td>{currentUser.full_name}</td>
+                    <td>{t.assigned_developer_name || currentUser.full_name}</td>
                     <td style={{ textAlign: 'right' }}>
                       <button
                         className="btn btn-outline btn-sm"
@@ -1218,7 +1494,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                           loadTicketDetail(t.id);
                         }}
                       >
-                        Review Notes
+                        <Eye size={12} /> Inspect &amp; Review &rarr;
                       </button>
                     </td>
                   </tr>
@@ -1228,7 +1504,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 {activeTab === 'assigned' && myActiveList.length === 0 && (
                   <tr>
                     <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
-                      You have no active production tickets assigned right now. Claim a ticket from the Open Queue to begin work!
+                      You have no active production orders assigned right now. Claim an order from the Open Queue to begin work!
                     </td>
                   </tr>
                 )}
@@ -1242,14 +1518,14 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 {activeTab === 'awaiting' && awaitingCustomerList.length === 0 && (
                   <tr>
                     <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
-                      No tickets currently awaiting customer review.
+                      No orders currently awaiting customer feedback.
                     </td>
                   </tr>
                 )}
-                {activeTab === 'closed' && closedList.length === 0 && (
+                {activeTab === 'closed' && allClosedList.length === 0 && (
                   <tr>
                     <td colSpan={8} style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-muted)' }}>
-                      No closed tickets recorded yet.
+                      No closed orders recorded yet. Completed and delivered celebrations will appear here for review.
                     </td>
                   </tr>
                 )}
@@ -1311,9 +1587,84 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
           )}
         </div>
       )}
+      </main>
 
       {/* =========================================================================
-          ITIL RESOLUTION & CLOSURE MODAL (Mandatory Work Notes)
+          IMAGE LIGHTBOX MODAL (Full Resolution Inspection)
+          ========================================================================= */}
+      {lightboxImage && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setLightboxImage(null)}
+          style={{ zIndex: 1000, background: 'rgba(5, 15, 30, 0.88)' }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '92vw',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              background: '#0B1B3D',
+              borderRadius: 'var(--radius-md)',
+              overflow: 'hidden',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
+              border: '1px solid rgba(255,255,255,0.15)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#FFFFFF' }}>
+              <div>
+                <strong style={{ fontSize: '1rem' }}>{lightboxImage.title}</strong>
+                {lightboxImage.category && (
+                  <span style={{ marginLeft: '0.75rem', fontSize: '0.75rem', background: 'rgba(212, 175, 55, 0.2)', color: 'var(--gold-soft)', padding: '2px 8px', borderRadius: '4px' }}>
+                    {lightboxImage.category.replace(/_/g, ' ')}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <a
+                  href={lightboxImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm btn-outline"
+                  style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)', padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
+                >
+                  <ExternalLink size={13} /> Open in Tab
+                </a>
+                <a
+                  href={lightboxImage.url}
+                  download={lightboxImage.title}
+                  className="btn btn-sm btn-gold"
+                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
+                >
+                  <Download size={13} /> Download
+                </a>
+                <button
+                  onClick={() => setLightboxImage(null)}
+                  style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer', padding: '0.2rem' }}
+                >
+                  <X size={22} />
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: '1.25rem', display: 'flex', justifyContent: 'center', alignItems: 'center', overflow: 'auto', maxHeight: 'calc(92vh - 75px)', background: '#050D1A' }}>
+              <img
+                src={lightboxImage.url}
+                alt={lightboxImage.title}
+                style={{ maxWidth: '100%', maxHeight: 'calc(80vh - 50px)', objectFit: 'contain', borderRadius: 'var(--radius-sm)' }}
+                onError={(e: any) => {
+                  e.target.onerror = null;
+                  e.target.src = 'https://placehold.co/800x600/102A43/D4AF37?text=Attachment+Image+Preview';
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          ORDER RESOLUTION & DELIVERY MODAL
           ========================================================================= */}
       {showCloseModal && ticketDetail && (
         <div className="modal-backdrop" onClick={() => setShowCloseModal(false)}>
@@ -1322,7 +1673,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '1.25rem', margin: 0, color: 'var(--navy-deep)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <CheckCircle2 size={18} color="#166534" />
-                  Resolve &amp; Close Incident (ITIL Compliance)
+                  Deliver &amp; Resolve Celebration Order
                 </h3>
                 <button
                   onClick={() => setShowCloseModal(false)}
@@ -1332,7 +1683,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                 </button>
               </div>
               <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Incident: <strong>{ticketDetail.ticket_number}</strong> &bull; Caller: <strong>{ticketDetail.customer_name || ticketDetail.order?.customer_name}</strong>
+                Order: <strong>{ticketDetail.ticket_number}</strong> &bull; Customer: <strong>{ticketDetail.customer_name || ticketDetail.order?.customer_name}</strong>
               </p>
             </div>
 
@@ -1346,7 +1697,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
 
               <div className="form-group" style={{ marginBottom: '1.25rem' }}>
                 <label className="form-label" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                  ITIL Resolution Code
+                  Delivery Status
                 </label>
                 <select
                   className="form-control"
@@ -1363,8 +1714,8 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label" style={{ fontSize: '0.85rem', fontWeight: 600, display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Resolution Work Notes (Mandatory)</span>
-                  <span style={{ color: 'var(--color-danger)', fontSize: '0.78rem' }}>* Required by ITIL Protocol</span>
+                  <span>Resolution / Delivery Work Notes</span>
+                  <span style={{ color: 'var(--color-danger)', fontSize: '0.78rem' }}>* Required for Delivery Confirmation</span>
                 </label>
                 <textarea
                   className="form-control"
@@ -1376,7 +1727,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                   required
                 />
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
-                  These notes will be permanently archived in the ServiceNow internal audit log and order record.
+                  These notes will be permanently logged in the order's history and activity record.
                 </span>
               </div>
 
@@ -1395,7 +1746,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                   disabled={loading || !closureNotes.trim()}
                   style={{ background: '#166534', borderColor: '#166534' }}
                 >
-                  Confirm &amp; Close Ticket
+                  Confirm &amp; Complete Order
                 </button>
               </div>
             </div>
