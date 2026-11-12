@@ -63,34 +63,50 @@ class TicketStatusUpdateView(views.APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # State transition validation
-        permitted_transitions = {
-            TicketStatus.NEW_OPEN: [TicketStatus.ASSIGNED, TicketStatus.WORK_IN_PROGRESS, TicketStatus.CANCELLED],
-            TicketStatus.ASSIGNED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD, TicketStatus.NEW_OPEN, TicketStatus.CLOSED],
-            TicketStatus.WORK_IN_PROGRESS: [TicketStatus.INTERNAL_REVIEW, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD, TicketStatus.CLOSED],
-            TicketStatus.INTERNAL_REVIEW: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CLOSED],
-            TicketStatus.AWAITING_CUSTOMER_RESPONSE: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_PAYMENT, TicketStatus.ON_HOLD, TicketStatus.CLOSED],
-            TicketStatus.AWAITING_PAYMENT: [TicketStatus.PAYMENT_DONE, TicketStatus.WORK_IN_PROGRESS, TicketStatus.CLOSED],
-            TicketStatus.PAYMENT_DONE: [TicketStatus.CLOSED, TicketStatus.WORK_IN_PROGRESS],
-            TicketStatus.CLOSED: [TicketStatus.REOPENED],
-            TicketStatus.ON_HOLD: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CANCELLED],
-            TicketStatus.REOPENED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.CLOSED],
-        }
+        update_fields = ['updated_at']
+        if new_status:
+            if new_status not in TicketStatus.values:
+                return Response({'success': False, 'error': {'status': f'Invalid status. Permitted values: {TicketStatus.values}'}}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Admin can override transitions
-        if not user.is_admin_role:
-            allowed = permitted_transitions.get(ticket.status, [])
-            if new_status not in allowed:
+            # Resolution work notes mandatory for closure
+            if new_status == TicketStatus.CLOSED and not work_notes.strip():
                 return Response({
                     'success': False,
-                    'error': {'message': f"Illegal state transition from {ticket.status} to {new_status}. Permitted targets: {allowed}"}
+                    'error': {'message': 'Resolution work notes are required when delivering and closing an order.'}
                 }, status=status.HTTP_400_BAD_REQUEST)
+
+            if not user.is_admin_role:
+                allowed = permitted_transitions.get(ticket.status, [])
+                if new_status not in allowed:
+                    return Response({
+                        'success': False,
+                        'error': {'message': f"Illegal state transition from {ticket.status} to {new_status}. Permitted targets: {allowed}"}
+                    }, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
             previous_status = ticket.status
-            ticket.status = new_status
-            if new_status == TicketStatus.WORK_IN_PROGRESS and not ticket.wip_started_at:
-                ticket.wip_started_at = timezone.now()
-            ticket.save(update_fields=['status', 'wip_started_at', 'updated_at'])
+            if new_status:
+                ticket.status = new_status
+                update_fields.append('status')
+                if new_status == TicketStatus.WORK_IN_PROGRESS and not ticket.wip_started_at:
+                    ticket.wip_started_at = timezone.now()
+                    update_fields.append('wip_started_at')
+
+            if 'priority' in request.data:
+                p_val = request.data['priority']
+                if p_val in ['LOW', 'NORMAL', 'HIGH', 'URGENT']:
+                    ticket.priority = p_val
+                    update_fields.append('priority')
+
+            if 'is_on_hold' in request.data:
+                ticket.is_on_hold = bool(request.data['is_on_hold'])
+                update_fields.append('is_on_hold')
+
+            if 'hold_reason' in request.data:
+                ticket.hold_reason = request.data['hold_reason']
+                update_fields.append('hold_reason')
+
+            ticket.save(update_fields=list(set(update_fields)))
 
             # Synchronize Order Status
             if new_status == TicketStatus.WORK_IN_PROGRESS and ticket.order.status != 'IN_PRODUCTION':
@@ -100,21 +116,23 @@ class TicketStatusUpdateView(views.APIView):
                 ticket.order.status = 'DELIVERED'
                 ticket.order.save(update_fields=['status', 'updated_at'])
 
-            # Log internal note if work_notes provided
+            # Log note if work_notes provided
             if work_notes.strip():
+                prefix = f"[{new_status}]" if new_status else "[UPDATE]"
                 TicketInternalNote.objects.create(
                     ticket=ticket,
                     author=user,
-                    note_text=f"[{new_status}] {work_notes.strip()}"
+                    note_text=f"{prefix} {work_notes.strip()}"
                 )
 
-            TicketStatusHistory.objects.create(
-                ticket=ticket,
-                previous_status=previous_status,
-                new_status=new_status,
-                changed_by=user,
-                transition_reason=work_notes or reason or f"Status changed to {new_status} by {user.full_name} ({user.role})"
-            )
+            if new_status and previous_status != new_status:
+                TicketStatusHistory.objects.create(
+                    ticket=ticket,
+                    previous_status=previous_status,
+                    new_status=new_status,
+                    changed_by=user,
+                    transition_reason=work_notes or reason or f"Status changed to {new_status} by {user.full_name} ({user.role})"
+                )
 
             log_activity(
                 actor=user,
@@ -156,10 +174,22 @@ class TicketInternalNoteCreateView(views.APIView):
         if not note_text:
             return Response({'success': False, 'error': {'note_text': 'Note text is required.'}}, status=status.HTTP_400_BAD_REQUEST)
 
+        note_type = request.data.get('note_type', 'WORK_NOTE')
+        if note_type == 'CUSTOMER_UPDATE':
+            if not note_text.startswith('[CUSTOMER UPDATE]'):
+                final_text = f"[CUSTOMER UPDATE] {note_text}"
+            else:
+                final_text = note_text
+        else:
+            if not note_text.startswith('[WORK NOTE]'):
+                final_text = f"[WORK NOTE] {note_text}"
+            else:
+                final_text = note_text
+
         note = TicketInternalNote.objects.create(
             ticket=ticket,
             author=user,
-            note_text=note_text
+            note_text=final_text
         )
 
         log_activity(

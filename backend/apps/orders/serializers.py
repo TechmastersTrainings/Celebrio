@@ -33,6 +33,10 @@ class OrderEventSerializer(serializers.ModelSerializer):
 
 class CustomerAssetSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
+    download_url = serializers.SerializerMethodField()
+    readable_size = serializers.SerializerMethodField()
+    uploaded_by = serializers.SerializerMethodField()
+    extension = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomerAsset
@@ -42,16 +46,37 @@ class CustomerAssetSerializer(serializers.ModelSerializer):
             'file_key',
             'file_type',
             'file_size_bytes',
+            'readable_size',
             'asset_category',
             'uploaded_at',
+            'uploaded_by',
+            'extension',
             'url',
+            'download_url',
         ]
-        read_only_fields = ['id', 'uploaded_at', 'url']
+        read_only_fields = ['id', 'uploaded_at', 'url', 'download_url']
 
     def get_url(self, obj):
-        if obj.file_key:
-            return f"/media/{obj.file_key}"
-        return None
+        return f"/api/v1/orders/assets/{obj.id}/preview/"
+
+    def get_download_url(self, obj):
+        return f"/api/v1/orders/assets/{obj.id}/download/"
+
+    def get_readable_size(self, obj):
+        bytes_val = obj.file_size_bytes or 0
+        if bytes_val >= 1024 * 1024:
+            return f"{bytes_val / (1024 * 1024):.1f} MB"
+        if bytes_val >= 1024:
+            return f"{bytes_val / 1024:.0f} KB"
+        return f"{bytes_val} B"
+
+    def get_uploaded_by(self, obj):
+        return "Customer"
+
+    def get_extension(self, obj):
+        if obj.file_name and '.' in obj.file_name:
+            return obj.file_name.rsplit('.', 1)[-1].upper()
+        return "FILE"
 
 class OrderCreateSerializer(serializers.Serializer):
     customer_name = serializers.CharField(max_length=150)

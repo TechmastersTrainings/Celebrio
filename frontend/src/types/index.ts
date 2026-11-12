@@ -82,6 +82,11 @@ export interface CustomerAsset {
   asset_category: string;
   uploaded_at: string;
   url?: string;
+  download_url?: string;
+  preview_url?: string;
+  readable_size?: string;
+  uploaded_by?: string;
+  extension?: string;
 }
 
 export interface OrderDetail {
@@ -113,11 +118,18 @@ export interface TicketSummary {
   ticket_number: string;
   order_reference?: string;
   occasion?: string;
+  occasion_slug?: string;
   status: string;
   priority: string;
   customer_name: string;
+  customer_mobile?: string;
+  customer_email?: string;
   occasion_name: string;
   package_name: string;
+  invitation_type?: string;
+  event_date?: string;
+  short_description?: string;
+  assigned_team?: string;
   assigned_developer?: string;
   assigned_developer_name?: string;
   customer_facing_status: string;
@@ -125,6 +137,8 @@ export interface TicketSummary {
   assigned_at?: string;
   due_date?: string;
   is_on_hold: boolean;
+  hold_reason?: string;
+  assets_count?: number;
   created_at: string;
 }
 
@@ -144,13 +158,18 @@ export interface TicketDetail {
   ticket_number: string;
   order_reference?: string;
   customer_name?: string;
+  customer_mobile?: string;
+  customer_email?: string;
   occasion?: string;
   customer_requirements?: string;
   events?: any[];
   status: string;
   priority: string;
+  assigned_team?: string;
   assigned_developer?: string;
   assigned_developer_name?: string;
+  assigned_developer_email?: string;
+  assignment_count?: number;
   eligible_at: string;
   assigned_at?: string;
   due_date?: string;
@@ -177,10 +196,15 @@ export interface TicketDetail {
   internal_notes: Array<{
     id: string;
     author_name: string;
+    author_role?: string;
     note_text: string;
+    clean_note_text?: string;
+    note_type?: 'WORK_NOTE' | 'CUSTOMER_UPDATE';
+    is_customer_visible?: boolean;
     created_at: string;
   }>;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface AdminMetrics {

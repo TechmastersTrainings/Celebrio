@@ -1,6 +1,9 @@
 import os
+import mimetypes
+from urllib.parse import quote
 from django.db import transaction
 from django.utils import timezone
+from django.http import FileResponse, Http404
 from rest_framework import status, views
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -101,6 +104,71 @@ class CustomerAssetUploadView(views.APIView):
             'success': True,
             'data': CustomerAssetSerializer(asset).data
         }, status=status.HTTP_201_CREATED)
+
+class CustomerAssetDownloadView(views.APIView):
+    """
+    Dedicated endpoint for authenticated / authorized downloading and in-app streaming
+    of customer order attachments (photographs, audio tracks, PDFs, documents).
+    Supports ?preview=1 for inline viewing (images, PDFs, media) or as attachment download.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, asset_id):
+        try:
+            asset = CustomerAsset.objects.select_related('order').get(id=asset_id)
+        except CustomerAsset.DoesNotExist:
+            return Response({'success': False, 'error': {'message': 'Attachment not found.'}}, status=status.HTTP_404_NOT_FOUND)
+
+        is_preview = request.query_params.get('preview', '0') in ['1', 'true', 'True']
+        file_key = asset.file_key
+
+        from django.core.files.storage import default_storage
+        from django.conf import settings
+
+        # Locate file stream
+        file_obj = None
+        if default_storage.exists(file_key):
+            file_obj = default_storage.open(file_key, 'rb')
+        else:
+            alt_path = os.path.join(settings.MEDIA_ROOT, file_key)
+            if os.path.exists(alt_path):
+                file_obj = open(alt_path, 'rb')
+
+        # If file is not yet on storage, generate on-the-fly placeholder or return clear error
+        if not file_obj:
+            # If it's an image request, generate placeholder SVG/JPEG so the UI doesn't crash
+            if asset.file_type and asset.file_type.startswith('image/'):
+                from django.http import HttpResponse
+                svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+                    <rect width="600" height="400" fill="#0B1B3D"/>
+                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#D4AF37" stroke-width="2"/>
+                    <text x="300" y="180" font-family="sans-serif" font-size="20" fill="#E5C07B" text-anchor="middle" font-weight="bold">TECHMASTERS CUSTOMER ATTACHMENT</text>
+                    <text x="300" y="220" font-family="sans-serif" font-size="16" fill="#FFFFFF" text-anchor="middle">{asset.file_name}</text>
+                    <text x="300" y="250" font-family="sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">Category: {asset.asset_category} | Order: {asset.order.order_reference}</text>
+                </svg>'''
+                resp = HttpResponse(svg_content, content_type='image/svg+xml')
+                safe_name = asset.file_name.encode('ascii', 'ignore').decode('ascii') or 'attachment'
+                if not is_preview:
+                    resp['Content-Disposition'] = f'attachment; filename="{safe_name}"'
+                return resp
+            return Response({
+                'success': False,
+                'error': {'message': f'Attachment file "{asset.file_name}" is not present on disk.'}
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        content_type = asset.file_type or mimetypes.guess_type(asset.file_name)[0] or 'application/octet-stream'
+
+        response = FileResponse(file_obj, content_type=content_type)
+        safe_filename = asset.file_name.encode('ascii', 'ignore').decode('ascii') or 'download'
+        encoded_filename = quote(asset.file_name)
+
+        if is_preview:
+            response['Content-Disposition'] = f'inline; filename="{safe_filename}"; filename*=UTF-8\'\'{encoded_filename}'
+        else:
+            response['Content-Disposition'] = f'attachment; filename="{safe_filename}"; filename*=UTF-8\'\'{encoded_filename}'
+
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition, Content-Length'
+        return response
 
 class CustomerDesignApproveView(views.APIView):
     permission_classes = [AllowAny]

@@ -284,10 +284,77 @@ export class ApiService {
     });
   }
 
-  static async addInternalNote(ticketId: string, noteText: string) {
+  static async updateTicketDetails(ticketId: string, payload: {
+    status?: string;
+    priority?: string;
+    is_on_hold?: boolean;
+    hold_reason?: string;
+    reason?: string;
+    work_notes?: string;
+  }) {
+    return this.request(`/tickets/${ticketId}/status/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  static async addInternalNote(ticketId: string, noteText: string, noteType: 'WORK_NOTE' | 'CUSTOMER_UPDATE' = 'WORK_NOTE') {
     return this.request(`/tickets/${ticketId}/notes/`, {
       method: 'POST',
-      body: JSON.stringify({ note_text: noteText }),
+      body: JSON.stringify({ note_text: noteText, note_type: noteType }),
+    });
+  }
+
+  // --- Asset Management & Download ---
+  static getAssetPreviewUrl(assetId: string): string {
+    const base = PRIMARY_API;
+    return `${base}/orders/assets/${assetId}/preview/`;
+  }
+
+  static async downloadAssetBlob(assetId: string): Promise<Blob> {
+    const staffToken = localStorage.getItem('celebrio_staff_token');
+    const customerToken = localStorage.getItem('celebrio_customer_token');
+    const headers: Record<string, string> = {};
+    if (staffToken) {
+      headers['Authorization'] = `Bearer ${staffToken}`;
+    } else if (customerToken) {
+      headers['X-Customer-Token'] = customerToken;
+    }
+
+    let res: Response;
+    try {
+      res = await fetch(`${PRIMARY_API}/orders/assets/${assetId}/download/`, { headers });
+      if (!res.ok && res.status >= 500) throw new Error(`Proxy error ${res.status}`);
+    } catch {
+      res = await fetch(`${FALLBACK_API}/orders/assets/${assetId}/download/`, { headers });
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to download file (HTTP ${res.status})`);
+    }
+
+    return await res.blob();
+  }
+
+  static async downloadAssetFile(assetId: string, fileName: string): Promise<void> {
+    const blob = await this.downloadAssetBlob(assetId);
+    const objectUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName || `asset_${assetId}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1000);
+  }
+
+  static async uploadOrderAsset(orderRef: string, file: File, category = 'DESIGNER_UPLOAD'): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('asset_category', category);
+    return this.request(`/orders/${orderRef}/assets/`, {
+      method: 'POST',
+      body: formData,
     });
   }
 
