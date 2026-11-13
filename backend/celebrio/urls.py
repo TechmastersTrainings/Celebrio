@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/v1/payments/', include('apps.payments.urls')),
     path('api/v1/admin-ops/', include('apps.admin_ops_urls')),
     path('api/v1/publishing/', include('apps.publishing.urls')),
+    path('api/v1/locations/', include('apps.locations.urls')),
     re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 

@@ -7,10 +7,33 @@ from apps.catalog.models import Occasion, Package
 from apps.tickets.models import Ticket, TicketStatus, TicketStatusHistory
 from apps.video_production.models import VideoTask, VideoTaskStatus
 from apps.audit.services import log_activity
+from apps.locations.services import resolve_event_venue
 
 class OrderEventSerializer(serializers.ModelSerializer):
     venue_address = serializers.CharField(required=False, allow_blank=True, default='')
     venue_name = serializers.CharField(required=False, allow_blank=True, default='Celebration Venue')
+    google_maps_url = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=500)
+
+    # Venue selection inputs (write-only; resolved server-side by locations.services)
+    venue_id = serializers.UUIDField(required=False, allow_null=True, write_only=True)
+    external_place_id = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True, max_length=255)
+    city_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+    locality_id = serializers.IntegerField(required=False, allow_null=True, write_only=True)
+    venue_latitude = serializers.FloatField(required=False, allow_null=True, write_only=True)
+    venue_longitude = serializers.FloatField(required=False, allow_null=True, write_only=True)
+    venue_type = serializers.ChoiceField(
+        choices=['', 'HOME', 'FUNCTION_HALL', 'HOTEL_RESORT', 'RESTAURANT_BANQUET', 'OUTDOOR', 'OTHER'],
+        required=False, allow_blank=True, default='',
+    )
+    venue_source = serializers.ChoiceField(
+        choices=['', 'VERIFIED_DIRECTORY', 'EXTERNAL_PROVIDER', 'CUSTOMER_PROVIDED'],
+        required=False, allow_blank=True, default='',
+    )
+
+    # Read-only presentation helpers for Admin / Developer portals
+    venue_reference = serializers.SerializerMethodField()
+    venue_type_label = serializers.SerializerMethodField()
+    venue_source_label = serializers.SerializerMethodField()
 
     class Meta:
         model = OrderEvent
@@ -24,13 +47,47 @@ class OrderEventSerializer(serializers.ModelSerializer):
             'venue_address',
             'google_maps_url',
             'dress_code',
+            'venue_type',
+            'venue_type_label',
+            'venue_source',
+            'venue_source_label',
+            'venue_city',
+            'venue_locality',
+            'venue_contact_phone',
+            'venue_snapshot_json',
+            'venue_reference',
+            'venue_id',
+            'external_place_id',
+            'city_id',
+            'locality_id',
+            'venue_latitude',
+            'venue_longitude',
         ]
+        read_only_fields = ['venue_snapshot_json']
         extra_kwargs = {
             'venue_address': {'required': False, 'allow_blank': True},
-            'google_maps_url': {'required': False, 'allow_blank': True},
             'dress_code': {'required': False, 'allow_blank': True},
             'end_time': {'required': False, 'allow_null': True},
+            'venue_city': {'required': False, 'allow_blank': True},
+            'venue_locality': {'required': False, 'allow_blank': True},
+            'venue_contact_phone': {'required': False, 'allow_blank': True},
         }
+
+    def validate_google_maps_url(self, value):
+        value = (value or '').strip()
+        if value and not value.lower().startswith(('http://', 'https://')):
+            value = f"https://{value}"
+        return value or None
+
+    def get_venue_reference(self, obj):
+        return str(obj.venue_id) if obj.venue_id else None
+
+    def get_venue_type_label(self, obj):
+        from apps.locations.models import VenueType
+        return dict(VenueType.choices).get(obj.venue_type) if obj.venue_type else None
+
+    def get_venue_source_label(self, obj):
+        return obj.get_venue_source_display() if obj.venue_source else None
 
 class CustomerAssetSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
@@ -316,7 +373,7 @@ class OrderCreateSerializer(serializers.Serializer):
 
             # Create events
             for ev_data in events_data:
-                OrderEvent.objects.create(order=order, **ev_data)
+                OrderEvent.objects.create(order=order, **resolve_event_venue(dict(ev_data)))
 
             # Create corresponding ServiceNow-style ticket
             ticket = Ticket.objects.create(

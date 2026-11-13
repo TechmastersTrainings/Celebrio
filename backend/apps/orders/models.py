@@ -164,6 +164,27 @@ class OrderEvent(models.Model):
     venue_address = models.TextField()
     google_maps_url = models.URLField(max_length=500, blank=True, null=True)
     dress_code = models.CharField(max_length=100, blank=True, null=True)
+
+    # Location-aware venue selection
+    VENUE_SOURCE_CHOICES = [
+        ('VERIFIED_DIRECTORY', 'Verified Venue Directory'),
+        ('EXTERNAL_PROVIDER', 'External Places Listing (Unverified)'),
+        ('CUSTOMER_PROVIDED', 'Customer Provided'),
+    ]
+    venue_type = models.CharField(max_length=30, blank=True, default='')
+    venue = models.ForeignKey(
+        'locations.Venue',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='order_events',
+    )
+    venue_source = models.CharField(max_length=30, choices=VENUE_SOURCE_CHOICES, blank=True, default='')
+    venue_city = models.CharField(max_length=100, blank=True, default='')
+    venue_locality = models.CharField(max_length=120, blank=True, default='')
+    venue_contact_phone = models.CharField(max_length=30, blank=True, default='')
+    # Frozen copy of the venue as selected, so later directory edits never alter the order.
+    venue_snapshot_json = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

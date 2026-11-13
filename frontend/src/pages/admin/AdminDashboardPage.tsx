@@ -46,7 +46,10 @@ import {
   PhoneCall,
   Tag,
   Percent,
+  MapPin,
 } from 'lucide-react';
+import { VenueDetailsCard } from '../../components/venue/VenueDetailsCard';
+import { VenueDirectoryManager } from '../../components/admin/VenueDirectoryManager';
 
 type AdminTab =
   | 'tickets'
@@ -58,6 +61,7 @@ type AdminTab =
   | 'revenue'
   | 'pnl'
   | 'catalog'
+  | 'venues'
   | 'audit';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -571,6 +575,14 @@ export const AdminDashboardPage: React.FC = () => {
           </button>
 
           <button
+            className={`admin-nav-item ${activeTab === 'venues' ? 'active' : ''}`}
+            onClick={() => setActiveTab('venues')}
+          >
+            <div className="admin-nav-icon"><MapPin size={16} /></div>
+            <span className="admin-nav-label">Venue Directory</span>
+          </button>
+
+          <button
             className={`admin-nav-item ${activeTab === 'callbacks' ? 'active' : ''}`}
             onClick={() => setActiveTab('callbacks')}
           >
@@ -686,6 +698,7 @@ export const AdminDashboardPage: React.FC = () => {
               {activeTab === 'revenue' && 'Revenue & Financial Telemetry'}
               {activeTab === 'pnl' && 'Profit & Loss Statement (P&L)'}
               {activeTab === 'catalog' && 'Celebration Catalog & Package Pricing'}
+              {activeTab === 'venues' && 'Venue Directory & Location Dataset'}
               {activeTab === 'audit' && 'Immutable System Activity Logs'}
             </h1>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: 0 }}>
@@ -1114,6 +1127,8 @@ export const AdminDashboardPage: React.FC = () => {
       {/* =========================================================================
           TAB 1.75: CUSTOMER CALLBACKS QUEUE
           ========================================================================= */}
+      {activeTab === 'venues' && <VenueDirectoryManager />}
+
       {activeTab === 'callbacks' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
@@ -2320,6 +2335,25 @@ export const AdminDashboardPage: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              {/* Ceremony Venues */}
+              {reviewOrder.events && reviewOrder.events.length > 0 && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                    Ceremony Venues
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                    {reviewOrder.events.map((ev, i) => (
+                      <div key={ev.id || i}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                          {ev.event_title} &bull; {ev.event_date} {ev.start_time}
+                        </div>
+                        <VenueDetailsCard event={ev} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Uploaded Physical Card Assets */}
               {reviewOrder.assets && reviewOrder.assets.filter(a => a.asset_category?.includes('PHYSICAL_CARD')).length > 0 && (

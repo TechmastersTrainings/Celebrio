@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ApiService } from '../../services/api';
+import { VenueDetailsCard } from '../../components/venue/VenueDetailsCard';
 import { TicketSummary, TicketDetail, User, CustomerAsset } from '../../types';
 import {
   Sparkles,
@@ -1166,7 +1167,13 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                     <div className="sn-field-value-readonly">
                       <MapPin size={12} style={{ marginRight: '6px', color: 'var(--gold-primary)' }} />
                       {ticketDetail.order?.events?.[0]?.venue_name
-                        ? `${ticketDetail.order.events[0].venue_name} — ${ticketDetail.order.events[0].venue_address}`
+                        ? `${ticketDetail.order.events[0].venue_name}${ticketDetail.order.events[0].venue_locality ? `, ${ticketDetail.order.events[0].venue_locality}` : ''} — ${ticketDetail.order.events[0].venue_address}${
+                            ticketDetail.order.events[0].venue_source === 'VERIFIED_DIRECTORY'
+                              ? ' (Verified venue)'
+                              : ticketDetail.order.events[0].venue_source
+                              ? ' (Customer provided)'
+                              : ''
+                          }`
                         : 'Venue details in Ceremonies tab'}
                     </div>
                   </div>
@@ -1362,17 +1369,7 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                           {ev.event_date} &bull; {ev.start_time} {ev.end_time ? `- ${ev.end_time}` : ''}
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.86rem', color: 'var(--text-body)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <MapPin size={14} color="var(--gold-accent)" />
-                        <strong>{ev.venue_name}</strong> &bull; {ev.venue_address}
-                      </div>
-                      {ev.google_maps_url && (
-                        <div style={{ marginTop: '0.4rem', fontSize: '0.8rem' }}>
-                          <a href={ev.google_maps_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--burgundy-rich)', textDecoration: 'underline' }}>
-                            Open in Google Maps &rarr;
-                          </a>
-                        </div>
-                      )}
+                      <VenueDetailsCard event={ev} />
                     </div>
                   ))}
 

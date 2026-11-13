@@ -71,6 +71,127 @@ export interface OrderEvent {
   venue_address: string;
   google_maps_url?: string;
   dress_code?: string;
+  // Location-aware venue selection
+  venue_type?: VenueTypeValue | '';
+  venue_type_label?: string | null;
+  venue_source?: VenueSourceValue | '';
+  venue_source_label?: string | null;
+  venue_city?: string;
+  venue_locality?: string;
+  venue_contact_phone?: string;
+  venue_snapshot_json?: Record<string, any>;
+  venue_reference?: string | null;
+  // write-only selection inputs
+  venue_id?: string | null;
+  external_place_id?: string | null;
+  country_id?: number | null;
+  state_id?: number | null;
+  city_id?: number | null;
+  locality_id?: number | null;
+  nearby_locality_id?: number | null;
+  venue_latitude?: number | null;
+  venue_longitude?: number | null;
+  venue_is_verified?: boolean;
+  venue_distance_km?: number | null;
+}
+
+export type VenueTypeValue = 'HOME' | 'FUNCTION_HALL' | 'HOTEL_RESORT' | 'RESTAURANT_BANQUET' | 'OUTDOOR' | 'OTHER';
+export type VenueSourceValue = 'VERIFIED_DIRECTORY' | 'EXTERNAL_PROVIDER' | 'CUSTOMER_PROVIDED';
+
+export interface LocationOption {
+  id: number;
+  name: string;
+  has_coordinates?: boolean;
+}
+
+export interface VenueSearchResult {
+  id: string;
+  external_place_id?: string;
+  name: string;
+  category: string | null;
+  category_label: string;
+  city: string;
+  city_id: number;
+  locality: string | null;
+  locality_id: number | null;
+  full_address: string;
+  google_maps_url: string | null;
+  contact_phone: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  distance_km: number | null;
+  is_in_selected_locality: boolean;
+  is_verified: boolean;
+  verification_status: string;
+  source: 'VERIFIED_DIRECTORY' | 'EXTERNAL_PROVIDER';
+  last_verified_at: string | null;
+}
+
+export interface LocalitySuggestion {
+  id: number;
+  name: string;
+  distance_km: number | null;
+  basis: 'CURATED' | 'COORDINATES' | 'SAME_CITY';
+  match_count: number;
+}
+
+export interface VenueSearchResponse {
+  query: string;
+  scope: 'locality' | 'nearby' | 'city';
+  radius_km: number;
+  city: { id: number; name: string };
+  locality: { id: number; name: string; has_coordinates: boolean } | null;
+  results: VenueSearchResult[];
+  external_results: VenueSearchResult[];
+  external_provider_enabled: boolean;
+  counts: { locality: number; nearby: number; city: number };
+  locality_suggestions: LocalitySuggestion[];
+  locality_suggestion_kind: 'NEARBY' | 'SAME_CITY' | null;
+  distance_available: boolean;
+}
+
+export interface AdminVenue {
+  id: string;
+  name: string;
+  category: string;
+  category_label: string;
+  city: number;
+  city_name: string;
+  locality: number | null;
+  locality_name: string | null;
+  full_address: string;
+  latitude: string | null;
+  longitude: string | null;
+  google_maps_url: string;
+  contact_phone: string;
+  contact_verified: boolean;
+  verification_status: 'PENDING' | 'VERIFIED' | 'REJECTED';
+  verification_status_label: string;
+  is_active: boolean;
+  data_source: string;
+  data_source_label: string;
+  external_place_id: string;
+  last_verified_at: string | null;
+  verified_by_name: string | null;
+  admin_notes: string;
+  order_event_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminLocality {
+  id: number;
+  name: string;
+  city: number;
+  city_name: string;
+  pincode: string;
+  latitude: string | null;
+  longitude: string | null;
+  has_coordinates: boolean;
+  nearby_localities: number[];
+  data_source: string;
+  is_active: boolean;
+  venue_count: number;
 }
 
 export interface CustomerAsset {

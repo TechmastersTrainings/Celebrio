@@ -1,4 +1,5 @@
 import { OFFICIAL_OCCASIONS, OFFICIAL_ADDONS } from '../data/defaultCatalog';
+import type { LocationOption, LocalitySuggestion, VenueSearchResponse, AdminVenue, AdminLocality } from '../types';
 
 const envApi = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '');
 const PRIMARY_API = envApi ? `${envApi}/api/v1` : '/api/v1';
@@ -367,6 +368,78 @@ export class ApiService {
       method: 'POST',
       body: formData,
     });
+  }
+
+  // --- Locations & Venue Directory ---
+  static async getVenueOptions(): Promise<{ venue_types: { value: string; label: string }[]; venue_categories: { value: string; label: string }[]; external_provider_enabled: boolean }> {
+    return this.request('/locations/options/');
+  }
+
+  static async getCountries(): Promise<LocationOption[]> {
+    return this.request('/locations/countries/');
+  }
+
+  static async getStates(countryId: number): Promise<LocationOption[]> {
+    return this.request(`/locations/states/?country=${countryId}`);
+  }
+
+  static async getCities(stateId: number): Promise<LocationOption[]> {
+    return this.request(`/locations/cities/?state=${stateId}`);
+  }
+
+  static async getAllCities(): Promise<(LocationOption & { state_name?: string })[]> {
+    return this.request('/locations/cities/');
+  }
+
+  static async getLocalities(cityId: number): Promise<LocationOption[]> {
+    return this.request(`/locations/localities/?city=${cityId}`);
+  }
+
+  static async getNearbyLocalities(localityId: number, radiusKm = 5): Promise<{ nearby: LocalitySuggestion[] }> {
+    return this.request(`/locations/localities/${localityId}/nearby/?radius_km=${radiusKm}`);
+  }
+
+  static async searchVenues(
+    params: { city: number; locality?: number | null; q: string; scope?: string; radius_km?: number; category?: string },
+    signal?: AbortSignal,
+  ): Promise<VenueSearchResponse> {
+    const qs = new URLSearchParams();
+    qs.set('city', String(params.city));
+    if (params.locality) qs.set('locality', String(params.locality));
+    qs.set('q', params.q);
+    if (params.scope) qs.set('scope', params.scope);
+    if (params.radius_km) qs.set('radius_km', String(params.radius_km));
+    if (params.category) qs.set('category', params.category);
+    return this.request(`/locations/venues/search/?${qs.toString()}`, { signal });
+  }
+
+  static async getAdminVenues(filters: Record<string, string> = {}): Promise<{ venues: AdminVenue[]; counts: Record<string, number> }> {
+    const qs = new URLSearchParams(Object.entries(filters).filter(([, v]) => v !== ''));
+    return this.request(`/locations/admin/venues/?${qs.toString()}`);
+  }
+
+  static async createAdminVenue(data: Record<string, any>): Promise<AdminVenue> {
+    return this.request('/locations/admin/venues/', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  static async updateAdminVenue(id: string, data: Record<string, any>): Promise<AdminVenue> {
+    return this.request(`/locations/admin/venues/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
+  }
+
+  static async verifyAdminVenue(id: string, decision: 'VERIFY' | 'REJECT' | 'RESET', notes = ''): Promise<AdminVenue> {
+    return this.request(`/locations/admin/venues/${id}/verify/`, { method: 'POST', body: JSON.stringify({ decision, notes }) });
+  }
+
+  static async getAdminLocalities(cityId?: number): Promise<AdminLocality[]> {
+    return this.request(`/locations/admin/localities/${cityId ? `?city=${cityId}` : ''}`);
+  }
+
+  static async createAdminLocality(data: Record<string, any>): Promise<AdminLocality> {
+    return this.request('/locations/admin/localities/', { method: 'POST', body: JSON.stringify(data) });
+  }
+
+  static async updateAdminLocality(id: number, data: Record<string, any>): Promise<AdminLocality> {
+    return this.request(`/locations/admin/localities/${id}/`, { method: 'PATCH', body: JSON.stringify(data) });
   }
 
   // --- Offers & Coupons ---

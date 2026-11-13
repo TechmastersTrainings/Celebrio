@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'apps.publishing',
     'apps.notifications',
     'apps.audit',
+    'apps.locations',
 ]
 
 MIDDLEWARE = [

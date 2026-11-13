@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ApiService } from '../../services/api';
 import { Occasion, Package, OrderEvent, Coupon } from '../../types';
 import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
+import { VenueSelector } from '../../components/venue/VenueSelector';
 import {
   Sparkles,
   ArrowRight,
@@ -100,9 +101,10 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
       event_title: 'Main Ceremony',
       event_date: '2026-12-18',
       start_time: '10:30',
-      venue_name: 'Sri Krishna Palace Kalyana Mantapa',
-      venue_address: 'Mailoor Road, Near GND College, Bidar - 585403',
+      venue_name: '',
+      venue_address: '',
       google_maps_url: '',
+      venue_type: '',
       dress_code: 'Traditional Festive Attire',
     },
   ]);
@@ -218,17 +220,31 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
 
   // Add / Remove Event
   const addEvent = () => {
-    setEvents([
-      ...events,
-      {
-        event_title: 'Reception',
-        event_date: '2026-12-18',
-        start_time: '19:00',
-        venue_name: 'Palace Banquet Hall',
-        venue_address: 'Bidar / Bengaluru',
-        dress_code: 'Festive Attire',
-      },
-    ]);
+    setEvents((prev) => {
+      // Carry the location over from the first ceremony so customers don't re-pick city/locality.
+      const first = prev[0] || ({} as OrderEvent);
+      return [
+        ...prev,
+        {
+          event_title: 'Reception',
+          event_date: first.event_date || '2026-12-18',
+          start_time: '19:00',
+          venue_name: '',
+          venue_address: '',
+          google_maps_url: '',
+          venue_type: '',
+          country_id: first.country_id ?? null,
+          state_id: first.state_id ?? null,
+          city_id: first.city_id ?? null,
+          locality_id: first.locality_id ?? null,
+          // venue_locality is filled by the selector from locality_id (first.venue_locality may be
+          // the locality of a venue chosen elsewhere, not the customer's own area).
+          venue_city: first.venue_city || '',
+          venue_locality: '',
+          dress_code: 'Festive Attire',
+        },
+      ];
+    });
   };
 
   const removeEvent = (index: number) => {
@@ -238,9 +254,12 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
   };
 
   const updateEvent = (index: number, field: keyof OrderEvent, value: string) => {
-    const updated = [...events];
-    updated[index] = { ...updated[index], [field]: value };
-    setEvents(updated);
+    patchEvent(index, { [field]: value } as Partial<OrderEvent>);
+  };
+
+  // Functional update: the venue selector can emit several patches in quick succession.
+  const patchEvent = (index: number, patch: Partial<OrderEvent>) => {
+    setEvents((prev) => prev.map((ev, i) => (i === index ? { ...ev, ...patch } : ev)));
   };
 
   // Add Photos (No Fixed Photo Count)
@@ -345,10 +364,21 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
         occasion_requirements_json: occasionData,
         missing_fields_json: missingFields,
         coupon_code: pricing.appliedCouponCode || undefined,
-        events: events.map((ev) => ({
-          ...ev,
-          start_time: ev.start_time.length === 5 ? `${ev.start_time}:00` : ev.start_time,
-        })),
+        events: events.map((ev) => {
+          // Drop UI-only fields; the server re-resolves directory venues authoritatively.
+          const {
+            venue_is_verified: _v,
+            venue_distance_km: _d,
+            country_id: _c,
+            state_id: _s,
+            nearby_locality_id: _n,
+            ...rest
+          } = ev;
+          return {
+            ...rest,
+            start_time: ev.start_time.length === 5 ? `${ev.start_time}:00` : ev.start_time,
+          };
+        }),
       };
 
       const res: any = await ApiService.submitOrder(payload);
@@ -1327,30 +1357,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2" style={{ gap: '0.75rem' }}>
-                    <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Venue Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="e.g., Sri Krishna Palace Kalyana Mantapa"
-                        value={ev.venue_name}
-                        onChange={(e) => updateEvent(idx, 'venue_name', e.target.value)}
-                        style={{ height: '34px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: 600 }}>Venue Address &amp; City</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="e.g., Mailoor Road, Bidar - 585403"
-                        value={ev.venue_address}
-                        onChange={(e) => updateEvent(idx, 'venue_address', e.target.value)}
-                        style={{ height: '34px', fontSize: '0.85rem' }}
-                      />
-                    </div>
-                  </div>
+                  <VenueSelector value={ev} onChange={(patch) => patchEvent(idx, patch)} />
                 </div>
               ))}
             </div>

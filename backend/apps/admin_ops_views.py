@@ -422,7 +422,7 @@ class AdminPaymentsListView(views.APIView):
                 'order_reference': p.order.order_reference,
                 'customer_name': p.order.customer_name,
                 'customer_email': p.order.customer_email,
-                'customer_phone': p.order.customer_phone,
+                'customer_phone': p.order.customer_mobile,
                 'occasion': p.order.occasion.display_name if p.order.occasion else None,
                 'package_name': p.order.package.name if p.order.package else None,
                 'amount_inr': str(p.amount_inr),
