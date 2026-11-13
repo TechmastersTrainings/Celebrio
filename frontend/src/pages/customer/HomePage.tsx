@@ -23,7 +23,10 @@ import {
   ExternalLink,
   ChevronRight,
   Layers,
-  Palette
+  Palette,
+  Tag,
+  Gift,
+  Percent
 } from 'lucide-react';
 
 interface HomePageProps {
@@ -77,6 +80,33 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
           <div className="hero-grid">
             {/* Left Column: Brand Intro, Headline, CTAs */}
             <div>
+              {/* Savings Announcement Pill */}
+              <div
+                onClick={() => onNavigate('offers')}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.08) 0%, rgba(212, 175, 55, 0.18) 100%)',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '20px',
+                  marginBottom: '0.65rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--burgundy-rich)', color: '#FFFFFF' }}>
+                  <Percent size={11} />
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--navy-deep)' }}>
+                  Default 12% Savings Applied Automatically
+                </span>
+                <span style={{ fontSize: '0.76rem', color: 'var(--burgundy-rich)', fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>
+                  View Offers &rarr;
+                </span>
+              </div>
+
               <span className="editorial-kicker" style={{ marginBottom: '0.4rem', display: 'block' }}>
                 TECHMASTERS DIGITAL SERVICES • BIDAR, KARNATAKA
               </span>
@@ -521,6 +551,82 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
             >
               Request Customised Package
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3.5: SPECIAL OFFERS & AUTOMATIC SAVINGS
+          ========================================================================= */}
+      <section
+        className="section"
+        id="offers-banner"
+        style={{
+          padding: '3rem 0',
+          background: 'linear-gradient(135deg, #FFFDF8 0%, #FFF8EE 100%)',
+          borderTop: '1px solid #F3E5D0',
+          borderBottom: '1px solid #F3E5D0',
+        }}
+      >
+        <div className="container">
+          <div
+            style={{
+              background: '#FFFFFF',
+              border: '1.5px solid var(--gold-border)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '2rem 2.25rem',
+              boxShadow: '0 8px 30px rgba(184, 134, 11, 0.08)',
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1.75rem',
+            }}
+          >
+            <div style={{ flex: '1 1 500px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(128, 0, 32, 0.08)', padding: '0.3rem 0.75rem', borderRadius: '14px', marginBottom: '0.65rem' }}>
+                <Gift size={14} color="var(--burgundy-rich)" />
+                <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--burgundy-rich)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Transparent Celebration Savings
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.75rem', color: 'var(--navy-deep)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>
+                Flat 12% Default Discount on All Digital Orders
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', lineHeight: 1.6, margin: 0 }}>
+                Every milestone order automatically receives a 12% system discount calculated instantly in your quotation breakdown. Additional seasonal promo codes can be stacked or combined during order creation.
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem', fontSize: '0.84rem', color: 'var(--text-body)' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> No coupon code required for 12%
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> Real-time rupee breakdown
+                </span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> Pay only after 100% draft approval
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', minWidth: '220px' }}>
+              <button
+                className="btn btn-primary"
+                onClick={() => onNavigate('offers')}
+                style={{ justifyContent: 'center', padding: '0.75rem 1.25rem' }}
+              >
+                <Tag size={15} />
+                <span>Explore Offers &amp; Deals</span>
+                <ArrowRight size={14} />
+              </button>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => onNavigate('wizard')}
+                style={{ justifyContent: 'center' }}
+              >
+                Start Your Order
+              </button>
+            </div>
           </div>
         </div>
       </section>

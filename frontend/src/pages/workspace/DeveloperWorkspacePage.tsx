@@ -1485,19 +1485,63 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
                             <label className="sn-field-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Physical Card Images</label>
                             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
                               {physicalAssets.map((asset: CustomerAsset) => (
-                                <div key={asset.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
+                                <div
+                                  key={asset.id}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '0.35rem',
+                                    background: '#FFFFFF',
+                                    border: '1px solid #E2E8F0',
+                                    borderRadius: '6px',
+                                    padding: '0.5rem',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                    cursor: 'pointer',
+                                  }}
+                                  onClick={() => handleInspectAsset(asset)}
+                                  title={`Inspect ${asset.file_name}`}
+                                >
                                   {asset.preview_url || asset.url ? (
-                                    <a href={asset.download_url || asset.url} target="_blank" rel="noopener noreferrer" title={asset.file_name}>
-                                      <img src={asset.preview_url || asset.url} alt={asset.file_name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
-                                    </a>
+                                    <img
+                                      src={asset.preview_url || asset.url}
+                                      alt={asset.file_name}
+                                      style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #CBD5E1' }}
+                                    />
                                   ) : (
-                                    <a href={asset.download_url || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: 'var(--burgundy-rich)' }}>
-                                      <ImageIcon size={14} /> {asset.file_name}
-                                    </a>
+                                    <div style={{ width: '100px', height: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC', borderRadius: '4px', border: '1px solid #CBD5E1' }}>
+                                      <ImageIcon size={24} color="var(--burgundy-rich)" />
+                                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Scan</span>
+                                    </div>
                                   )}
-                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--navy-deep)', textAlign: 'center', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {asset.asset_category.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
                                   </span>
+                                  <div style={{ display: 'flex', gap: '0.25rem', width: '100%' }}>
+                                    <button
+                                      type="button"
+                                      className="btn btn-navy btn-sm"
+                                      style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem', gap: '0.2rem', flex: 1, justifyContent: 'center' }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleInspectAsset(asset);
+                                      }}
+                                    >
+                                      <Eye size={10} /> Inspect
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="btn btn-outline btn-sm"
+                                      style={{ padding: '0.15rem 0.4rem', fontSize: '0.68rem', gap: '0.2rem', justifyContent: 'center' }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDownloadAsset(asset);
+                                      }}
+                                      title="Download original"
+                                    >
+                                      <Download size={10} />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
