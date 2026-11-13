@@ -17,7 +17,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { ApiService } from '../../services/api';
-import { TechMastersLogo } from '../../components/TechMastersLogo';
+import { StaffHeader } from '../../components/StaffHeader';
 import type { CustomerAsset, TicketDetail, TicketSummary, User } from '../../types';
 import { OrderList } from '../../components/workspace/OrderList';
 import { OrderRecord, type RecordFormValues } from '../../components/workspace/OrderRecord';
@@ -29,6 +29,7 @@ interface DeveloperWorkspacePageProps {
   currentUser: User;
   onOpenPreview: (previewUrl: string) => void;
   onLogout: () => void;
+  onOpenWebsite: () => void;
 }
 
 type QueueKey = 'my_work' | 'all' | 'open' | 'mine' | 'wip' | 'on_hold' | 'awaiting' | 'closed' | 'video';
@@ -48,7 +49,7 @@ const QUEUES: { key: QueueKey; label: string; icon: React.ReactNode }[] = [
 const isHeld = (t: TicketSummary) => t.is_on_hold || t.status === 'ON_HOLD';
 const recordFromUrl = () => new URLSearchParams(window.location.search).get('record');
 
-export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({ currentUser, onOpenPreview, onLogout }) => {
+export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({ currentUser, onOpenPreview, onLogout, onOpenWebsite }) => {
   const isApproved = Boolean(currentUser.is_approved_developer);
   const canVideo = Boolean(currentUser.can_produce_video);
   const maxActive = currentUser.developer_profile?.max_active_tickets || 3;
@@ -252,28 +253,11 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({ 
   }
 
   const queues = QUEUES.filter((q) => q.key !== 'video' || canVideo);
-  const roleLabel = currentUser.is_admin ? 'Administrator' : canVideo ? 'Developer · Video' : 'Developer';
   const currentQueue = QUEUES.find((q) => q.key === queue)!;
 
   return (
     <div className="ws-shell">
-      <header className="ws-header">
-        <div className="ws-header-brand">
-          <TechMastersLogo variant="dark" size="sm" showSubtitle={false} />
-          <span className="ws-header-divider" aria-hidden />
-          <span className="ws-header-app">Developer Workspace</span>
-        </div>
-        <div className="ws-header-user" title={currentUser.email || undefined}>
-          <span className="ws-avatar">{(currentUser.full_name || currentUser.email || '?').charAt(0).toUpperCase()}</span>
-          <span className="ws-header-user-text">
-            <strong>{currentUser.full_name}</strong>
-            <span>{roleLabel}</span>
-          </span>
-        </div>
-        <button type="button" className="ws-header-btn" onClick={onLogout}>
-          <LogOut size={14} /> Log out
-        </button>
-      </header>
+      <StaffHeader appName="Developer Workspace" user={currentUser} onLogout={onLogout} onOpenWebsite={onOpenWebsite} />
 
       <aside className="ws-sidebar">
         <nav className="ws-nav" aria-label="Order queues">

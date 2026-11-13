@@ -76,26 +76,8 @@
 /* ---------- Main ---------- */
 .ws-main { grid-area: main; min-width: 0; display: flex; flex-direction: column; }
 
-/* ---------- Developer header ---------- */
-.ws-header {
-  grid-area: head; position: sticky; top: 0; z-index: 25;
-  display: flex; align-items: center; gap: 14px; padding: 0 16px;
-  background: #101a24; color: #fff; border-bottom: 1px solid #0a1118;
-}
-.ws-header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-right: auto; }
-.ws-header-brand .techmasters-brand-logo { transform: scale(0.82); transform-origin: left center; }
-.ws-header-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); }
-.ws-header-app { font-size: 13.5px; font-weight: 600; color: #e6edf3; white-space: nowrap; }
-.ws-header-user { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.ws-header-user-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
-.ws-header-user-text strong { font-size: 12.5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
-.ws-header-user-text span { font-size: 11px; color: #8fa0b1; }
-.ws-header-btn {
-  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px;
-  border: 1px solid rgba(255,255,255,0.2); border-radius: var(--ws-radius);
-  background: transparent; color: #dbe3ea; font-size: 12.5px; cursor: pointer;
-}
-.ws-header-btn:hover { background: rgba(255,255,255,0.07); color: #fff; border-color: rgba(255,255,255,0.35); }
+/* Shared staff bar (index.css .staff-header) occupies the header row */
+.ws-shell > .staff-header { grid-area: head; }
 .ws-content { padding: 14px 16px 32px; min-width: 0; }
 .ws-loading { padding: 40px; text-align: center; color: var(--ws-muted); }
 .ws-grow { flex: 1; }
@@ -340,8 +322,7 @@ textarea.ws-input { height: auto; padding: 6px 8px; resize: vertical; }
 }
 @media (max-width: 860px) {
   .ws-shell { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: 'head' 'side' 'main'; }
-  .ws-header { position: static; height: var(--ws-header-h); }
-  .ws-header-divider, .ws-header-app, .ws-header-user-text span { display: none; }
+  .ws-shell > .staff-header { position: static; }
   .ws-sidebar { position: static; height: auto; min-width: 0; }
   .ws-nav { flex: none; flex-direction: row; align-items: center; overflow-x: auto; padding: 6px; }
   .ws-nav-item { flex: none; width: auto; white-space: nowrap; }

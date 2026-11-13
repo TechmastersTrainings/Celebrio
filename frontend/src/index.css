@@ -2000,3 +2000,57 @@ tr:hover td {
 .idle-notice { display: flex; align-items: center; gap: 10px; max-width: 560px; margin: 16px auto 0; padding: 10px 14px; border: 1px solid #f6d7a7; border-radius: 6px; background: #fff7ea; color: #7c4a03; font-size: 0.9rem; }
 .idle-notice span { flex: 1; }
 .idle-notice button { border: 0; background: none; font-size: 1.2rem; line-height: 1; color: inherit; cursor: pointer; }
+
+/* ---------- Staff portals: top bar (developer & admin) ---------- */
+.staff-header {
+  position: sticky; top: 0; z-index: 900;
+  display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 16px;
+  background: #101a24; color: #fff; border-bottom: 1px solid #0a1118;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 13px;
+}
+.staff-header-brand { display: flex; align-items: center; gap: 12px; min-width: 0; margin-right: auto; }
+.staff-header-brand .techmasters-brand-logo { transform: scale(0.82); transform-origin: left center; }
+.staff-header-divider { width: 1px; height: 22px; background: rgba(255,255,255,0.18); }
+.staff-header-app { font-size: 13.5px; font-weight: 600; color: #e6edf3; white-space: nowrap; }
+.staff-header-link {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px;
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; background: transparent; color: #dbe3ea; font-size: 12.5px; cursor: pointer;
+}
+.staff-header-link:hover { background: rgba(255,255,255,0.07); color: #fff; }
+.staff-user { position: relative; }
+.staff-user-btn {
+  display: flex; align-items: center; gap: 9px; height: 40px; padding: 0 8px 0 4px;
+  border: 1px solid transparent; border-radius: 6px; background: transparent; color: #dbe3ea; cursor: pointer; font: inherit;
+}
+.staff-user-btn:hover, .staff-user-btn[aria-expanded='true'] { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+.staff-user-btn:focus-visible, .staff-menu button:focus-visible, .staff-header-link:focus-visible { outline: 2px solid #5aa2ff; outline-offset: 1px; }
+.staff-avatar {
+  flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: #6b1728; color: #fff; font-weight: 600; font-size: 13px;
+}
+.staff-avatar-lg { width: 38px; height: 38px; font-size: 15px; }
+.staff-user-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; min-width: 0; }
+.staff-user-text strong { font-size: 12.5px; color: #fff; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.staff-user-text span { font-size: 11px; color: #8fa0b1; }
+.staff-menu {
+  position: absolute; right: 0; top: calc(100% + 6px); width: 260px; padding: 6px;
+  background: #fff; color: #1d2733; border: 1px solid #dfe4ea; border-radius: 6px; box-shadow: 0 12px 32px rgba(15,23,42,0.22);
+}
+.staff-menu-head { display: flex; gap: 10px; align-items: center; padding: 8px 8px 10px; margin-bottom: 4px; border-bottom: 1px solid #edf0f3; }
+.staff-menu-head div { display: flex; flex-direction: column; min-width: 0; }
+.staff-menu-head strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.staff-menu-head span { font-size: 12px; color: #6b7785; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.staff-menu-role { margin-top: 2px; }
+.staff-menu button {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px; border: 0; border-radius: 4px;
+  background: none; color: inherit; font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+}
+.staff-menu button:hover { background: #f3f5f8; }
+.staff-menu-logout { color: #9b1c1c !important; }
+@media (max-width: 640px) {
+  .staff-header-divider, .staff-header-app, .staff-user-text { display: none; }
+}
+
+/* Admin console sits under the 52px staff bar instead of the 70px public navbar */
+.staff-portal .admin-console-wrapper { min-height: calc(100vh - 52px); }
+.staff-portal .admin-sidebar { top: 52px; height: calc(100vh - 52px); }

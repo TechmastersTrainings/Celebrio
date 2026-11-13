@@ -15,6 +15,7 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { PublicInvitationPage } from './pages/public/PublicInvitationPage';
 import { OffersPage } from './pages/customer/OffersPage';
 import { IdleLogoutWarning } from './components/IdleLogoutWarning';
+import { StaffHeader } from './components/StaffHeader';
 import { LAST_ACTIVITY_KEY, STAFF_IDLE_TIMEOUT_MS, markStaffActivity, useIdleLogout, type IdleLogoutReason } from './hooks/useIdleLogout';
 
 export const App: React.FC = () => {
@@ -303,17 +304,26 @@ export const App: React.FC = () => {
     return <PublicInvitationPage slug={publicSlug} />;
   }
 
+  // Developer & admin side (including their login pages) use the staff top bar, not the public navigation.
+  const isStaffSide = ['workspace', 'admin', 'dev-login', 'admin-login'].includes(currentView);
+
   return (
-    <div className="app-container">
-      {/* Public navigation; the authenticated Developer Portal has its own application shell */}
-      {currentView !== 'workspace' && <Navbar
+    <div className={`app-container${isStaffSide ? ' staff-portal' : ''}`}>
+      {/* The Developer Workspace renders its own staff bar inside its layout. */}
+      {(currentView === 'dev-login' || currentView === 'admin-login') && (
+        <StaffHeader appName={currentView === 'admin-login' ? 'Admin Console' : 'Developer Workspace'} onOpenWebsite={() => handleNavigate('home')} />
+      )}
+      {currentView === 'admin' && staffUser?.is_admin && (
+        <StaffHeader appName="Admin Console" user={staffUser} onLogout={() => handleLogout()} onOpenWebsite={() => handleNavigate('home')} />
+      )}
+      {!isStaffSide && <Navbar
         currentView={currentView}
         onNavigate={handleNavigate}
         staffUser={staffUser}
         onLogout={() => handleLogout()}
       />}
 
-      <main className={currentView === 'workspace' ? undefined : 'main-content'}>
+      <main className={isStaffSide ? undefined : 'main-content'}>
         {/* =========================================================================
             PORTAL 1: MAIN WEBSITE — CUSTOMER CELEBRATION PORTAL
             ========================================================================= */}
@@ -433,6 +443,7 @@ export const App: React.FC = () => {
               handleNavigate('preview', token);
             }}
             onLogout={() => handleLogout()}
+            onOpenWebsite={() => handleNavigate('home')}
           />
         )}
 
