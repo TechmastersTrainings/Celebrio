@@ -20,5 +20,7 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "celebrio.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2"]
+# Run migrations + seed + collectstatic, then launch gunicorn on $PORT
+RUN chmod +x start.sh
+CMD ["./start.sh"]
 
