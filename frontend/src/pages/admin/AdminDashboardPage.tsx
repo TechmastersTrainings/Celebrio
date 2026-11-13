@@ -276,8 +276,8 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       setReviewLoading(true);
       const orderRef = t.order_reference || t.ticket_number;
-      const detail: any = await ApiService.getTicketDetail(orderRef);
-      setReviewOrder(detail);
+      const res: any = await ApiService.lookupOrder(orderRef);
+      setReviewOrder(res?.data || res);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch order details');
     } finally {
