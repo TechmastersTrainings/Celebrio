@@ -1,629 +1,255 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ApiService } from '../../services/api';
-import { Occasion } from '../../types';
+import type { Occasion } from '../../types';
 import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
 import {
   Sparkles,
   ArrowRight,
   Monitor,
-  Smartphone,
   Video,
   QrCode,
   Heart,
-  Calendar,
   MapPin,
   CheckCircle2,
-  Clock,
-  ShieldCheck,
-  Eye,
-  MessageCircle,
   FileText,
-  Phone,
-  Mail,
-  ExternalLink,
-  ChevronRight,
-  Layers,
   Palette,
   Tag,
   Gift,
-  Percent
+  Percent,
+  Smartphone,
+  Clapperboard,
+  MessageCircle,
+  CalendarCheck,
 } from 'lucide-react';
+import { OccasionArt, isFormat, rupees, startingPrice } from '../../components/occasions/occasionVisuals';
+import '../../styles/storefront.css';
 
 interface HomePageProps {
   onSelectOccasion: (occId: string, pkgId?: string) => void;
   onNavigate: (view: string, param?: string) => void;
 }
 
+const SERVICES = [
+  { icon: Monitor, title: 'Personalised Invitation Websites', text: 'Custom hosted websites on clean neutral domains with countdown clocks, couple stories, photo galleries, and music players.' },
+  { icon: FileText, title: 'Ultra HD Print-Ready Cards', text: '300 DPI high-resolution invitation cards in JPG, PNG, and vector-crisp PDF. Ideal for WhatsApp and physical printing.' },
+  { icon: Smartphone, title: 'Instagram-Ready Formats', text: 'Every card in Instagram Story (1080×1920) and Post (1080×1080) sizes, and videos in vertical 9:16 for Reels and WhatsApp Status.' },
+  { icon: Video, title: 'Animated Invitation Videos', text: 'Motion videos produced with family photos, motion typography, and curated classical/devotional audio.' },
+  { icon: QrCode, title: 'QR-Enabled Physical Cards', text: 'Dynamic printable vector QR code for cards and sweet boxes. Guests scan with any phone to open the interactive website.' },
+  { icon: Heart, title: 'Guest RSVP & Digital Wishes', text: 'Automated attendee headcount collection. Guests submit heartfelt blessings and diet preferences tracked in your portal.' },
+  { icon: MapPin, title: 'Schedules & Google Maps GPS', text: 'Multi-day ceremony timelines (Mehendi, Sangeet, Muhurtham) with direct one-tap Google Maps navigation for guests.' },
+];
+
+const STEPS = [
+  { title: 'Choose Occasion', text: 'Pick your celebration or invitation format and select a package tier.' },
+  { title: 'Submit Details', text: 'Enter event dates, venues, family names, and upload high-res photos.' },
+  { title: 'Artisan Designs', text: 'Your order is assigned to a dedicated designer who crafts bespoke previews.' },
+  { title: 'Review Preview', text: 'Inspect the live draft preview and request adjustments before approval.' },
+  { title: 'Approve & Pay', text: 'Authorise payment via UPI or cards only after you 100% approve.' },
+  { title: 'Launch Live', text: 'Receive your published website, 300 DPI card PDFs, Instagram-ready files, and printable QR codes.' },
+];
+
 export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate }) => {
   const [occasions, setOccasions] = useState<Occasion[]>(OFFICIAL_OCCASIONS);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadOccasions();
+    ApiService.getOccasions()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) setOccasions(data);
+      })
+      .catch((err) => console.error('Failed to load occasions catalog:', err));
   }, []);
 
-  const loadOccasions = async () => {
-    try {
-      setLoading(true);
-      const data = await ApiService.getOccasions();
-      setOccasions(data || []);
-    } catch (err) {
-      console.error('Failed to load occasions catalog:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getStartingPrice = (occ: Occasion) => {
-    if (!occ.packages || occ.packages.length === 0) return null;
-    const prices = occ.packages.map((p) => parseFloat(String(p.base_price_inr)) || 0).filter((p) => p > 0);
-    return prices.length > 0 ? Math.min(...prices) : null;
-  };
-
-  // Occasions image mapping
-  const categoryImages: Record<string, string> = {
-    marriage: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80',
-    wedding: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
-    engagement: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=80',
-    birthday: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80',
-    'naming-ceremony': 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80',
-    anniversary: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
-  };
+  const celebrations = occasions.filter((o) => !isFormat(o));
+  const formats = occasions.filter(isFormat);
 
   return (
-    <div>
-      {/* =========================================================================
-          SECTION 1: EDITORIAL SPLIT-SCREEN HERO (COMPACT & SLEEK)
-          ========================================================================= */}
-      <section className="hero-split">
-        <div className="container">
-          <div className="hero-grid">
-            {/* Left Column: Brand Intro, Headline, CTAs */}
-            <div>
-              {/* Savings Announcement Pill */}
-              <div
-                onClick={() => onNavigate('offers')}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  background: 'linear-gradient(135deg, rgba(128, 0, 32, 0.08) 0%, rgba(212, 175, 55, 0.18) 100%)',
-                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '20px',
-                  marginBottom: '0.65rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', borderRadius: '50%', background: 'var(--burgundy-rich)', color: '#FFFFFF' }}>
-                  <Percent size={11} />
-                </span>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--navy-deep)' }}>
-                  Default 12% Savings Applied Automatically
-                </span>
-                <span style={{ fontSize: '0.76rem', color: 'var(--burgundy-rich)', fontWeight: 700, display: 'inline-flex', alignItems: 'center' }}>
-                  View Offers &rarr;
-                </span>
-              </div>
+    <div className="sf">
+      {/* ================= HERO ================= */}
+      <section className="sf-hero">
+        <div className="sf-wrap sf-hero-grid">
+          <div>
+            <button type="button" className="sf-offer" onClick={() => onNavigate('offers')}>
+              <span className="sf-offer-dot"><Percent size={12} /></span>
+              Default 12% Savings Applied Automatically
+              <span className="sf-offer-link">View Offers →</span>
+            </button>
+            <span className="sf-kicker">TechMasters Digital Services • Bidar, Karnataka</span>
+            <h1>
+              Make Every Celebration <em>Unforgettable.</em>
+            </h1>
+            <p className="sf-lead">
+              Beautiful digital invitations and personalised celebration experiences, thoughtfully designed for life's most meaningful moments.
+            </p>
+            <div className="sf-cta">
+              <button type="button" className="sf-btn sf-btn-primary" onClick={() => onNavigate('wizard')}>
+                <Sparkles size={17} /> Create Your Invitation <ArrowRight size={15} />
+              </button>
+              <button type="button" className="sf-btn sf-btn-ghost" onClick={() => onNavigate('designs')}>
+                Explore Designs
+              </button>
+            </div>
+            <div className="sf-trust">
+              <span><CheckCircle2 size={14} /> 100% Approval Guarantee</span>
+              <span><CheckCircle2 size={14} /> 300 DPI Print PDF</span>
+              <span><CheckCircle2 size={14} /> Live RSVP &amp; Maps</span>
+              <span><CheckCircle2 size={14} /> Instagram &amp; WhatsApp Ready</span>
+            </div>
+          </div>
 
-              <span className="editorial-kicker" style={{ marginBottom: '0.4rem', display: 'block' }}>
-                TECHMASTERS DIGITAL SERVICES • BIDAR, KARNATAKA
-              </span>
-
-              <h1 style={{ marginBottom: '0.75rem', color: 'var(--navy-deep)', lineHeight: 1.15, fontSize: '2.45rem' }}>
-                Make Every Celebration{' '}
-                <span style={{ color: 'var(--burgundy-rich)', fontStyle: 'italic' }}>
-                  Unforgettable.
-                </span>
-              </h1>
-
-              <p className="lead-text" style={{ marginBottom: '1.25rem', maxWidth: '520px', fontSize: '1.02rem', lineHeight: 1.55 }}>
-                Beautiful digital invitations and personalised celebration experiences, thoughtfully designed for life's most meaningful moments.
-              </p>
-
-              {/* CTAs */}
-              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => onNavigate('wizard')}
-                >
-                  <Sparkles size={17} style={{ color: '#F59E0B' }} />
-                  <span>Create Your Invitation</span>
-                  <ArrowRight size={15} />
-                </button>
-
-                <button
-                  className="btn btn-outline"
-                  onClick={() => onNavigate('designs')}
-                >
-                  Explore Designs
-                </button>
-              </div>
-
-              {/* Sleek Tight Horizontal Trust & Guarantee Markers */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem',
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '0.85rem',
-                  fontSize: '0.80rem',
-                }}
-              >
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                    100% Approval Guarantee
-                  </span>
-                </div>
-                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                    300 DPI Print PDF
-                  </span>
-                </div>
-                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                    Live RSVP &amp; Maps
-                  </span>
-                </div>
-                <span style={{ color: 'var(--border-subtle)' }}>&bull;</span>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} style={{ color: 'var(--burgundy-rich)' }} />
-                  <span style={{ color: 'var(--text-body)', fontWeight: 500 }}>
-                    WhatsApp Share
-                  </span>
+          {/* Decorative preview of a story-format invitation */}
+          <div className="sf-visual" aria-hidden>
+            <div className="sf-phone">
+              <div className="sf-phone-screen">
+                <span className="sf-phone-island" />
+                <div className="sf-story-bars"><span /><span /><span /></div>
+                <div className="sf-story-body">
+                  <span className="sf-story-orn">✦ ✦ ✦</span>
+                  <span className="sf-story-kicker">YOU ARE INVITED</span>
+                  <span className="sf-story-title">Save the Date</span>
+                  <span className="sf-story-sub">Personalised celebration<br />invitation</span>
+                  <span className="sf-story-cta">Confirm RSVP</span>
                 </div>
               </div>
             </div>
-
-            {/* Right Column: Authentic MacBook Pro and iPhone 16 Pro Displays */}
-            <div>
-              <div className="mockup-composition">
-                {/* Authentic MacBook Pro Housing */}
-                <div className="macbook-housing">
-                  {/* MacBook Center Notch */}
-                  <div className="macbook-notch">
-                    <div className="macbook-camera-lens" />
-                  </div>
-
-                  {/* MacBook Retina Screen */}
-                  <div className="macbook-screen">
-                    {/* macOS Safari Browser Toolbar */}
-                    <div className="macbook-toolbar">
-                      <div className="macbook-traffic-lights">
-                        <span className="traffic-light traffic-light-close" />
-                        <span className="traffic-light traffic-light-minimize" />
-                        <span className="traffic-light traffic-light-expand" />
-                      </div>
-                      <div className="macbook-url-bar">
-                        🔒 celebrio.in/invitation/preview
-                      </div>
-                    </div>
-
-                    {/* Celebration Webpage Preview */}
-                    <div
-                      style={{
-                        flex: 1,
-                        background: 'radial-gradient(circle at 50% 25%, #FFFDF9 0%, #F5EFEB 100%)',
-                        padding: '1rem 1.25rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <span style={{ fontSize: '0.9rem', marginBottom: '2px' }}>✨</span>
-                      <div
-                        style={{
-                          fontSize: '0.58rem',
-                          letterSpacing: '0.16em',
-                          textTransform: 'uppercase',
-                          color: 'var(--gold-primary)',
-                          fontWeight: 700,
-                          marginBottom: '2px',
-                        }}
-                      >
-                        DIGITAL INVITATION EXPERIENCE
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-serif)',
-                          fontSize: '1.4rem',
-                          color: 'var(--burgundy-rich)',
-                          fontWeight: 700,
-                          lineHeight: 1.1,
-                          marginBottom: '4px',
-                        }}
-                      >
-                        Grand Celebration
-                      </div>
-                      <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                        Custom Web Invitation &bull; Interactive RSVP &bull; Venue Maps
-                      </p>
-
-                      <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '8px' }}>
-                        <span style={{ background: '#FFFFFF', padding: '2px 7px', borderRadius: '4px', fontSize: '0.62rem', border: '1px solid var(--border-subtle)', fontWeight: 600, color: 'var(--navy-deep)' }}>
-                          Live Countdown
-                        </span>
-                        <span style={{ background: '#FFFFFF', padding: '2px 7px', borderRadius: '4px', fontSize: '0.62rem', border: '1px solid var(--border-subtle)', fontWeight: 600, color: 'var(--navy-deep)' }}>
-                          Google Maps Venue
-                        </span>
-                        <span style={{ background: 'var(--burgundy-rich)', color: '#FFFFFF', padding: '2px 8px', borderRadius: '4px', fontSize: '0.62rem', fontWeight: 600 }}>
-                          Confirm RSVP
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* MacBook Aluminum Lower Deck with Thumb Notch */}
-                  <div className="macbook-base">
-                    <div className="macbook-thumb-groove" />
-                  </div>
-                </div>
-
-                {/* Authentic iPhone 16 Pro Mockup */}
-                <div className="iphone-housing">
-                  {/* Dynamic Island */}
-                  <div className="iphone-dynamic-island">
-                    <div className="iphone-island-lens" />
-                  </div>
-
-                  {/* iPhone Screen */}
-                  <div className="iphone-screen">
-                    {/* Status Bar */}
-                    <div
-                      style={{
-                        padding: '18px 12px 4px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        fontSize: '0.52rem',
-                        fontWeight: 600,
-                        color: '#1E293B',
-                      }}
-                    >
-                      <span>9:41</span>
-                      <span style={{ letterSpacing: '1px' }}>📶 🔋</span>
-                    </div>
-
-                    {/* Mobile Celebration Invitation View */}
-                    <div
-                      style={{
-                        flex: 1,
-                        padding: '0.5rem 0.75rem 1rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        textAlign: 'center',
-                        background: 'linear-gradient(180deg, #FAF6F0 0%, #FFFFFF 100%)',
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: '0.50rem', color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.12em', marginTop: '6px' }}>
-                          DIGITAL CARD &bull; RSVP
-                        </div>
-                      </div>
-
-                      <div>
-                        <div style={{ fontFamily: 'var(--font-serif)', fontSize: '1.05rem', color: 'var(--burgundy-rich)', fontWeight: 700, lineHeight: 1.15 }}>
-                          Save The Date
-                        </div>
-                        <p style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                          Personalised Celebration
-                        </p>
-                      </div>
-
-                      <div
-                        style={{
-                          background: 'var(--burgundy-rich)',
-                          color: '#FFFFFF',
-                          padding: '3px 10px',
-                          borderRadius: '10px',
-                          fontSize: '0.58rem',
-                          fontWeight: 600,
-                          boxShadow: '0 2px 6px rgba(107, 23, 40, 0.25)',
-                        }}
-                      >
-                        Confirm RSVP
-                      </div>
-                    </div>
-
-                    {/* Home Indicator Bar */}
-                    <div className="iphone-home-bar" />
-                  </div>
-                </div>
-              </div>
+            <div className="sf-chip-float sf-chip-a">
+              <span className="sf-chip-icon" style={{ background: 'linear-gradient(135deg,#7c3aed,#ec4899)' }}><Clapperboard size={16} /></span>
+              <span><strong>Reels &amp; Stories</strong><small>9:16 vertical format</small></span>
+            </div>
+            <div className="sf-chip-float sf-chip-b">
+              <span className="sf-chip-icon" style={{ background: '#16a34a' }}><MessageCircle size={16} /></span>
+              <span><strong>WhatsApp share</strong><small>One tap for guests</small></span>
+            </div>
+            <div className="sf-chip-float sf-chip-c">
+              <span className="sf-chip-icon" style={{ background: 'var(--burgundy-rich)' }}><CalendarCheck size={16} /></span>
+              <span><strong>RSVP &amp; Maps</strong><small>Built into the invite</small></span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 2: OCCASION CATEGORIES (WARM CHAMPAGNE AMBER)
-          ========================================================================= */}
-      <section className="milestone-section" id="occasions">
-        <div className="container">
-          <div className="milestone-header">
-            <h2>
-              Invitations for Life's Milestones
-            </h2>
-            <p className="lead-text">
+      {/* ================= OCCASIONS ================= */}
+      <section className="sf-section sf-occ-band" id="occasions">
+        <div className="sf-wrap">
+          <div className="sf-head">
+            <span className="sf-kicker">Celebrations</span>
+            <h2>Invitations for Life's Milestones</h2>
+            <p>
               Every occasion possesses its own rhythm, family emotion, and cultural beauty. We tailor each experience with respectful typography, interactive schedules, and custom media.
             </p>
           </div>
 
-          <div className="milestone-grid">
-            {occasions.map((occ) => {
-              const imgUrl = categoryImages[occ.slug] || categoryImages['marriage'];
-              const startPrice = getStartingPrice(occ);
-
+          <div className="sf-occ-grid">
+            {celebrations.map((occ) => {
+              const from = startingPrice(occ);
               return (
-                <div key={occ.id} className="milestone-card">
-                  <div className="milestone-card-img-wrap">
-                    <img src={imgUrl} alt={occ.display_name} className="milestone-card-img" />
-                  </div>
-
-                  <div className="milestone-card-body">
-                    <div className="milestone-card-header">
-                      <h3 className="milestone-card-title">{occ.display_name}</h3>
-                      {startPrice && (
-                        <div className="milestone-price-value">
-                          <span className="milestone-price-currency">₹</span>
-                          <span className="milestone-price-amount">{Math.floor(parseFloat(String(startPrice)))}</span>
-                          <span className="milestone-price-decimals">.00</span>
-                        </div>
+                <article key={occ.id} className="sf-occ">
+                  <OccasionArt occasion={occ} />
+                  <div className="sf-occ-body">
+                    <div className="sf-occ-top">
+                      <h3>{occ.display_name}</h3>
+                      {from !== null && (
+                        <span className="sf-price"><small>from</small>{rupees(from)}</span>
                       )}
                     </div>
-
-                    <p className="milestone-card-desc">
-                      {occ.description}
-                    </p>
-
-                    <div className="milestone-card-footer">
-                      <button
-                        className="milestone-btn-outline"
-                        onClick={() => onNavigate('designs')}
-                      >
+                    <p>{occ.description}</p>
+                    <div className="sf-occ-actions">
+                      <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm" onClick={() => onNavigate('designs')}>
                         Explore Designs
                       </button>
-                      <button
-                        className="milestone-btn-primary"
-                        onClick={() => onSelectOccasion(occ.id)}
-                      >
-                        <span>Customise</span>
-                        <ArrowRight size={14} />
+                      <button type="button" className="sf-btn sf-btn-primary sf-btn-sm" onClick={() => onSelectOccasion(occ.id)}>
+                        Customise <ArrowRight size={14} />
                       </button>
                     </div>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
+
+          {formats.length > 0 && (
+            <>
+              <div className="sf-subhead">
+                <h3>Invitation Formats</h3>
+                <p>For any occasion — pick the format your guests will love.</p>
+              </div>
+              <div className="sf-formats">
+                {formats.map((occ) => {
+                  const from = startingPrice(occ);
+                  return (
+                    <article key={occ.id} className="sf-format">
+                      <OccasionArt occasion={occ} />
+                      <div>
+                        <h3>{occ.display_name}</h3>
+                        <p>{occ.description}</p>
+                        <div className="sf-format-row">
+                          {from !== null && <span className="sf-price">from {rupees(from)}</span>}
+                          <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm" onClick={() => onSelectOccasion(occ.id)}>
+                            Customise <ArrowRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 3: 7 DEDICATED SERVICES SHOWCASE (ROYAL MIDNIGHT NAVY)
-          ========================================================================= */}
-      <section
-        className="section section-navy"
-        id="services"
-        style={{
-          padding: '4.5rem 0',
-          background: 'linear-gradient(135deg, #0A192F 0%, #0F284E 50%, #08162B 100%)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        }}
-      >
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '750px', margin: '0 auto 2.75rem' }}>
-            <h2 style={{ marginBottom: '0.75rem', color: '#FFFFFF' }}>
-              Seven Dimensions of Digital Hospitality
-            </h2>
-            <p className="lead-text" style={{ color: '#CBD5E1' }}>
-              We go far beyond static graphic cards. TechMasters Digital Services delivers an end-to-end interactive guest experience engineered for every digital channel.
-            </p>
+      {/* ================= SERVICES ================= */}
+      <section className="sf-section sf-dark" id="services">
+        <div className="sf-wrap">
+          <div className="sf-head">
+            <span className="sf-kicker">What you receive</span>
+            <h2>Seven Dimensions of Digital Hospitality</h2>
+            <p>We go far beyond static graphic cards. TechMasters Digital Services delivers an end-to-end interactive guest experience engineered for every digital channel.</p>
           </div>
-
-          {/* Symmetrical 6-Box Horizontal Capability Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-            {/* Service 1 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <Monitor size={20} />
+          <div className="sf-svc-grid">
+            {SERVICES.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="sf-svc">
+                <span className="sf-svc-icon"><Icon size={19} /></span>
+                <h3>{title}</h3>
+                <p>{text}</p>
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Personalised Invitation Websites</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  Custom hosted websites on clean neutral domains with countdown clocks, couple stories, photo galleries, and music players.
-                </p>
-              </div>
-            </div>
-
-            {/* Service 2 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <FileText size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Ultra HD Print-Ready Cards</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  300 DPI high-resolution invitation cards in JPG, PNG, and vector-crisp PDF. Ideal for WhatsApp and physical printing.
-                </p>
-              </div>
-            </div>
-
-            {/* Service 3 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <Video size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Animated Invitation Videos</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  Cinematic MP4 motion videos produced with family photos, motion typography, and curated classical/devotional audio.
-                </p>
-              </div>
-            </div>
-
-            {/* Service 4 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <QrCode size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>QR-Enabled Physical Cards</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  Dynamic printable vector QR code for cards and sweet boxes. Guests scan with any phone to open the interactive website.
-                </p>
-              </div>
-            </div>
-
-            {/* Service 5 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <Heart size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Guest RSVP &amp; Digital Wishes</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  Automated attendee headcount collection. Guests submit heartfelt blessings and diet preferences tracked in your portal.
-                </p>
-              </div>
-            </div>
-
-            {/* Service 6 */}
-            <div className="editorial-card" style={{ padding: '1.25rem 1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-start', background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 'var(--radius-md)' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <MapPin size={20} />
-              </div>
-              <div>
-                <h3 style={{ fontSize: '1.15rem', marginBottom: '0.35rem', color: '#FFFFFF' }}>Schedules &amp; Google Maps GPS</h3>
-                <p style={{ fontSize: '0.86rem', color: '#CBD5E1', lineHeight: 1.55, margin: 0 }}>
-                  Multi-day ceremony timelines (Mehendi, Sangeet, Muhurtham) with direct one-tap Google Maps navigation for guests.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* Dimension 7: Horizontal Multilingual Typography Banner */}
-          <div
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(245, 158, 11, 0.4)',
-              borderRadius: 'var(--radius-md)',
-              padding: '1.25rem 1.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '1.25rem',
-              boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, minWidth: '280px' }}>
-              <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F59E0B', flexShrink: 0 }}>
-                <Palette size={20} />
-              </div>
+          <div className="sf-lang">
+            <div style={{ display: 'flex', gap: '0.9em', alignItems: 'center' }}>
+              <span className="sf-svc-icon" style={{ marginBottom: 0 }}><Palette size={19} /></span>
               <div>
-                <h4 style={{ fontSize: '1.05rem', margin: '0 0 3px', color: '#FFFFFF' }}>
-                  Regional Language Unicode Typography
-                </h4>
-                <p style={{ fontSize: '0.84rem', color: '#E2E8F0', margin: 0 }}>
-                  Full native script support in <strong style={{ color: '#F59E0B' }}>Kannada (ಕನ್ನಡ), Hindi (हिन्दी), Telugu (తెలుగు), Marathi (मराठी), Tamil (தமிழ்), and English</strong>.
-                </p>
+                <h3>Regional Language Unicode Typography</h3>
+                <p>Full native script support in <strong>Kannada (ಕನ್ನಡ), Hindi (हिन्दी), Telugu (తెలుగు), Marathi (मराठी), Tamil (தமிழ்), and English</strong>.</p>
               </div>
             </div>
-
-            <button
-              className="btn btn-gold btn-sm"
-              style={{ fontWeight: 700, padding: '0.5rem 1.1rem' }}
-              onClick={() => onNavigate('wizard')}
-            >
+            <button type="button" className="sf-btn sf-btn-gold sf-btn-sm" onClick={() => onNavigate('wizard')}>
               Request Customised Package
             </button>
           </div>
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 3.5: SPECIAL OFFERS & AUTOMATIC SAVINGS
-          ========================================================================= */}
-      <section
-        className="section"
-        id="offers-banner"
-        style={{
-          padding: '3rem 0',
-          background: 'linear-gradient(135deg, #FFFDF8 0%, #FFF8EE 100%)',
-          borderTop: '1px solid #F3E5D0',
-          borderBottom: '1px solid #F3E5D0',
-        }}
-      >
-        <div className="container">
-          <div
-            style={{
-              background: '#FFFFFF',
-              border: '1.5px solid var(--gold-border)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '2rem 2.25rem',
-              boxShadow: '0 8px 30px rgba(184, 134, 11, 0.08)',
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '1.75rem',
-            }}
-          >
-            <div style={{ flex: '1 1 500px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(128, 0, 32, 0.08)', padding: '0.3rem 0.75rem', borderRadius: '14px', marginBottom: '0.65rem' }}>
-                <Gift size={14} color="var(--burgundy-rich)" />
-                <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--burgundy-rich)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Transparent Celebration Savings
-                </span>
-              </div>
-              <h3 style={{ fontSize: '1.75rem', color: 'var(--navy-deep)', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)' }}>
-                Flat 12% Default Discount on All Digital Orders
-              </h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', lineHeight: 1.6, margin: 0 }}>
+      {/* ================= OFFER ================= */}
+      <section className="sf-section sf-offer-band" id="offers-banner">
+        <div className="sf-wrap">
+          <div className="sf-offer-card">
+            <div>
+              <span className="sf-kicker"><Gift size={13} /> Transparent Celebration Savings</span>
+              <h2>Flat 12% Default Discount on All Digital Orders</h2>
+              <p>
                 Every milestone order automatically receives a 12% system discount calculated instantly in your quotation breakdown. Additional seasonal promo codes can be stacked or combined during order creation.
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem', fontSize: '0.84rem', color: 'var(--text-body)' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> No coupon code required for 12%
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> Real-time rupee breakdown
-                </span>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CheckCircle2 size={15} color="var(--emerald-deep)" /> Pay only after 100% draft approval
-                </span>
+              <div className="sf-ticks">
+                <span><CheckCircle2 size={15} /> No coupon code required for 12%</span>
+                <span><CheckCircle2 size={15} /> Real-time rupee breakdown</span>
+                <span><CheckCircle2 size={15} /> Pay only after 100% draft approval</span>
               </div>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', minWidth: '220px' }}>
-              <button
-                className="btn btn-primary"
-                onClick={() => onNavigate('offers')}
-                style={{ justifyContent: 'center', padding: '0.75rem 1.25rem' }}
-              >
-                <Tag size={15} />
-                <span>Explore Offers &amp; Deals</span>
-                <ArrowRight size={14} />
+            <div className="sf-offer-actions">
+              <button type="button" className="sf-btn sf-btn-primary" onClick={() => onNavigate('offers')}>
+                <Tag size={15} /> Explore Offers &amp; Deals
               </button>
-              <button
-                className="btn btn-outline btn-sm"
-                onClick={() => onNavigate('wizard')}
-                style={{ justifyContent: 'center' }}
-              >
+              <button type="button" className="sf-btn sf-btn-ghost" onClick={() => onNavigate('wizard')}>
                 Start Your Order
               </button>
             </div>
@@ -631,215 +257,26 @@ export const HomePage: React.FC<HomePageProps> = ({ onSelectOccasion, onNavigate
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 4: HOW IT WORKS (CRISP PLATINUM SLATE)
-          ========================================================================= */}
-      <section
-        className="section"
-        id="how-it-works"
-        style={{
-          padding: '3.75rem 0',
-          background: 'linear-gradient(180deg, #F0F4FA 0%, #E6EDF6 100%)',
-          borderTop: '1px solid #DCE5EE',
-          borderBottom: '1px solid #DCE5EE',
-        }}
-      >
-        <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '740px', margin: '0 auto 2.75rem' }}>
-            <h2 style={{ marginBottom: '0.75rem', color: '#0A192F' }}>
-              Six Steps to Your Celebration Reveal
-            </h2>
-            <p className="lead-text" style={{ color: '#475569' }}>
-              We blend artisan craftsmanship with enterprise service tracking. Inspect protected previews and approve everything before payment.
-            </p>
+      {/* ================= HOW IT WORKS ================= */}
+      <section className="sf-section sf-steps-band" id="how-it-works">
+        <div className="sf-wrap">
+          <div className="sf-head">
+            <span className="sf-kicker">How it works</span>
+            <h2>Six Steps to Your Celebration Reveal</h2>
+            <p>We blend artisan craftsmanship with enterprise service tracking. Inspect protected previews and approve everything before payment.</p>
           </div>
-
-          {/* 6-Step Workflow Process Grid with Increased Font Sizes */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '1.25rem',
-            }}
-          >
-            {/* Step 1 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  01
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 1
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Choose Occasion
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Pick Wedding, Naming Ceremony, Birthday, or Anniversary &amp; select tier.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  02
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 2
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Submit Details
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Enter event dates, venues, family names, and upload high-res photos.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  03
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 3
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Artisan Designs
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Order assigned to dedicated designers who craft bespoke previews.
-              </p>
-            </div>
-
-            {/* Step 4 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  04
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 4
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Review Preview
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Inspect live draft preview. Request adjustments directly before approval.
-              </p>
-            </div>
-
-            {/* Step 5 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  05
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 5
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Approve &amp; Pay
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Authorize payment via UPI or cards only after you 100% approve.
-              </p>
-            </div>
-
-            {/* Step 6 */}
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                padding: '1.75rem',
-                background: '#FFFFFF',
-                border: '1px solid #CBD5E1',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.04)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '2.2rem', fontWeight: 700, color: '#D97706', lineHeight: 1 }}>
-                  06
-                </span>
-                <span style={{ fontSize: '0.92rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', fontWeight: 700 }}>
-                  Step 6
-                </span>
-              </div>
-              <h4 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '0.65rem', color: '#0A192F', lineHeight: 1.3 }}>
-                Launch Live
-              </h4>
-              <p style={{ fontSize: '1.05rem', color: '#334155', lineHeight: 1.65, margin: 0 }}>
-                Receive published website, 300 DPI card PDFs, and printable QR codes.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: '2.25rem' }}>
-            <button
-              className="btn btn-primary btn-lg"
-              style={{ background: '#6B1728', color: '#FFFFFF' }}
-              onClick={() => onNavigate('wizard')}
-            >
-              <Sparkles size={16} style={{ color: '#F59E0B' }} />
-              <span>Create Your Invitation</span>
-              <ArrowRight size={16} />
+          <ol className="sf-steps">
+            {STEPS.map((s, i) => (
+              <li key={s.title} className="sf-step">
+                <span className="sf-step-n">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="sf-center">
+            <button type="button" className="sf-btn sf-btn-primary" onClick={() => onNavigate('wizard')}>
+              <Sparkles size={16} /> Create Your Invitation <ArrowRight size={16} />
             </button>
           </div>
         </div>

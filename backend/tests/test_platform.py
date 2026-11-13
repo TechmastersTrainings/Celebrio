@@ -58,10 +58,9 @@ class PlatformReleaseAcceptanceTests(TestCase):
         )
 
         # Catalog setup
-        self.occasion = Occasion.objects.create(
+        self.occasion, _ = Occasion.objects.get_or_create(
             slug='marriage',
-            display_name='Marriage / Wedding',
-            description='Weddings'
+            defaults={'display_name': 'Marriage / Wedding', 'description': 'Weddings'},
         )
         self.package = Package.objects.create(
             occasion=self.occasion,
@@ -270,7 +269,7 @@ class FIFOConcurrencyStressTests(TransactionTestCase):
         self.admin = User.objects.create_user(
             email='admin_conc@test.com', password='pass', role=UserRole.OPS_ADMIN, is_staff=True
         )
-        self.occ = Occasion.objects.create(slug='birthday', display_name='Birthday', description='Bday')
+        self.occ, _ = Occasion.objects.get_or_create(slug='birthday', defaults={'display_name': 'Birthday', 'description': 'Bday'})
         self.pkg = Package.objects.create(occasion=self.occ, name='Basic', code='B1', base_price_inr=299)
         self.order = Order.objects.create(
             order_reference='TC-2026-CONC01', customer_name='Aarav', customer_mobile='9999999999',

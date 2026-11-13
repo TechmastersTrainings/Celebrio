@@ -16,6 +16,14 @@ class PackageSerializer(serializers.ModelSerializer):
             'created_at',
         ]
 
+    def validate_base_price_inr(self, value):
+        from .catalog_data import PRICE_POINTS
+        if value not in PRICE_POINTS:
+            raise serializers.ValidationError(
+                f"Package prices must be one of ₹{', ₹'.join(str(p) for p in PRICE_POINTS)}."
+            )
+        return value
+
 class AddonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Addon

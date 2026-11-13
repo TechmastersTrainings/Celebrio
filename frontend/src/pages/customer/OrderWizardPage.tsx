@@ -64,6 +64,64 @@ const REGIONAL_LANGUAGES = [
   'Punjabi (ਪੰਜਾਬੀ)',
 ];
 
+type OccasionField = { key: string; label: string; placeholder: string; required?: boolean };
+
+const WEDDING_FIELDS: OccasionField[] = [
+  { key: 'bride_name', label: "Bride's Name", placeholder: 'e.g., Pooja Patil', required: true },
+  { key: 'groom_name', label: "Groom's Name", placeholder: 'e.g., Rahul Deshmukh', required: true },
+  { key: 'bride_parents', label: "Bride's Parents' Names", placeholder: 'e.g., Smt. Sunita & Shri Ramesh Patil' },
+  { key: 'groom_parents', label: "Groom's Parents' Names", placeholder: 'e.g., Smt. Geetha & Shri Anand Deshmukh' },
+];
+
+const FORMAT_FIELDS: OccasionField[] = [
+  { key: 'event_type', label: 'What Are You Celebrating?', placeholder: 'e.g., Wedding / Birthday / Griha Pravesha', required: true },
+  { key: 'featured_names', label: 'Names to Show on the Invitation', placeholder: 'e.g., Rahul & Pooja / Aarav', required: true },
+  { key: 'hosted_by', label: 'Invited By (Family / Hosts)', placeholder: 'e.g., Patil Family' },
+  { key: 'style_preference', label: 'Preferred Style / Colours', placeholder: 'e.g., Traditional maroon & gold / Pastel floral' },
+];
+
+/** Occasion-specific requirement fields, keyed by occasion slug (wedding fields are the default). */
+const OCCASION_FIELDS: Record<string, OccasionField[]> = {
+  birthday: [
+    { key: 'birthday_person_name', label: 'Birthday Person Name', placeholder: 'e.g., Aarav Sharma', required: true },
+    { key: 'age', label: 'Turning Age / Milestone', placeholder: 'e.g., 5th Birthday / Sweet 16 / 50th Jubilee' },
+    { key: 'party_theme', label: 'Party Theme / Colors', placeholder: 'e.g., Little Prince Royale / Pastel Rainbow' },
+    { key: 'cake_cutting_time', label: 'Cake Cutting Time', placeholder: 'e.g., 07:00 PM' },
+  ],
+  'naming-ceremony': [
+    { key: 'baby_name', label: "Baby's Name (or To Be Announced)", placeholder: 'e.g., Ananya / To be revealed at ceremony' },
+    { key: 'parents_names', label: "Parents' Names", placeholder: 'e.g., Rajesh & Sneha Patil' },
+    { key: 'grandparents_names', label: "Grandparents' Names", placeholder: 'e.g., Shri Suresh & Smt. Shanta' },
+    { key: 'muhurtham_time', label: 'Cradle Ceremony / Muhurtham Time', placeholder: 'e.g., 10:15 AM Auspicious Muhurtham' },
+  ],
+  'house-warming': [
+    { key: 'host_family', label: 'Host Family Names', placeholder: 'e.g., Shri Ramesh & Smt. Sunita Patil', required: true },
+    { key: 'home_name', label: 'New Home Name (if any)', placeholder: 'e.g., Shree Nilaya' },
+    { key: 'muhurtham_time', label: 'Griha Pravesha Muhurtham Time', placeholder: 'e.g., 06:30 AM' },
+    { key: 'pooja_details', label: 'Pooja / Homam & Lunch Details', placeholder: 'e.g., Ganapathi Homam, followed by lunch' },
+  ],
+  'baby-shower': [
+    { key: 'mother_name', label: 'Mother-to-Be Name', placeholder: 'e.g., Sneha', required: true },
+    { key: 'father_name', label: 'Father-to-Be Name', placeholder: 'e.g., Rajesh' },
+    { key: 'ceremony_type', label: 'Ceremony', placeholder: 'e.g., Seemantha / Godh Bharai / Baby Shower' },
+    { key: 'hosted_by', label: 'Hosted By (Family)', placeholder: 'e.g., Patil & Deshmukh Families' },
+  ],
+  'religious-cultural': [
+    { key: 'celebration_name', label: 'Celebration / Festival Name', placeholder: 'e.g., Satyanarayana Pooja / Ganesh Utsav / Jatre', required: true },
+    { key: 'organised_by', label: 'Organised By (Family / Committee)', placeholder: 'e.g., Patil Family / Shri Ganesh Seva Samiti' },
+    { key: 'deity_or_temple', label: 'Deity / Temple (if any)', placeholder: 'e.g., Shri Hanuman Temple' },
+    { key: 'programme', label: 'Key Rituals / Programme', placeholder: 'e.g., Abhishekam, Aarti, Prasad distribution' },
+  ],
+  'digital-invitation-websites': FORMAT_FIELDS,
+  'digital-invitation-cards': FORMAT_FIELDS,
+  'animated-invitation-videos': [
+    ...FORMAT_FIELDS,
+    { key: 'music_preference', label: 'Preferred Music', placeholder: 'e.g., Instrumental shehnai / Devotional / Upbeat' },
+  ],
+};
+
+const occasionFields = (slug?: string): OccasionField[] => (slug && OCCASION_FIELDS[slug]) || WEDDING_FIELDS;
+
 export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
   initialOccasionId,
   initialPackageId,
@@ -1151,137 +1209,23 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
             </p>
 
             {/* Dynamic Occasion Fields */}
-            {currentOccasion?.slug === 'birthday' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600 }}>Birthday Person Name *</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              {occasionFields(currentOccasion?.slug).map((f) => (
+                <div className="form-group" key={f.key}>
+                  <label className="form-label" style={f.required ? { fontWeight: 600 } : undefined} htmlFor={`occ-field-${f.key}`}>
+                    {f.label}{f.required ? ' *' : ''}
+                  </label>
                   <input
+                    id={`occ-field-${f.key}`}
                     type="text"
                     className="form-control"
-                    placeholder="e.g., Aarav Sharma"
-                    value={occasionData['birthday_person_name'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, birthday_person_name: e.target.value })}
+                    placeholder={f.placeholder}
+                    value={occasionData[f.key] || ''}
+                    onChange={(e) => setOccasionData({ ...occasionData, [f.key]: e.target.value })}
                   />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Turning Age / Milestone</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., 5th Birthday / Sweet 16 / 50th Jubilee"
-                    value={occasionData['age'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, age: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Party Theme / Colors</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Little Prince Royale / Pastel Rainbow"
-                    value={occasionData['party_theme'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, party_theme: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Cake Cutting Time</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., 07:00 PM"
-                    value={occasionData['cake_cutting_time'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, cake_cutting_time: e.target.value })}
-                  />
-                </div>
-              </div>
-            ) : currentOccasion?.slug === 'naming-ceremony' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600 }}>Baby's Name (or To Be Announced)</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Ananya / To be revealed at ceremony"
-                    value={occasionData['baby_name'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, baby_name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Parents' Names</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Rajesh & Sneha Patil"
-                    value={occasionData['parents_names'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, parents_names: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Grandparents' Names</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Shri Suresh & Smt. Shanta"
-                    value={occasionData['grandparents_names'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, grandparents_names: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Cradle Ceremony / Muhurtham Time</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., 10:15 AM Auspicious Muhurtham"
-                    value={occasionData['muhurtham_time'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, muhurtham_time: e.target.value })}
-                  />
-                </div>
-              </div>
-            ) : (
-              /* Wedding / Marriage Default */
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600 }}>Bride's Name *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Pooja Patil"
-                    value={occasionData['bride_name'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, bride_name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600 }}>Groom's Name *</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Rahul Deshmukh"
-                    value={occasionData['groom_name'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, groom_name: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Bride's Parents' Names</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Smt. Sunita & Shri Ramesh Patil"
-                    value={occasionData['bride_parents'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, bride_parents: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Groom's Parents' Names</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g., Smt. Geetha & Shri Anand Deshmukh"
-                    value={occasionData['groom_parents'] || ''}
-                    onChange={(e) => setOccasionData({ ...occasionData, groom_parents: e.target.value })}
-                  />
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
 
             {/* Repeatable Ceremony Itinerary */}
             <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem', marginBottom: '1.5rem' }}>

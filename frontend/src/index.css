@@ -765,6 +765,15 @@ p {
   }
 }
 
+/* Small phones (≈5"): keep logo, CTA and menu toggle on one line */
+@media (max-width: 480px) {
+  .navbar-inner { padding: 0.6rem 0.85rem; gap: 0.5rem; }
+  .navbar-inner > a { min-width: 0; flex: 0 1 auto; }
+  .navbar-inner .techmasters-brand-logo { transform: scale(0.82); transform-origin: left center; margin-right: -1.6rem; }
+  .nav-cta { padding: 0.45rem 0.6rem; }
+  .nav-cta-text { display: none; }
+}
+
 /* =========================================================================
    EDITORIAL SPLIT HERO SECTION (COMPACT & SLEEK)
    ========================================================================= */

@@ -107,11 +107,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
 
           {/* Primary CTA: Create Invitation */}
           <button
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary btn-sm nav-cta"
             onClick={() => handleNavClick('wizard')}
+            aria-label="Create Invitation"
           >
             <Sparkles size={15} style={{ color: '#F59E0B' }} />
-            <span>Create Invitation</span>
+            <span className="nav-cta-text">Create Invitation</span>
           </button>
 
           {/* Admin Portal Button: ONLY visible for techmastersinnovations@gmail.com and when not already on admin */}
