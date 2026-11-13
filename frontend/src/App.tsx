@@ -13,6 +13,7 @@ import { DeveloperAuthPage } from './pages/workspace/DeveloperAuthPage';
 import { AdminAuthPage } from './pages/admin/AdminAuthPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { PublicInvitationPage } from './pages/public/PublicInvitationPage';
+import { OffersPage } from './pages/customer/OffersPage';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('home');
@@ -55,6 +56,8 @@ export const App: React.FC = () => {
         return '/developers';
       case 'admin-login':
         return '/admin/login';
+      case 'offers':
+        return '/offers';
       case 'admin':
         return '/admin';
       default:
@@ -171,6 +174,10 @@ export const App: React.FC = () => {
       const refParam = urlParams.get('ref');
       if (refParam) setActiveOrderRef(refParam);
       setCurrentView('tracking');
+      return;
+    }
+    if (pathname === '/offers' || pathname === '/offers/') {
+      setCurrentView('offers');
       return;
     }
 
@@ -365,6 +372,10 @@ export const App: React.FC = () => {
           />
         )}
 
+        {currentView === 'offers' && (
+          <OffersPage onNavigate={handleNavigate} />
+        )}
+
         {currentView === 'deliverables' && (
           <DeliverablesPage
             orderRef={activeOrderRef}
@@ -413,7 +424,7 @@ export const App: React.FC = () => {
       </main>
 
       {/* Public Footer is displayed on customer pages */}
-      {['home', 'designs', 'catalog', 'tracking'].includes(currentView) && (
+      {['home', 'designs', 'catalog', 'tracking', 'offers'].includes(currentView) && (
         <Footer onNavigate={handleNavigate} />
       )}
     </div>

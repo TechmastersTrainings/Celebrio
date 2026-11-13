@@ -99,7 +99,21 @@ export interface OrderDetail {
   package_name: string;
   selected_language: string;
   status: string;
+  base_amount_inr?: string;
+  auto_discount_amount_inr?: string;
+  coupon_discount_amount_inr?: string;
   total_amount_inr: string;
+  applied_coupon_code?: string;
+  quotation_snapshot_json?: any;
+  has_physical_card?: boolean;
+  physical_card_notes?: string;
+  ocr_extracted_text?: string;
+  ocr_data_json?: any;
+  occasion_requirements_json?: any;
+  missing_fields_json?: string[];
+  is_information_confirmed?: boolean;
+  is_ready_for_production?: boolean;
+  completeness_score?: number;
   special_instructions?: string;
   events: OrderEvent[];
   assets: CustomerAsset[];
@@ -111,6 +125,44 @@ export interface OrderDetail {
   published_url?: string;
   is_published: boolean;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface Coupon {
+  id: string;
+  code: string;
+  description: string;
+  discount_type: 'PERCENTAGE' | 'FIXED';
+  discount_value: string;
+  start_date: string;
+  end_date?: string;
+  is_active: boolean;
+  is_public: boolean;
+  min_order_value: string;
+  max_discount_amount?: string;
+  total_usage_limit?: number;
+  current_usage_count: number;
+  usage_count?: number;
+  per_customer_limit: number;
+  can_combine_with_auto_discount: boolean;
+  is_system_default_offer: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CallbackRequest {
+  id: string;
+  customer_name: string;
+  customer_mobile: string;
+  preferred_callback_time: string;
+  assistance_required: string;
+  order_reference?: string;
+  status: 'REQUESTED' | 'PENDING' | 'CONTACTED' | 'FOLLOWUP_REQUIRED' | 'RESOLVED';
+  assigned_staff?: string;
+  assigned_staff_name?: string;
+  admin_notes?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface TicketSummary {

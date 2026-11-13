@@ -66,6 +66,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
                   <span>Track Order</span>
                 </button>
+                <button className="footer-nav-link" onClick={() => onNavigate('offers')}>
+                  <ArrowRight size={13} style={{ color: 'var(--gold-soft)', opacity: 0.7 }} />
+                  <span>Offers &amp; Deals</span>
+                </button>
                 <button className="footer-nav-link accent" onClick={() => onNavigate('wizard')}>
                   <Sparkles size={13} style={{ color: 'var(--gold-soft)' }} />
                   <span>Create Invitation</span>

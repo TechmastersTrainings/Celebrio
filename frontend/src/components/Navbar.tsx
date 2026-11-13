@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TechMastersLogo } from './TechMastersLogo';
-import { Menu, X, Sparkles, Search, LogOut, LayoutDashboard, Code } from 'lucide-react';
+import { Menu, X, Sparkles, Search, LogOut, LayoutDashboard, Code, Tag } from 'lucide-react';
 
 interface NavbarProps {
   currentView: string;
@@ -83,6 +83,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Track Order
+          </button>
+
+          <button
+            className={`nav-link ${currentView === 'offers' ? 'active' : ''}`}
+            onClick={() => handleNavClick('offers')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Offers
           </button>
         </nav>
 
@@ -197,6 +205,15 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, staffUs
             style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
           >
             Track Order
+          </button>
+
+          <button
+            className={`nav-link ${currentView === 'offers' ? 'active' : ''}`}
+            onClick={() => handleNavClick('offers')}
+            style={{ textAlign: 'left', background: 'none', border: 'none', padding: '0.4rem 0' }}
+          >
+            <Tag size={15} style={{ marginRight: '0.35rem', verticalAlign: 'middle' }} />
+            Offers &amp; Deals
           </button>
 
           {isActualAdmin && (

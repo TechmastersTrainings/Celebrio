@@ -22,6 +22,7 @@ const routes = [
   'designs',
   'tracking',
   'wizard',
+  'offers',
   'developers',
   'developers/login',
   'admin',

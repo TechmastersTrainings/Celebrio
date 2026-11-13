@@ -1,7 +1,8 @@
+from decimal import Decimal
 from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
-from .models import Order, OrderEvent, CustomerAsset, OrderStatus, generate_order_reference
+from .models import Order, OrderEvent, CustomerAsset, OrderStatus, Coupon, CouponUsage, CallbackRequest, generate_order_reference
 from apps.catalog.models import Occasion, Package
 from apps.tickets.models import Ticket, TicketStatus, TicketStatusHistory
 from apps.video_production.models import VideoTask, VideoTaskStatus
@@ -78,6 +79,55 @@ class CustomerAssetSerializer(serializers.ModelSerializer):
             return obj.file_name.rsplit('.', 1)[-1].upper()
         return "FILE"
 
+class CouponSerializer(serializers.ModelSerializer):
+    usage_count = serializers.IntegerField(source='current_usage_count', read_only=True)
+
+    class Meta:
+        model = Coupon
+        fields = [
+            'id',
+            'code',
+            'description',
+            'discount_type',
+            'discount_value',
+            'start_date',
+            'end_date',
+            'is_active',
+            'is_public',
+            'min_order_value',
+            'max_discount_amount',
+            'total_usage_limit',
+            'current_usage_count',
+            'usage_count',
+            'per_customer_limit',
+            'can_combine_with_auto_discount',
+            'is_system_default_offer',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'current_usage_count', 'created_at', 'updated_at']
+
+class CallbackRequestSerializer(serializers.ModelSerializer):
+    assigned_staff_name = serializers.CharField(source='assigned_staff.full_name', read_only=True)
+
+    class Meta:
+        model = CallbackRequest
+        fields = [
+            'id',
+            'customer_name',
+            'customer_mobile',
+            'preferred_callback_time',
+            'assistance_required',
+            'order_reference',
+            'status',
+            'assigned_staff',
+            'assigned_staff_name',
+            'admin_notes',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 class OrderCreateSerializer(serializers.Serializer):
     customer_name = serializers.CharField(max_length=150)
     customer_mobile = serializers.CharField(max_length=20)
@@ -88,6 +138,16 @@ class OrderCreateSerializer(serializers.Serializer):
     special_instructions = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     include_video = serializers.BooleanField(default=False)
     events = OrderEventSerializer(many=True, required=False, default=list)
+
+    # Physical Card & Dynamic Schemas
+    has_physical_card = serializers.BooleanField(default=False)
+    physical_card_notes = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    ocr_extracted_text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    ocr_data_json = serializers.JSONField(required=False, default=dict)
+    occasion_requirements_json = serializers.JSONField(required=False, default=dict)
+    missing_fields_json = serializers.JSONField(required=False, default=list)
+    is_information_confirmed = serializers.BooleanField(default=False)
+    coupon_code = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate(self, attrs):
         occ_val = str(attrs['occasion_id']).strip()
@@ -138,6 +198,7 @@ class OrderCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         events_data = validated_data.pop('events', [])
         include_video = validated_data.pop('include_video', False)
+        coupon_code = validated_data.pop('coupon_code', None)
         occasion = validated_data.pop('occasion')
         package = validated_data.pop('package')
         validated_data.pop('occasion_id')
@@ -145,17 +206,113 @@ class OrderCreateSerializer(serializers.Serializer):
 
         with transaction.atomic():
             order_ref = generate_order_reference()
-            total_amount = package.base_price_inr
+
+            # Base amount calculation
+            base_amount = Decimal(str(package.base_price_inr))
             if include_video:
-                total_amount += 299  # Baseline configurable add-on seed
+                base_amount += Decimal('299.00')
+
+            # 1. Automatic Default 12% Discount Calculation
+            auto_offer = Coupon.objects.filter(is_system_default_offer=True, is_active=True).first()
+            auto_rate = Decimal(str(auto_offer.discount_value / 100)) if auto_offer else Decimal('0.12')
+            auto_discount_amount = round(base_amount * auto_rate, 2)
+
+            # 2. Coupon Validation & Application
+            applied_coupon = None
+            coupon_discount_amount = Decimal('0.00')
+
+            if coupon_code and coupon_code.strip():
+                clean_code = coupon_code.strip().upper()
+                coupon = Coupon.objects.filter(code__iexact=clean_code, is_active=True).first()
+                if coupon:
+                    # Check dates
+                    now = timezone.now()
+                    valid_date = coupon.start_date <= now and (coupon.end_date is None or coupon.end_date >= now)
+                    # Check min order value
+                    valid_min = base_amount >= coupon.min_order_value
+                    # Check usage limits
+                    valid_limit = coupon.total_usage_limit is None or coupon.current_usage_count < coupon.total_usage_limit
+
+                    if valid_date and valid_min and valid_limit:
+                        applied_coupon = coupon
+                        if coupon.discount_type == 'PERCENTAGE':
+                            disc = base_amount * Decimal(str(coupon.discount_value / 100))
+                            if coupon.max_discount_amount:
+                                disc = min(disc, Decimal(str(coupon.max_discount_amount)))
+                            coupon_discount_amount = round(disc, 2)
+                        else:
+                            coupon_discount_amount = min(Decimal(str(coupon.discount_value)), base_amount)
+
+            # 3. Discount Stacking Governance
+            total_discount = auto_discount_amount
+            if applied_coupon:
+                if applied_coupon.can_combine_with_auto_discount:
+                    total_discount = auto_discount_amount + coupon_discount_amount
+                else:
+                    # If coupon provides greater savings than default 12%, apply coupon
+                    if coupon_discount_amount > auto_discount_amount:
+                        total_discount = coupon_discount_amount
+                        auto_discount_amount = Decimal('0.00')
+                    else:
+                        coupon_discount_amount = Decimal('0.00')
+
+            total_discount = min(total_discount, base_amount)
+            final_payable = max(Decimal('0.00'), base_amount - total_discount)
+
+            # 4. Completeness Score Calculation
+            missing_fields = validated_data.get('missing_fields_json', [])
+            has_card = validated_data.get('has_physical_card', False)
+            events_count = len(events_data)
+            score = 50
+            if has_card:
+                score += 20
+            if events_count > 0:
+                score += 15
+            if len(missing_fields) == 0:
+                score += 15
+            else:
+                score -= min(30, len(missing_fields) * 5)
+            score = max(10, min(100, score))
+
+            # 5. Build Quotation Snapshot
+            quotation_snapshot = {
+                'base_amount_inr': str(base_amount),
+                'package_name': package.name,
+                'include_video': include_video,
+                'auto_discount_amount_inr': str(auto_discount_amount),
+                'auto_discount_percentage': '12.00',
+                'applied_coupon_code': applied_coupon.code if applied_coupon else None,
+                'coupon_discount_amount_inr': str(coupon_discount_amount),
+                'total_discount_amount_inr': str(total_discount),
+                'you_save_inr': str(total_discount),
+                'final_payable_amount_inr': str(final_payable),
+                'calculated_at': timezone.now().isoformat(),
+            }
 
             order = Order.objects.create(
                 order_reference=order_ref,
                 occasion=occasion,
                 package=package,
-                total_amount_inr=total_amount,
+                base_amount_inr=base_amount,
+                auto_discount_amount_inr=auto_discount_amount,
+                coupon_discount_amount_inr=coupon_discount_amount,
+                total_amount_inr=final_payable,
+                applied_coupon=applied_coupon,
+                quotation_snapshot_json=quotation_snapshot,
+                completeness_score=score,
                 **validated_data
             )
+
+            # Record Coupon Usage if coupon applied
+            if applied_coupon and coupon_discount_amount > 0:
+                applied_coupon.current_usage_count += 1
+                applied_coupon.save(update_fields=['current_usage_count'])
+                CouponUsage.objects.create(
+                    coupon=applied_coupon,
+                    order=order,
+                    customer_mobile=order.customer_mobile,
+                    discount_amount_inr=coupon_discount_amount
+                )
 
             # Create events
             for ev_data in events_data:
@@ -173,7 +330,7 @@ class OrderCreateSerializer(serializers.Serializer):
                 ticket=ticket,
                 previous_status='CREATED',
                 new_status=TicketStatus.NEW_OPEN,
-                transition_reason="Order submitted and entered into available queue."
+                transition_reason="Order submitted via customer intake wizard. Ready for review."
             )
 
             # Create video task if video requested
@@ -193,10 +350,14 @@ class OrderCreateSerializer(serializers.Serializer):
                     'order_reference': order.order_reference,
                     'customer_name': order.customer_name,
                     'package': package.name,
-                    'total_amount_inr': str(order.total_amount_inr)
+                    'base_amount_inr': str(base_amount),
+                    'total_amount_inr': str(order.total_amount_inr),
+                    'you_save': str(total_discount),
+                    'has_physical_card': order.has_physical_card,
+                    'completeness_score': order.completeness_score,
                 },
                 status='SUCCESS',
-                remarks=f"Order {order_ref} submitted via customer portal intake wizard."
+                remarks=f"Order {order_ref} submitted. Base: ₹{base_amount}, Discount: ₹{total_discount}, Payable: ₹{final_payable}"
             )
 
             return order
@@ -209,6 +370,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     ticket_status = serializers.CharField(source='ticket.status', read_only=True)
     customer_facing_status = serializers.CharField(source='ticket.customer_facing_status', read_only=True)
     customer_facing_explanation = serializers.CharField(source='ticket.customer_facing_explanation', read_only=True)
+    applied_coupon_code = serializers.CharField(source='applied_coupon.code', read_only=True, default=None)
     has_active_preview = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
     published_url = serializers.SerializerMethodField()
@@ -226,7 +388,21 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'package_name',
             'selected_language',
             'status',
+            'base_amount_inr',
+            'auto_discount_amount_inr',
+            'coupon_discount_amount_inr',
             'total_amount_inr',
+            'applied_coupon_code',
+            'quotation_snapshot_json',
+            'has_physical_card',
+            'physical_card_notes',
+            'ocr_extracted_text',
+            'ocr_data_json',
+            'occasion_requirements_json',
+            'missing_fields_json',
+            'is_information_confirmed',
+            'is_ready_for_production',
+            'completeness_score',
             'special_instructions',
             'events',
             'assets',
@@ -238,6 +414,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'published_url',
             'is_published',
             'created_at',
+            'updated_at',
         ]
 
     def get_has_active_preview(self, obj):
@@ -264,4 +441,3 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     def get_is_published(self, obj):
         publication = getattr(obj, 'publication', None)
         return bool(publication and publication.is_published)
-

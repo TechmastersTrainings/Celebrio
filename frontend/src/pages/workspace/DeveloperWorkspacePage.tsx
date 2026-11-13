@@ -46,7 +46,9 @@ import {
   Play,
   RotateCcw,
   Sliders,
-  DollarSign
+  DollarSign,
+  BarChart3,
+  CreditCard
 } from 'lucide-react';
 
 interface DeveloperWorkspacePageProps {
@@ -1386,35 +1388,280 @@ export const DeveloperWorkspacePage: React.FC<DeveloperWorkspacePageProps> = ({
 
             {/* TAB 2: INVITATION WORDING & DESIGN THEME */}
             {recordTab === 'wording' && (
-              <div className="sn-form-card">
-                <div className="sn-form-card-title">
-                  <FileText size={16} color="var(--burgundy-rich)" />
-                  Invitation Wording, Theme &amp; Deliverable Specifications
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+                {/* ── A. Information Completeness Banner ── */}
+                <div className="sn-form-card" style={{ borderLeft: `4px solid ${(ticketDetail.order?.completeness_score ?? 0) >= 80 ? '#16a34a' : (ticketDetail.order?.completeness_score ?? 0) >= 50 ? '#d97706' : '#dc2626'}` }}>
+                  <div className="sn-form-card-title">
+                    <BarChart3 size={16} color="var(--burgundy-rich)" />
+                    Information Completeness
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                    <div style={{ flex: 1, minWidth: '180px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '0.3rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Completeness Score</span>
+                        <span style={{ fontWeight: 600 }}>{ticketDetail.order?.completeness_score ?? 0}%</span>
+                      </div>
+                      <div style={{ height: '8px', background: '#e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${ticketDetail.order?.completeness_score ?? 0}%`, background: (ticketDetail.order?.completeness_score ?? 0) >= 80 ? '#16a34a' : (ticketDetail.order?.completeness_score ?? 0) >= 50 ? '#d97706' : '#dc2626', borderRadius: '4px', transition: 'width 0.4s ease' }} />
+                      </div>
+                    </div>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.65rem', borderRadius: '12px', background: ticketDetail.order?.is_information_confirmed ? '#dcfce7' : '#fef3c7', color: ticketDetail.order?.is_information_confirmed ? '#166534' : '#92400e' }}>
+                      {ticketDetail.order?.is_information_confirmed ? <CheckCircle2 size={13} /> : <Clock size={13} />}
+                      {ticketDetail.order?.is_information_confirmed ? 'Information Confirmed' : 'Pending Confirmation'}
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.65rem', borderRadius: '12px', background: ticketDetail.order?.is_ready_for_production ? '#dcfce7' : '#fee2e2', color: ticketDetail.order?.is_ready_for_production ? '#166534' : '#991b1b' }}>
+                      {ticketDetail.order?.is_ready_for_production ? <Check size={13} /> : <AlertTriangle size={13} />}
+                      {ticketDetail.order?.is_ready_for_production ? 'Ready for Production' : 'Not Ready'}
+                    </span>
+                    {ticketDetail.order?.missing_fields_json && ticketDetail.order.missing_fields_json.length > 0 && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 600, padding: '0.25rem 0.65rem', borderRadius: '12px', background: '#fef3c7', color: '#92400e' }}>
+                        <AlertTriangle size={13} />
+                        {ticketDetail.order.missing_fields_json.length} Missing Field{ticketDetail.order.missing_fields_json.length > 1 ? 's' : ''}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="sn-form-grid-2">
-                  <div className="sn-field">
-                    <label className="sn-field-label">Selected Language</label>
-                    <div className="sn-field-value-readonly">{ticketDetail.order?.selected_language || 'English'}</div>
+
+                {/* ── Original Specifications ── */}
+                <div className="sn-form-card">
+                  <div className="sn-form-card-title">
+                    <FileText size={16} color="var(--burgundy-rich)" />
+                    Invitation Wording, Theme &amp; Deliverable Specifications
                   </div>
-                  <div className="sn-field">
-                    <label className="sn-field-label">Deliverable Type</label>
-                    <div className="sn-field-value-readonly">Digital Interactive Web + Watermarked PDF Draft</div>
+                  <div className="sn-form-grid-2">
+                    <div className="sn-field">
+                      <label className="sn-field-label">Selected Language</label>
+                      <div className="sn-field-value-readonly">{ticketDetail.order?.selected_language || 'English'}</div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Deliverable Type</label>
+                      <div className="sn-field-value-readonly">Digital Interactive Web + Watermarked PDF Draft</div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Design Category</label>
+                      <div className="sn-field-value-readonly">{ticketDetail.occasion || 'Milestone Celebration'}</div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Package Tier</label>
+                      <div className="sn-field-value-readonly">{ticketDetail.order?.package_name || 'Standard'}</div>
+                    </div>
                   </div>
-                  <div className="sn-field">
-                    <label className="sn-field-label">Design Category</label>
-                    <div className="sn-field-value-readonly">{ticketDetail.occasion || 'Milestone Celebration'}</div>
-                  </div>
-                  <div className="sn-field">
-                    <label className="sn-field-label">Package Tier</label>
-                    <div className="sn-field-value-readonly">{ticketDetail.order?.package_name || 'Standard'}</div>
+                  <div className="sn-field" style={{ marginTop: '1rem' }}>
+                    <label className="sn-field-label">Captured Wording &amp; Requirements</label>
+                    <div className="sn-field-value-readonly" style={{ minHeight: '80px', alignItems: 'flex-start', paddingTop: '0.65rem' }}>
+                      {ticketDetail.customer_requirements || ticketDetail.order?.special_instructions || 'Standard festive wording specified during catalog booking.'}
+                    </div>
                   </div>
                 </div>
-                <div className="sn-field" style={{ marginTop: '1rem' }}>
-                  <label className="sn-field-label">Captured Wording &amp; Requirements</label>
-                  <div className="sn-field-value-readonly" style={{ minHeight: '80px', alignItems: 'flex-start', paddingTop: '0.65rem' }}>
-                    {ticketDetail.customer_requirements || ticketDetail.order?.special_instructions || 'Standard festive wording specified during catalog booking.'}
+
+                {/* ── B. Physical Invitation Card Section ── */}
+                <div className="sn-form-card">
+                  <div className="sn-form-card-title">
+                    <CreditCard size={16} color="var(--burgundy-rich)" />
+                    Physical Invitation Card
                   </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.8rem', fontWeight: 600, padding: '0.25rem 0.7rem', borderRadius: '12px', background: ticketDetail.order?.has_physical_card ? '#dbeafe' : '#f3f4f6', color: ticketDetail.order?.has_physical_card ? '#1e40af' : '#6b7280' }}>
+                      Has Physical Card: {ticketDetail.order?.has_physical_card ? 'YES' : 'NO'}
+                    </span>
+                  </div>
+                  {ticketDetail.order?.has_physical_card && (
+                    <>
+                      {ticketDetail.order?.physical_card_notes && (
+                        <div className="sn-field" style={{ marginBottom: '0.75rem' }}>
+                          <label className="sn-field-label">Physical Card Notes</label>
+                          <div className="sn-field-value-readonly" style={{ alignItems: 'flex-start', paddingTop: '0.5rem' }}>
+                            {ticketDetail.order.physical_card_notes}
+                          </div>
+                        </div>
+                      )}
+                      {(() => {
+                        const physicalAssets = (ticketDetail.order?.assets || []).filter(
+                          (a: CustomerAsset) => ['PHYSICAL_CARD_FRONT', 'PHYSICAL_CARD_BACK', 'PHYSICAL_CARD_INSERT'].includes(a.asset_category)
+                        );
+                        return physicalAssets.length > 0 ? (
+                          <div style={{ marginBottom: '0.75rem' }}>
+                            <label className="sn-field-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Physical Card Images</label>
+                            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                              {physicalAssets.map((asset: CustomerAsset) => (
+                                <div key={asset.id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
+                                  {asset.preview_url || asset.url ? (
+                                    <a href={asset.download_url || asset.url} target="_blank" rel="noopener noreferrer" title={asset.file_name}>
+                                      <img src={asset.preview_url || asset.url} alt={asset.file_name} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                                    </a>
+                                  ) : (
+                                    <a href={asset.download_url || '#'} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: 'var(--burgundy-rich)' }}>
+                                      <ImageIcon size={14} /> {asset.file_name}
+                                    </a>
+                                  )}
+                                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textAlign: 'center', maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {asset.asset_category.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
+                      {ticketDetail.order?.ocr_data_json && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <label className="sn-field-label" style={{ marginBottom: '0.5rem', display: 'block' }}>OCR Extracted Data</label>
+                          <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '0.75rem' }}>
+                            {typeof ticketDetail.order.ocr_data_json === 'object' && ticketDetail.order.ocr_data_json !== null ? (
+                              <div className="sn-form-grid-2">
+                                {Object.entries(ticketDetail.order.ocr_data_json).map(([key, value]) => (
+                                  <div className="sn-field" key={key}>
+                                    <label className="sn-field-label">{key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</label>
+                                    <div className="sn-field-value-readonly">{String(value ?? '—')}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <pre style={{ fontSize: '0.82rem', whiteSpace: 'pre-wrap', margin: 0 }}>{ticketDetail.order.ocr_extracted_text || JSON.stringify(ticketDetail.order.ocr_data_json, null, 2)}</pre>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {!ticketDetail.order?.ocr_data_json && ticketDetail.order?.ocr_extracted_text && (
+                        <div style={{ marginTop: '0.5rem' }}>
+                          <label className="sn-field-label" style={{ marginBottom: '0.5rem', display: 'block' }}>OCR Extracted Text</label>
+                          <div className="sn-field-value-readonly" style={{ alignItems: 'flex-start', paddingTop: '0.5rem', fontFamily: 'monospace', fontSize: '0.82rem' }}>
+                            {ticketDetail.order.ocr_extracted_text}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
+
+                {/* ── C. Occasion-Specific Requirements ── */}
+                {ticketDetail.order?.occasion_requirements_json && typeof ticketDetail.order.occasion_requirements_json === 'object' && Object.keys(ticketDetail.order.occasion_requirements_json).length > 0 && (
+                  <div className="sn-form-card">
+                    <div className="sn-form-card-title">
+                      <Layers size={16} color="var(--burgundy-rich)" />
+                      Occasion-Specific Requirements
+                    </div>
+                    {(() => {
+                      const reqJson = ticketDetail.order!.occasion_requirements_json;
+                      const allEntries = Object.entries(reqJson).filter(([, v]) => v !== null && v !== undefined && v !== '');
+
+                      // Group by prefix heuristic
+                      const groupMap: Record<string, [string, unknown][]> = {};
+                      allEntries.forEach(([key, value]) => {
+                        let group = 'General Details';
+                        const lk = key.toLowerCase();
+                        if (lk.startsWith('bride') || lk.includes('bride')) group = 'Bride Details';
+                        else if (lk.startsWith('groom') || lk.includes('groom')) group = 'Groom Details';
+                        else if (lk.includes('ceremony') || lk.includes('venue') || lk.includes('event') || lk.includes('date') || lk.includes('time')) group = 'Ceremony Details';
+                        else if (lk.includes('birthday') || lk.includes('age') || lk.includes('theme')) group = 'Celebration Details';
+                        else if (lk.includes('rsvp') || lk.includes('guest') || lk.includes('gift') || lk.includes('registry')) group = 'Guest & RSVP Details';
+                        if (!groupMap[group]) groupMap[group] = [];
+                        groupMap[group].push([key, value]);
+                      });
+
+                      return Object.entries(groupMap).map(([groupName, entries]) => (
+                        <div key={groupName} style={{ marginBottom: '1rem' }}>
+                          <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--burgundy-rich)', marginBottom: '0.5rem', paddingBottom: '0.3rem', borderBottom: '1px solid #f1f5f9' }}>
+                            {groupName}
+                          </div>
+                          <div className="sn-form-grid-2">
+                            {entries.map(([key, value]) => (
+                              <div className="sn-field" key={key}>
+                                <label className="sn-field-label">
+                                  {key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                                </label>
+                                <div className="sn-field-value-readonly">
+                                  {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                )}
+
+                {/* ── D. Missing Fields Checklist ── */}
+                {ticketDetail.order?.missing_fields_json && ticketDetail.order.missing_fields_json.length > 0 && (
+                  <div className="sn-form-card" style={{ borderLeft: '4px solid #d97706' }}>
+                    <div className="sn-form-card-title">
+                      <AlertTriangle size={16} color="#d97706" />
+                      Missing Information ({ticketDetail.order.missing_fields_json.length} field{ticketDetail.order.missing_fields_json.length > 1 ? 's' : ''})
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {ticketDetail.order.missing_fields_json.map((field: string, idx: number) => (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.4rem 0.65rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', fontSize: '0.84rem', color: '#92400e' }}>
+                          <AlertTriangle size={14} color="#d97706" />
+                          {field.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── E. Pricing & Discount Information ── */}
+                <div className="sn-form-card">
+                  <div className="sn-form-card-title">
+                    <DollarSign size={16} color="var(--burgundy-rich)" />
+                    Pricing &amp; Discount Breakdown
+                  </div>
+                  <div className="sn-form-grid-2">
+                    <div className="sn-field">
+                      <label className="sn-field-label">Base Amount</label>
+                      <div className="sn-field-value-readonly">₹{ticketDetail.order?.base_amount_inr || ticketDetail.order?.total_amount_inr || '—'}</div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Auto Discount</label>
+                      <div className="sn-field-value-readonly" style={{ color: ticketDetail.order?.auto_discount_amount_inr && parseFloat(ticketDetail.order.auto_discount_amount_inr) > 0 ? '#16a34a' : undefined }}>
+                        {ticketDetail.order?.auto_discount_amount_inr && parseFloat(ticketDetail.order.auto_discount_amount_inr) > 0 ? `−₹${ticketDetail.order.auto_discount_amount_inr}` : '—'}
+                      </div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Coupon Discount</label>
+                      <div className="sn-field-value-readonly" style={{ color: ticketDetail.order?.coupon_discount_amount_inr && parseFloat(ticketDetail.order.coupon_discount_amount_inr) > 0 ? '#16a34a' : undefined }}>
+                        {ticketDetail.order?.coupon_discount_amount_inr && parseFloat(ticketDetail.order.coupon_discount_amount_inr) > 0 ? `−₹${ticketDetail.order.coupon_discount_amount_inr}` : '—'}
+                      </div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Applied Coupon Code</label>
+                      <div className="sn-field-value-readonly">
+                        {ticketDetail.order?.applied_coupon_code ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#ede9fe', color: '#5b21b6', padding: '0.15rem 0.55rem', borderRadius: '10px', fontWeight: 600, fontSize: '0.82rem' }}>
+                            <Tag size={12} /> {ticketDetail.order.applied_coupon_code}
+                          </span>
+                        ) : '—'}
+                      </div>
+                    </div>
+                    <div className="sn-field">
+                      <label className="sn-field-label">Total Amount Charged</label>
+                      <div className="sn-field-value-readonly" style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--burgundy-rich)' }}>
+                        ₹{ticketDetail.order?.total_amount_inr || '—'}
+                      </div>
+                    </div>
+                  </div>
+                  {ticketDetail.order?.quotation_snapshot_json && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <label className="sn-field-label" style={{ marginBottom: '0.5rem', display: 'block' }}>Quotation Snapshot</label>
+                      <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '0.75rem' }}>
+                        {typeof ticketDetail.order.quotation_snapshot_json === 'object' && ticketDetail.order.quotation_snapshot_json !== null ? (
+                          <div className="sn-form-grid-2">
+                            {Object.entries(ticketDetail.order.quotation_snapshot_json).map(([key, value]) => (
+                              <div className="sn-field" key={key}>
+                                <label className="sn-field-label">{key.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</label>
+                                <div className="sn-field-value-readonly">{typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—')}</div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <pre style={{ fontSize: '0.82rem', whiteSpace: 'pre-wrap', margin: 0 }}>{JSON.stringify(ticketDetail.order.quotation_snapshot_json, null, 2)}</pre>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
 

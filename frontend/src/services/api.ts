@@ -358,6 +358,95 @@ export class ApiService {
     });
   }
 
+  // --- OCR Extraction ---
+  static async extractCardOCR(file: File, occasionType = 'wedding'): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('occasion_type', occasionType);
+    return this.request('/orders/ocr-extract/', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
+  // --- Offers & Coupons ---
+  static async getPublicCoupons(): Promise<{ default_offer: any; coupons: any[] }> {
+    return this.request('/orders/coupons/public/');
+  }
+
+  static async validateCoupon(couponCode: string, amount: number, occasionId?: string): Promise<any> {
+    return this.request('/orders/coupons/validate/', {
+      method: 'POST',
+      body: JSON.stringify({
+        coupon_code: couponCode,
+        amount,
+        occasion_id: occasionId,
+      }),
+    });
+  }
+
+  static async getAdminCoupons(): Promise<any[]> {
+    return this.request('/orders/coupons/admin/');
+  }
+
+  static async createAdminCoupon(data: any): Promise<any> {
+    return this.request('/orders/coupons/admin/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateAdminCoupon(couponId: string, data: any): Promise<any> {
+    return this.request(`/orders/coupons/admin/${couponId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deleteAdminCoupon(couponId: string): Promise<any> {
+    return this.request(`/orders/coupons/admin/${couponId}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // --- Customer Support & Callbacks ---
+  static async requestCallback(data: {
+    customer_name: string;
+    customer_mobile: string;
+    preferred_callback_time: string;
+    assistance_required: string;
+    order_reference?: string;
+  }): Promise<any> {
+    return this.request('/orders/callbacks/', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getAdminCallbacks(): Promise<any[]> {
+    return this.request('/orders/callbacks/admin/');
+  }
+
+  static async updateAdminCallback(callbackId: string, data: any): Promise<any> {
+    return this.request(`/orders/callbacks/admin/${callbackId}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // --- Requirements & Missing Information Governance ---
+  static async updateOrderMissingInfo(orderRef: string, data: {
+    occasion_requirements?: any;
+    missing_fields?: string[];
+    is_information_confirmed?: boolean;
+    is_ready_for_production?: boolean;
+  }): Promise<any> {
+    return this.request(`/orders/${orderRef}/missing-info/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
+
   // --- Payments ---
   static async createPaymentOrder(orderReference: string) {
     return this.request('/payments/create-order/', {

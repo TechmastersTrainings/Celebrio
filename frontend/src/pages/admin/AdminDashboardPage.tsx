@@ -7,6 +7,9 @@ import {
   AdminUserItem,
   AdminPaymentItem,
   AdminFinancialsData,
+  Coupon,
+  CallbackRequest,
+  OrderDetail,
 } from '../../types';
 import {
   Sparkles,
@@ -39,10 +42,16 @@ import {
   PlusCircle,
   ArrowRight,
   X,
+  Gift,
+  PhoneCall,
+  Tag,
+  Percent,
 } from 'lucide-react';
 
 type AdminTab =
   | 'tickets'
+  | 'coupons'
+  | 'callbacks'
   | 'users'
   | 'developers'
   | 'payments'
@@ -55,6 +64,8 @@ export const AdminDashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('tickets');
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [tickets, setTickets] = useState<TicketSummary[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [callbacks, setCallbacks] = useState<CallbackRequest[]>([]);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [developers, setDevelopers] = useState<any[]>([]);
   const [payments, setPayments] = useState<AdminPaymentItem[]>([]);
@@ -102,6 +113,22 @@ export const AdminDashboardPage: React.FC = () => {
   const [editMaxTickets, setEditMaxTickets] = useState<number>(3);
   const [editCanVideo, setEditCanVideo] = useState<boolean>(false);
 
+  // Coupon Management State
+  const [showCouponModal, setShowCouponModal] = useState<boolean>(false);
+  const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon> | null>(null);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [couponDescInput, setCouponDescInput] = useState('');
+  const [couponTypeInput, setCouponTypeInput] = useState<'PERCENTAGE' | 'FIXED'>('PERCENTAGE');
+  const [couponValueInput, setCouponValueInput] = useState('15');
+  const [couponMinOrderInput, setCouponMinOrderInput] = useState('0');
+  const [couponMaxDiscInput, setCouponMaxDiscInput] = useState('');
+  const [couponCombineAuto, setCouponCombineAuto] = useState(false);
+  const [couponIsPublic, setCouponIsPublic] = useState(true);
+
+  // Order Requirements Review Modal State
+  const [reviewOrder, setReviewOrder] = useState<OrderDetail | null>(null);
+  const [reviewLoading, setReviewLoading] = useState<boolean>(false);
+
   // P&L Parameters
   const [devPayoutPct, setDevPayoutPct] = useState<number>(35);
   const [gatewayFeePct, setGatewayFeePct] = useState<number>(2);
@@ -111,7 +138,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const [m, t, u, devs, p, f, occs, logs] = await Promise.all([
+      const [m, t, u, devs, p, f, occs, logs, cList, cbList] = await Promise.all([
         ApiService.getAdminMetrics().catch(() => null),
         ApiService.getAdminTickets().catch(() => []),
         ApiService.getAdminUsers().catch(() => []),
@@ -120,6 +147,8 @@ export const AdminDashboardPage: React.FC = () => {
         ApiService.getAdminFinancials(devPayoutPct, gatewayFeePct, fixedOverhead).catch(() => null),
         ApiService.getOccasions().catch(() => []),
         ApiService.getAuditLogs().catch(() => []),
+        ApiService.getAdminCoupons().catch(() => []),
+        ApiService.getAdminCallbacks().catch(() => []),
       ]);
 
       if (m) setMetrics(m as AdminMetrics);
@@ -130,8 +159,145 @@ export const AdminDashboardPage: React.FC = () => {
       if (f) setFinancials(f as AdminFinancialsData);
       setOccasions((occs as any[]) || []);
       setAuditLogs((logs as CentralActivityLogItem[]) || []);
+      setCoupons((cList as Coupon[]) || []);
+      setCallbacks((cbList as CallbackRequest[]) || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load Admin telemetry');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- COUPON HANDLERS ---
+  const handleOpenCreateCoupon = () => {
+    setEditingCoupon(null);
+    setCouponCodeInput('');
+    setCouponDescInput('');
+    setCouponTypeInput('PERCENTAGE');
+    setCouponValueInput('15');
+    setCouponMinOrderInput('0');
+    setCouponMaxDiscInput('');
+    setCouponCombineAuto(false);
+    setCouponIsPublic(true);
+    setShowCouponModal(true);
+  };
+
+  const handleOpenEditCoupon = (c: Coupon) => {
+    setEditingCoupon(c);
+    setCouponCodeInput(c.code);
+    setCouponDescInput(c.description);
+    setCouponTypeInput(c.discount_type);
+    setCouponValueInput(c.discount_value);
+    setCouponMinOrderInput(c.min_order_value);
+    setCouponMaxDiscInput(c.max_discount_amount || '');
+    setCouponCombineAuto(c.can_combine_with_auto_discount);
+    setCouponIsPublic(c.is_public);
+    setShowCouponModal(true);
+  };
+
+  const handleSaveCoupon = async () => {
+    if (!couponCodeInput.trim()) {
+      setError('Coupon code is required.');
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        code: couponCodeInput.trim().toUpperCase(),
+        description: couponDescInput.trim(),
+        discount_type: couponTypeInput,
+        discount_value: parseFloat(couponValueInput) || 0,
+        min_order_value: parseFloat(couponMinOrderInput) || 0,
+        max_discount_amount: couponMaxDiscInput ? parseFloat(couponMaxDiscInput) : null,
+        can_combine_with_auto_discount: couponCombineAuto,
+        is_public: couponIsPublic,
+        is_active: true,
+      };
+
+      if (editingCoupon && editingCoupon.id) {
+        await ApiService.updateAdminCoupon(editingCoupon.id, payload);
+        setActionMsg(`Coupon ${payload.code} updated successfully.`);
+      } else {
+        await ApiService.createAdminCoupon(payload);
+        setActionMsg(`Coupon ${payload.code} created successfully.`);
+      }
+      setShowCouponModal(false);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to save coupon');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleCouponActive = async (c: Coupon) => {
+    try {
+      setLoading(true);
+      await ApiService.updateAdminCoupon(c.id, { is_active: !c.is_active });
+      setActionMsg(`Coupon ${c.code} ${!c.is_active ? 'activated' : 'deactivated'}.`);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update coupon');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCoupon = async (c: Coupon) => {
+    if (!window.confirm(`Are you sure you want to delete coupon ${c.code}?`)) return;
+    try {
+      setLoading(true);
+      await ApiService.deleteAdminCoupon(c.id);
+      setActionMsg(`Coupon ${c.code} deleted.`);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete coupon');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- CALLBACK HANDLERS ---
+  const handleUpdateCallbackStatus = async (callbackId: string, status: string, notes?: string) => {
+    try {
+      setLoading(true);
+      await ApiService.updateAdminCallback(callbackId, { status, admin_notes: notes });
+      setActionMsg('Callback status updated.');
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update callback status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- ORDER REQUIREMENTS REVIEW HANDLERS ---
+  const handleOpenOrderReview = async (t: TicketSummary) => {
+    try {
+      setReviewLoading(true);
+      const orderRef = t.order_reference || t.ticket_number;
+      const detail: any = await ApiService.getTicketDetail(orderRef);
+      setReviewOrder(detail);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch order details');
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
+  const handleConfirmOrderRequirements = async (isReadyForProduction: boolean) => {
+    if (!reviewOrder) return;
+    try {
+      setLoading(true);
+      await ApiService.updateOrderMissingInfo(reviewOrder.order_reference, {
+        is_information_confirmed: true,
+        is_ready_for_production: isReadyForProduction,
+      });
+      setActionMsg(`Requirements confirmed for order ${reviewOrder.order_reference}${isReadyForProduction ? ' and approved for production' : ''}.`);
+      setReviewOrder(null);
+      await loadAll();
+    } catch (err: any) {
+      setError(err.message || 'Failed to update requirements');
     } finally {
       setLoading(false);
     }
@@ -396,6 +562,24 @@ export const AdminDashboardPage: React.FC = () => {
           </button>
 
           <button
+            className={`admin-nav-item ${activeTab === 'coupons' ? 'active' : ''}`}
+            onClick={() => setActiveTab('coupons')}
+          >
+            <div className="admin-nav-icon"><Gift size={16} /></div>
+            <span className="admin-nav-label">Coupons &amp; Offers</span>
+            <span className="admin-nav-badge">{coupons.length}</span>
+          </button>
+
+          <button
+            className={`admin-nav-item ${activeTab === 'callbacks' ? 'active' : ''}`}
+            onClick={() => setActiveTab('callbacks')}
+          >
+            <div className="admin-nav-icon"><PhoneCall size={16} /></div>
+            <span className="admin-nav-label">Customer Callbacks</span>
+            <span className="admin-nav-badge">{callbacks.filter(c => c.status !== 'RESOLVED').length}</span>
+          </button>
+
+          <button
             className={`admin-nav-item ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
           >
@@ -494,6 +678,8 @@ export const AdminDashboardPage: React.FC = () => {
             <span className="editorial-kicker">TECHMASTERS CENTRAL GOVERNANCE</span>
             <h1 style={{ fontSize: '1.9rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
               {activeTab === 'tickets' && 'Production Tickets Console'}
+              {activeTab === 'coupons' && 'Coupons & Promotional Offers Management'}
+              {activeTab === 'callbacks' && 'Customer Support & Callback Requests Queue'}
               {activeTab === 'users' && 'Staff & Customer User Directory'}
               {activeTab === 'developers' && 'Developer Artisan Governance'}
               {activeTab === 'payments' && 'Payment Verification & Audit'}
@@ -684,6 +870,16 @@ export const AdminDashboardPage: React.FC = () => {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {/* Review Requirements & Missing Info */}
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', borderColor: 'var(--gold-primary)', color: 'var(--burgundy-rich)' }}
+                          onClick={() => handleOpenOrderReview(t)}
+                          title="Review physical card, OCR extractions, and missing info"
+                        >
+                          <Eye size={13} /> Review Requirements
+                        </button>
+
                         {/* Quick Change Status */}
                         <button
                           className="btn btn-navy btn-sm"
@@ -756,6 +952,252 @@ export const AdminDashboardPage: React.FC = () => {
                   <tr>
                     <td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
                       No tickets matching this status filter. Submit an order from the website to test!
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 1.5: COUPONS & PROMOTIONAL OFFERS MANAGEMENT
+          ========================================================================= */}
+      {activeTab === 'coupons' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <span className="editorial-kicker">PROMOTIONAL CAMPAIGNS &bull; DISCOUNT CONTROLS</span>
+              <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
+                Coupons &amp; Promotional Offers
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', margin: 0 }}>
+                Configure celebration discounts, public marketing promo codes, and default percentage offers.
+              </p>
+            </div>
+
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleOpenCreateCoupon}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <PlusCircle size={14} /> Create New Coupon
+            </button>
+          </div>
+
+          {/* Default 12% Auto-Offer Info Card */}
+          <div
+            style={{
+              background: '#F0FDF4',
+              border: '1px solid #86EFAC',
+              borderRadius: 'var(--radius-sm)',
+              padding: '1rem 1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#DCFCE7', color: '#16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Percent size={20} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '0.95rem', color: '#166534', display: 'block' }}>
+                  System Default 12% Celebration Offer (Active)
+                </strong>
+                <span style={{ fontSize: '0.8rem', color: '#15803D' }}>
+                  Automatically applied to all eligible orders without requiring a promo code. Saved in quotation snapshot.
+                </span>
+              </div>
+            </div>
+            <span className="badge badge-approved">SYSTEM ACTIVE</span>
+          </div>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Coupon Code</th>
+                  <th>Description</th>
+                  <th>Discount</th>
+                  <th>Min Order</th>
+                  <th>Stacking</th>
+                  <th>Redemptions</th>
+                  <th>Public Visibility</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coupons.map((c) => (
+                  <tr key={c.id}>
+                    <td>
+                      <strong style={{ color: 'var(--burgundy-rich)', fontFamily: 'var(--font-serif)', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Tag size={13} /> {c.code}
+                      </strong>
+                      {c.is_system_default_offer && (
+                        <span style={{ fontSize: '0.68rem', color: '#16A34A', fontWeight: 600 }}>Default 12% Offer</span>
+                      )}
+                    </td>
+                    <td style={{ fontSize: '0.82rem', color: '#334155' }}>
+                      {c.description || 'Celebration Promo'}
+                    </td>
+                    <td>
+                      <strong style={{ color: 'var(--navy-deep)' }}>
+                        {c.discount_type === 'PERCENTAGE' ? `${c.discount_value}% OFF` : `₹${c.discount_value} OFF`}
+                      </strong>
+                    </td>
+                    <td>₹{c.min_order_value}</td>
+                    <td>
+                      <span className={`badge ${c.can_combine_with_auto_discount ? 'badge-assigned' : 'badge-new'}`}>
+                        {c.can_combine_with_auto_discount ? 'Stacks with 12%' : 'Standalone'}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{c.current_usage_count || 0}</strong> {c.total_usage_limit ? `/ ${c.total_usage_limit}` : ''}
+                    </td>
+                    <td>
+                      <span className={`badge ${c.is_public ? 'badge-published' : 'badge-assigned'}`}>
+                        {c.is_public ? 'Public Website' : 'Internal Only'}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className={`btn btn-sm ${c.is_active ? 'badge-approved' : 'badge-new'}`}
+                        style={{ border: 'none', cursor: 'pointer', padding: '3px 8px', fontSize: '0.72rem' }}
+                        onClick={() => handleToggleCouponActive(c)}
+                        title="Click to toggle active status"
+                      >
+                        {c.is_active ? 'Active' : 'Disabled'}
+                      </button>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                          onClick={() => handleOpenEditCoupon(c)}
+                        >
+                          <Edit3 size={12} /> Edit
+                        </button>
+                        {!c.is_system_default_offer && (
+                          <button
+                            className="btn btn-outline btn-sm"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--color-danger)' }}
+                            onClick={() => handleDeleteCoupon(c)}
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+
+                {coupons.length === 0 && (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                      No promotional coupons configured yet. Click "Create New Coupon" to add one!
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          TAB 1.75: CUSTOMER CALLBACKS QUEUE
+          ========================================================================= */}
+      {activeTab === 'callbacks' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div>
+              <span className="editorial-kicker">CUSTOMER SERVICE OPERATIONS &bull; ASSISTANCE LOGS</span>
+              <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-deep)', margin: '0.2rem 0' }}>
+                Customer Callback Requests
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', margin: 0 }}>
+                Respond to customers needing help with cards, photos, packages, or order completion.
+              </p>
+            </div>
+
+            <button className="btn btn-outline btn-sm" onClick={loadAll}>
+              <RefreshCw size={13} className={loading ? 'animate-spin' : ''} /> Refresh Queue
+            </button>
+          </div>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Requested Date</th>
+                  <th>Customer Name</th>
+                  <th>Contact Mobile</th>
+                  <th>Preferred Time</th>
+                  <th>Assistance Required</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {callbacks.map((cb) => (
+                  <tr key={cb.id}>
+                    <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                      {new Date(cb.created_at).toLocaleString()}
+                    </td>
+                    <td>
+                      <strong style={{ color: 'var(--navy-deep)' }}>{cb.customer_name}</strong>
+                    </td>
+                    <td>
+                      <a
+                        href={`tel:${cb.customer_mobile}`}
+                        style={{ color: 'var(--burgundy-rich)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                      >
+                        <PhoneCall size={12} /> {cb.customer_mobile}
+                      </a>
+                    </td>
+                    <td style={{ fontSize: '0.82rem' }}>{cb.preferred_callback_time}</td>
+                    <td style={{ fontSize: '0.82rem', color: '#334155', maxWidth: '280px' }}>
+                      {cb.assistance_required}
+                    </td>
+                    <td>
+                      <select
+                        className="form-control"
+                        value={cb.status}
+                        onChange={(e) => handleUpdateCallbackStatus(cb.id, e.target.value)}
+                        style={{ height: '30px', padding: '2px 8px', fontSize: '0.75rem' }}
+                      >
+                        <option value="REQUESTED">REQUESTED</option>
+                        <option value="PENDING">PENDING</option>
+                        <option value="CONTACTED">CONTACTED</option>
+                        <option value="FOLLOWUP_REQUIRED">FOLLOWUP_REQUIRED</option>
+                        <option value="RESOLVED">RESOLVED</option>
+                      </select>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <a
+                        href={`https://wa.me/91${cb.customer_mobile.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(cb.customer_name)}%2C%20this%20is%20TechMasters%20Digital%20Services%20following%20up%20on%20your%20invitation%20request.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: '#16A34A', borderColor: '#BBF7D0' }}
+                      >
+                        WhatsApp
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+
+                {callbacks.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                      No callback requests pending. All customer inquiries are up to date!
                     </td>
                   </tr>
                 )}
@@ -1823,6 +2265,259 @@ export const AdminDashboardPage: React.FC = () => {
                 </button>
                 <button className="btn btn-primary" onClick={handleAuthorizePublish} disabled={loading}>
                   <Sparkles size={15} /> Authorize &amp; Launch Live
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 6: ORDER REQUIREMENTS & MISSING INFORMATION REVIEW MODAL
+          ========================================================================= */}
+      {reviewOrder && (
+        <div className="modal-backdrop" onClick={() => setReviewOrder(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '780px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-champagne)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <FileText size={18} color="var(--burgundy-rich)" />
+                  Requirements &amp; Missing Information Review
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Order: <strong>{reviewOrder.order_reference}</strong> &bull; Customer: <strong>{reviewOrder.customer_name}</strong>
+                </span>
+              </div>
+              <button onClick={() => setReviewOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              {/* Completeness & Card Banner */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
+                    Completeness Score
+                  </div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--navy-deep)' }}>
+                    {reviewOrder.completeness_score || 50}%
+                  </div>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    Status: {reviewOrder.is_ready_for_production ? 'Ready for Production' : 'Information Incomplete / Pending Review'}
+                  </span>
+                </div>
+
+                <div style={{ background: '#FFFDF9', border: '1px solid var(--gold-border)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--gold-accent)', textTransform: 'uppercase' }}>
+                    Physical Invitation Card
+                  </div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: reviewOrder.has_physical_card ? '#166534' : 'var(--navy-deep)', margin: '4px 0' }}>
+                    {reviewOrder.has_physical_card ? 'YES — Uploaded Scans Available' : 'NO — Digital Only'}
+                  </div>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                    {reviewOrder.physical_card_notes || 'No physical card notes recorded.'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Uploaded Physical Card Assets */}
+              {reviewOrder.assets && reviewOrder.assets.filter(a => a.asset_category?.includes('PHYSICAL_CARD')).length > 0 && (
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                    Uploaded Physical Card Scans (Original Files)
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {reviewOrder.assets.filter(a => a.asset_category?.includes('PHYSICAL_CARD')).map((a) => (
+                      <a
+                        key={a.id}
+                        href={a.url || a.download_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
+                      >
+                        <ExternalLink size={12} /> {a.file_name} ({a.readable_size || 'Scan'})
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Extracted OCR Information */}
+              {reviewOrder.ocr_data_json && Object.keys(reviewOrder.ocr_data_json).length > 0 && (
+                <div style={{ marginBottom: '1.25rem', background: '#FAF7F2', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
+                  <label className="form-label" style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--navy-deep)' }}>
+                    OCR Information Extraction
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.82rem' }}>
+                    {Object.entries(reviewOrder.ocr_data_json).map(([k, item]: [string, any]) => (
+                      <div key={k} style={{ padding: '0.35rem 0.5rem', background: '#FFFFFF', borderRadius: '4px', border: '1px solid #E2E8F0' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', display: 'block' }}>{item.label || k}</span>
+                        <strong style={{ color: item.status === 'INFORMATION_MISSING' ? 'var(--color-danger)' : 'var(--navy-deep)' }}>
+                          {item.value || '(Pending Customer Confirmation)'}
+                        </strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Missing Information Checklist */}
+              {reviewOrder.missing_fields_json && reviewOrder.missing_fields_json.length > 0 && (
+                <div style={{ marginBottom: '1.25rem', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 'var(--radius-sm)', padding: '1rem' }}>
+                  <strong style={{ color: 'var(--color-danger)', fontSize: '0.86rem', display: 'block', marginBottom: '0.35rem' }}>
+                    Pending Missing Information:
+                  </strong>
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.82rem', color: '#991B1B' }}>
+                    {reviewOrder.missing_fields_json.map((f, i) => (
+                      <li key={i}>{f}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem', borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
+                <button className="btn btn-outline" onClick={() => setReviewOrder(null)}>
+                  Close
+                </button>
+                <button
+                  className="btn btn-navy"
+                  onClick={() => handleConfirmOrderRequirements(false)}
+                  disabled={loading}
+                >
+                  <Check size={14} style={{ marginRight: '4px' }} /> Mark Information Confirmed
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => handleConfirmOrderRequirements(true)}
+                  disabled={loading}
+                >
+                  <CheckCircle2 size={14} style={{ marginRight: '4px' }} /> Confirm &amp; Approve for Production
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL 7: CREATE / EDIT PROMOTIONAL COUPON
+          ========================================================================= */}
+      {showCouponModal && (
+        <div className="modal-backdrop" onClick={() => setShowCouponModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '520px' }}>
+            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-champagne)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--navy-deep)', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <Tag size={17} color="var(--burgundy-rich)" />
+                {editingCoupon ? `Edit Coupon: ${editingCoupon.code}` : 'Create New Promotional Coupon'}
+              </h3>
+              <button onClick={() => setShowCouponModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ padding: '1.5rem' }}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label" style={{ fontWeight: 600 }}>Coupon Code * (Uppercase)</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. FESTIVE20 / ROYAL100"
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Description / Offer Details</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="e.g. 15% Off across all digital celebration invitations"
+                  value={couponDescInput}
+                  onChange={(e) => setCouponDescInput(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-2" style={{ gap: '0.75rem', marginBottom: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Discount Type</label>
+                  <select
+                    className="form-control"
+                    value={couponTypeInput}
+                    onChange={(e: any) => setCouponTypeInput(e.target.value)}
+                  >
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                    <option value="FIXED">Fixed Amount (₹)</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Discount Value *</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="e.g. 15 or 100"
+                    value={couponValueInput}
+                    onChange={(e) => setCouponValueInput(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2" style={{ gap: '0.75rem', marginBottom: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Min Order Value (₹)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={couponMinOrderInput}
+                    onChange={(e) => setCouponMinOrderInput(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Max Discount Cap (₹, optional)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Leave empty for unlimited"
+                    value={couponMaxDiscInput}
+                    onChange={(e) => setCouponMaxDiscInput(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.5rem', background: '#F8FAFC', padding: '0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                <label style={{ fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={couponCombineAuto}
+                    onChange={(e) => setCouponCombineAuto(e.target.checked)}
+                    style={{ accentColor: 'var(--burgundy-rich)' }}
+                  />
+                  <span>Can combine / stack with default 12% automatic offer</span>
+                </label>
+
+                <label style={{ fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={couponIsPublic}
+                    onChange={(e) => setCouponIsPublic(e.target.checked)}
+                    style={{ accentColor: 'var(--burgundy-rich)' }}
+                  />
+                  <span>Display in public website "Offers &amp; Coupons" section</span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowCouponModal(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleSaveCoupon} disabled={loading || !couponCodeInput.trim()}>
+                  {editingCoupon ? 'Update Coupon' : 'Create Coupon'}
                 </button>
               </div>
             </div>
