@@ -159,6 +159,12 @@ except ImportError:
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Uploaded files live in the database: the host's local disk is wiped on every deploy.
+STORAGES = {
+    'default': {'BACKEND': 'apps.orders.storage.DatabaseStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CSRF Trusted Origins for Render, Vercel & Custom Domain

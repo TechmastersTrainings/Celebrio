@@ -1,4 +1,5 @@
 import os
+import uuid
 import mimetypes
 from decimal import Decimal
 from urllib.parse import quote
@@ -441,22 +442,23 @@ class CustomerAssetUploadView(views.APIView):
             return Response({'success': False, 'error': {'message': 'Order not found.'}}, status=status.HTTP_404_NOT_FOUND)
 
         uploaded_file = request.FILES.get('file')
+        if not uploaded_file:
+            return Response({'success': False, 'error': {'message': 'No file was attached.'}}, status=status.HTTP_400_BAD_REQUEST)
         category = request.data.get('asset_category', 'COUPLE_PHOTO')
-        file_name = request.data.get('file_name', uploaded_file.name if uploaded_file else 'uploaded_file.jpg')
+        file_name = request.data.get('file_name') or uploaded_file.name
 
-        # Store file in media storage
-        file_key = f"assets/{order.order_reference}/{file_name}"
-        file_size = uploaded_file.size if uploaded_file else 1024
-        file_type = uploaded_file.content_type if uploaded_file else 'image/jpeg'
+        # Unique key per upload: phones name many photos "image.jpg", which used to overwrite each other.
+        asset_id = uuid.uuid4()
+        file_key = f"assets/{order.order_reference}/{asset_id}/{file_name}"
+        file_size = uploaded_file.size
+        file_type = uploaded_file.content_type or mimetypes.guess_type(file_name)[0] or 'application/octet-stream'
 
-        if uploaded_file:
-            from django.core.files.storage import default_storage
-            from django.core.files.base import ContentFile
-            if default_storage.exists(file_key):
-                default_storage.delete(file_key)
-            default_storage.save(file_key, ContentFile(uploaded_file.read()))
+        from django.core.files.storage import default_storage
+        from django.core.files.base import ContentFile
+        default_storage.save(file_key, ContentFile(uploaded_file.read()))
 
         asset = CustomerAsset.objects.create(
+            id=asset_id,
             order=order,
             file_key=file_key,
             file_name=file_name,
@@ -504,23 +506,10 @@ class CustomerAssetDownloadView(views.APIView):
                 file_obj = open(alt_path, 'rb')
 
         if not file_obj:
-            if asset.file_type and asset.file_type.startswith('image/'):
-                from django.http import HttpResponse
-                svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
-                    <rect width="600" height="400" fill="#0B1B3D"/>
-                    <rect x="20" y="20" width="560" height="360" fill="none" stroke="#D4AF37" stroke-width="2"/>
-                    <text x="300" y="180" font-family="sans-serif" font-size="20" fill="#E5C07B" text-anchor="middle" font-weight="bold">TECHMASTERS CUSTOMER ATTACHMENT</text>
-                    <text x="300" y="220" font-family="sans-serif" font-size="16" fill="#FFFFFF" text-anchor="middle">{asset.file_name}</text>
-                    <text x="300" y="250" font-family="sans-serif" font-size="12" fill="#94A3B8" text-anchor="middle">Category: {asset.asset_category} | Order: {asset.order.order_reference}</text>
-                </svg>'''
-                resp = HttpResponse(svg_content, content_type='image/svg+xml')
-                safe_name = asset.file_name.encode('ascii', 'ignore').decode('ascii') or 'attachment'
-                if not is_preview:
-                    resp['Content-Disposition'] = f'attachment; filename="{safe_name}"'
-                return resp
+            # Never substitute a placeholder for a customer's original file.
             return Response({
                 'success': False,
-                'error': {'message': f'Attachment file "{asset.file_name}" is not present on disk.'}
+                'error': {'message': f'The original file "{asset.file_name}" is no longer stored on the server. Please ask the customer to upload it again.'}
             }, status=status.HTTP_404_NOT_FOUND)
 
         content_type = asset.file_type or mimetypes.guess_type(asset.file_name)[0] or 'application/octet-stream'

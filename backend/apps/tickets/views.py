@@ -35,6 +35,21 @@ class TicketDetailView(views.APIView):
         serializer = TicketDetailSerializer(ticket)
         return Response({'success': True, 'data': serializer.data})
 
+# Developer state machine (admins may override).
+PERMITTED_TRANSITIONS = {
+    TicketStatus.NEW_OPEN: [TicketStatus.ASSIGNED, TicketStatus.CANCELLED],
+    TicketStatus.ASSIGNED: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.NEW_OPEN, TicketStatus.ON_HOLD],
+    TicketStatus.WORK_IN_PROGRESS: [TicketStatus.INTERNAL_REVIEW, TicketStatus.AWAITING_CUSTOMER_RESPONSE, TicketStatus.ON_HOLD],
+    TicketStatus.INTERNAL_REVIEW: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_CUSTOMER_RESPONSE],
+    TicketStatus.AWAITING_CUSTOMER_RESPONSE: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.AWAITING_PAYMENT, TicketStatus.ON_HOLD],
+    TicketStatus.AWAITING_PAYMENT: [TicketStatus.PAYMENT_DONE, TicketStatus.WORK_IN_PROGRESS],
+    TicketStatus.PAYMENT_DONE: [TicketStatus.CLOSED],
+    TicketStatus.CLOSED: [TicketStatus.REOPENED],
+    TicketStatus.ON_HOLD: [TicketStatus.WORK_IN_PROGRESS, TicketStatus.CANCELLED],
+    TicketStatus.REOPENED: [TicketStatus.WORK_IN_PROGRESS],
+}
+
+
 class TicketStatusUpdateView(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -48,19 +63,15 @@ class TicketStatusUpdateView(views.APIView):
         if not user.is_admin_role and ticket.assigned_developer != user:
             return Response({'success': False, 'error': {'message': 'You can only update tickets assigned to you.'}}, status=status.HTTP_403_FORBIDDEN)
 
-        new_status = request.data.get('status')
+        new_status = request.data.get('status') or None
         reason = request.data.get('reason', '')
         work_notes = request.data.get('work_notes', '') or reason
 
-        if not new_status or new_status not in TicketStatus.values:
-            return Response({'success': False, 'error': {'status': f'Invalid status. Permitted values: {TicketStatus.values}'}}, status=status.HTTP_400_BAD_REQUEST)
+        if new_status == ticket.status:
+            new_status = None  # unchanged state: treat as a field-only update (priority / hold)
 
-        # Resolution work notes mandatory for closure (ServiceNow ITIL compliance)
-        if new_status == TicketStatus.CLOSED and not work_notes.strip():
-            return Response({
-                'success': False,
-                'error': {'message': 'Resolution work notes are required when closing a ticket (ITIL compliance).'}
-            }, status=status.HTTP_400_BAD_REQUEST)
+        if not new_status and not any(k in request.data for k in ('priority', 'is_on_hold', 'hold_reason')):
+            return Response({'success': False, 'error': {'message': 'Nothing to update.'}}, status=status.HTTP_400_BAD_REQUEST)
 
         # State transition validation
         update_fields = ['updated_at']
@@ -75,8 +86,9 @@ class TicketStatusUpdateView(views.APIView):
                     'error': {'message': 'Resolution work notes are required when delivering and closing an order.'}
                 }, status=status.HTTP_400_BAD_REQUEST)
 
+            # Admins can override transitions
             if not user.is_admin_role:
-                allowed = permitted_transitions.get(ticket.status, [])
+                allowed = PERMITTED_TRANSITIONS.get(ticket.status, [])
                 if new_status not in allowed:
                     return Response({
                         'success': False,

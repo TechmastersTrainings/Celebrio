@@ -87,12 +87,15 @@ class WorkspaceAssignedTicketsView(views.APIView):
     def get(self, request):
         scope = request.query_params.get('scope', 'assigned')
         if scope == 'closed':
-            # Returns all closed / resolved tickets so developer can review delivered orders
+            # Closed / resolved tickets. Developers only see their own (the detail view
+            # forbids other developers' tickets anyway); admins see all.
             tickets = (
                 Ticket.objects.select_related('order', 'order__occasion', 'order__package', 'assigned_developer')
                 .filter(status=TicketStatus.CLOSED)
                 .order_by('-updated_at')
             )
+            if not request.user.is_admin_role:
+                tickets = tickets.filter(assigned_developer=request.user)
         else:
             # Returns all tickets assigned to this developer (both active and completed)
             tickets = (

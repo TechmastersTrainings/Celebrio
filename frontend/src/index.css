@@ -1984,3 +1984,19 @@ tr:hover td {
   .vs-menu { max-height: 55vh; }
   .vdm-select { flex: 1 1 140px; }
 }
+
+/* ---------- Idle staff session logout ---------- */
+.idle-backdrop { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 16px; background: rgba(13, 27, 42, 0.6); }
+.idle-dialog { width: min(400px, 100%); padding: 22px; border-radius: 8px; background: var(--bg-surface); color: var(--text-body); box-shadow: var(--shadow-elevated); text-align: center; font-size: 0.92rem; }
+.idle-dialog svg { color: var(--burgundy-rich); }
+.idle-dialog h2 { margin: 8px 0 6px; font-size: 1.15rem; color: var(--text-heading); }
+.idle-dialog p { margin: 0 0 16px; line-height: 1.5; }
+.idle-dialog strong { font-variant-numeric: tabular-nums; color: var(--burgundy-rich); }
+.idle-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.idle-btn { height: 36px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--border-medium); background: var(--bg-surface); color: var(--text-body); font-weight: 600; cursor: pointer; }
+.idle-btn:hover { background: var(--bg-card-subtle); }
+.idle-btn-primary { background: var(--burgundy-rich); border-color: var(--burgundy-rich); color: #fff; }
+.idle-btn-primary:hover { background: var(--burgundy-hover); }
+.idle-notice { display: flex; align-items: center; gap: 10px; max-width: 560px; margin: 16px auto 0; padding: 10px 14px; border: 1px solid #f6d7a7; border-radius: 6px; background: #fff7ea; color: #7c4a03; font-size: 0.9rem; }
+.idle-notice span { flex: 1; }
+.idle-notice button { border: 0; background: none; font-size: 1.2rem; line-height: 1; color: inherit; cursor: pointer; }

@@ -220,3 +220,19 @@ class CustomerAsset(models.Model):
 
     def __str__(self):
         return f"{self.file_name} ({self.asset_category}) - {self.order.order_reference}"
+
+
+class StoredFile(models.Model):
+    """Binary content for uploaded files (see apps.orders.storage.DatabaseStorage)."""
+    name = models.CharField(max_length=500, unique=True)
+    content = models.BinaryField()
+    size = models.BigIntegerField(default=0)
+    content_type = models.CharField(max_length=120, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'stored_files'
+
+    def __str__(self):
+        return f"{self.name} ({self.size} bytes)"

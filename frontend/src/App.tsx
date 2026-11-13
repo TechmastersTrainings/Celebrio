@@ -14,6 +14,8 @@ import { AdminAuthPage } from './pages/admin/AdminAuthPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { PublicInvitationPage } from './pages/public/PublicInvitationPage';
 import { OffersPage } from './pages/customer/OffersPage';
+import { IdleLogoutWarning } from './components/IdleLogoutWarning';
+import { LAST_ACTIVITY_KEY, STAFF_IDLE_TIMEOUT_MS, markStaffActivity, useIdleLogout, type IdleLogoutReason } from './hooks/useIdleLogout';
 
 export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<string>('home');
@@ -22,6 +24,7 @@ export const App: React.FC = () => {
   const [activeOrderRef, setActiveOrderRef] = useState<string>('');
   const [activePreviewToken, setActivePreviewToken] = useState<string>('');
   const [publicSlug, setPublicSlug] = useState<string>('');
+  const [logoutNotice, setLogoutNotice] = useState<string | null>(null);
   const [staffUser, setStaffUser] = useState<any | null>(() => {
     try {
       const savedUser = localStorage.getItem('celebrio_staff_user');
@@ -243,6 +246,8 @@ export const App: React.FC = () => {
 
   // Staff Login Handlers
   const handleDevLoginSuccess = (user: any) => {
+    markStaffActivity();
+    setLogoutNotice(null);
     setStaffUser(user);
     localStorage.setItem('celebrio_staff_user', JSON.stringify(user));
 
@@ -255,19 +260,31 @@ export const App: React.FC = () => {
   };
 
   const handleAdminLoginSuccess = (user: any) => {
+    markStaffActivity();
+    setLogoutNotice(null);
     setStaffUser(user);
     localStorage.setItem('celebrio_staff_user', JSON.stringify(user));
     handleNavigate('admin', undefined, true);
   };
 
   // Logout Handler
-  const handleLogout = () => {
-    const wasAdmin = currentView === 'admin' || currentView === 'admin-login';
-    const wasDev = currentView === 'workspace' || currentView === 'dev-login';
+  const handleLogout = (reason?: IdleLogoutReason) => {
+    // Use the URL as well as the view: an idle timeout can fire before the route is resolved after a reload.
+    const path = window.location.pathname;
+    const wasAdmin = currentView === 'admin' || currentView === 'admin-login' || path.startsWith('/admin');
+    const wasDev = currentView === 'workspace' || currentView === 'dev-login' || path.startsWith('/developers');
 
     localStorage.removeItem('celebrio_staff_token');
     localStorage.removeItem('celebrio_staff_user');
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
     setStaffUser(null);
+    setLogoutNotice(
+      reason === 'idle'
+        ? `You were signed out after ${Math.round(STAFF_IDLE_TIMEOUT_MS / 60000)} minutes of inactivity. Please sign in again.`
+        : reason === 'signed_out_elsewhere'
+        ? 'You were signed out in another tab. Please sign in again.'
+        : null,
+    );
 
     if (wasAdmin) {
       handleNavigate('admin-login', undefined, true);
@@ -278,6 +295,9 @@ export const App: React.FC = () => {
     }
   };
 
+  // Automatic logout for idle staff sessions (developer and admin portals).
+  const { warningSecondsLeft, stayActive } = useIdleLogout(Boolean(staffUser), (reason) => handleLogout(reason));
+
   // If in public invitation mode, render isolated viewer without main application navbar
   if (currentView === 'public-invite') {
     return <PublicInvitationPage slug={publicSlug} />;
@@ -285,15 +305,15 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      {/* Navbar rendered on all application pages */}
-      <Navbar
+      {/* Public navigation; the authenticated Developer Portal has its own application shell */}
+      {currentView !== 'workspace' && <Navbar
         currentView={currentView}
         onNavigate={handleNavigate}
         staffUser={staffUser}
-        onLogout={handleLogout}
-      />
+        onLogout={() => handleLogout()}
+      />}
 
-      <main className="main-content">
+      <main className={currentView === 'workspace' ? undefined : 'main-content'}>
         {/* =========================================================================
             PORTAL 1: MAIN WEBSITE — CUSTOMER CELEBRATION PORTAL
             ========================================================================= */}
@@ -390,6 +410,13 @@ export const App: React.FC = () => {
         {/* =========================================================================
             PORTAL 2: DEVELOPER & ARTISAN PORTAL (URL: /developers/login & /developers)
             ========================================================================= */}
+        {logoutNotice && (currentView === 'dev-login' || currentView === 'admin-login') && (
+          <div className="idle-notice" role="status">
+            <span>{logoutNotice}</span>
+            <button type="button" onClick={() => setLogoutNotice(null)} aria-label="Dismiss">×</button>
+          </div>
+        )}
+
         {currentView === 'dev-login' && (
           <DeveloperAuthPage
             onLoginSuccess={handleDevLoginSuccess}
@@ -405,6 +432,7 @@ export const App: React.FC = () => {
               setActivePreviewToken(token);
               handleNavigate('preview', token);
             }}
+            onLogout={() => handleLogout()}
           />
         )}
 
@@ -422,6 +450,10 @@ export const App: React.FC = () => {
           <AdminDashboardPage />
         )}
       </main>
+
+      {warningSecondsLeft !== null && staffUser && (
+        <IdleLogoutWarning secondsLeft={warningSecondsLeft} onStay={stayActive} onLogout={() => handleLogout()} />
+      )}
 
       {/* Public Footer is displayed on customer pages */}
       {['home', 'designs', 'catalog', 'tracking', 'offers'].includes(currentView) && (
