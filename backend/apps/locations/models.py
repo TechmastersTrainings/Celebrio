@@ -91,20 +91,12 @@ class Locality(models.Model):
 
 class VenueCategory(models.TextChoices):
     FUNCTION_HALL = 'FUNCTION_HALL', 'Function Hall / Convention Hall'
-    HOTEL_RESORT = 'HOTEL_RESORT', 'Hotel / Resort'
-    RESTAURANT_BANQUET = 'RESTAURANT_BANQUET', 'Restaurant / Banquet'
-    OUTDOOR = 'OUTDOOR', 'Outdoor Venue'
-    OTHER = 'OTHER', 'Other Venue'
 
 
 class VenueType(models.TextChoices):
-    """What the customer picks on the order form (superset of VenueCategory)."""
+    """What the customer picks on the order form: home or a function / convention hall."""
     HOME = 'HOME', 'Home Sweet Home'
     FUNCTION_HALL = 'FUNCTION_HALL', 'Function Hall / Convention Hall'
-    HOTEL_RESORT = 'HOTEL_RESORT', 'Hotel / Resort'
-    RESTAURANT_BANQUET = 'RESTAURANT_BANQUET', 'Restaurant / Banquet'
-    OUTDOOR = 'OUTDOOR', 'Outdoor Venue'
-    OTHER = 'OTHER', 'Other Venue'
 
 
 class VerificationStatus(models.TextChoices):

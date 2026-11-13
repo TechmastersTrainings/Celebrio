@@ -95,7 +95,7 @@ export interface OrderEvent {
   venue_distance_km?: number | null;
 }
 
-export type VenueTypeValue = 'HOME' | 'FUNCTION_HALL' | 'HOTEL_RESORT' | 'RESTAURANT_BANQUET' | 'OUTDOOR' | 'OTHER';
+export type VenueTypeValue = 'HOME' | 'FUNCTION_HALL';
 export type VenueSourceValue = 'VERIFIED_DIRECTORY' | 'EXTERNAL_PROVIDER' | 'CUSTOMER_PROVIDED';
 
 export interface LocationOption {

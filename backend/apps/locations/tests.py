@@ -14,6 +14,7 @@ class VenueSearchTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         # Seed migration provides India > Karnataka > Bidar and its localities.
+        Venue.objects.filter(data_source='IMPORT').delete()  # isolate from the seeded real halls
         cls.bidar = City.objects.get(name='Bidar')
         cls.gumpa = Locality.objects.get(city=cls.bidar, name='Gumpa')
         cls.shahganj = Locality.objects.get(city=cls.bidar, name='Shahganj')
@@ -28,7 +29,7 @@ class VenueSearchTests(TestCase):
 
         cls.salam = mk('Salam Function Hall', cls.shahganj)
         cls.sai = mk('Sai Convention Centre', cls.gumpa)
-        cls.reva = mk('Revathi Banquet', cls.mailoor, category='RESTAURANT_BANQUET')
+        cls.reva = mk('Revathi Banquet', cls.mailoor)
         cls.pending = mk('Sapphire Hall', cls.gumpa, status=VerificationStatus.PENDING)
         cls.inactive = mk('Samrat Palace', cls.gumpa, active=False)
 
@@ -108,6 +109,7 @@ class VenueSearchTests(TestCase):
 class OrderVenueSnapshotTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Venue.objects.filter(data_source='IMPORT').delete()  # isolate from the seeded real halls
         cls.bidar = City.objects.get(name='Bidar')
         cls.gumpa = Locality.objects.get(city=cls.bidar, name='Gumpa')
         cls.occasion = Occasion.objects.create(slug='birthday-t', display_name='Birthday T', is_active=True) \
@@ -145,7 +147,7 @@ class OrderVenueSnapshotTests(TestCase):
         self.assertEqual(ev.venue_snapshot_json['name'], 'Salam Function Hall')
 
     def test_manual_venue_is_customer_provided_and_queued(self):
-        ev = self.submit({'venue_source': 'CUSTOMER_PROVIDED', 'venue_type': 'OUTDOOR', 'venue_name': 'Green Farm Lawn',
+        ev = self.submit({'venue_source': 'CUSTOMER_PROVIDED', 'venue_type': 'FUNCTION_HALL', 'venue_name': 'Green Farm Lawn',
                           'venue_address': 'Near X', 'city_id': self.bidar.id, 'locality_id': self.gumpa.id,
                           'google_maps_url': 'maps.app.goo.gl/abc'})
         self.assertEqual(ev.venue_source, 'CUSTOMER_PROVIDED')

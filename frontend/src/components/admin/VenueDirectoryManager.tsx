@@ -5,10 +5,6 @@ import type { AdminLocality, AdminVenue, LocationOption } from '../../types';
 
 const CATEGORIES = [
   { value: 'FUNCTION_HALL', label: 'Function Hall / Convention Hall' },
-  { value: 'HOTEL_RESORT', label: 'Hotel / Resort' },
-  { value: 'RESTAURANT_BANQUET', label: 'Restaurant / Banquet' },
-  { value: 'OUTDOOR', label: 'Outdoor Venue' },
-  { value: 'OTHER', label: 'Other Venue' },
 ];
 
 const STATUS_CLASS: Record<string, string> = {

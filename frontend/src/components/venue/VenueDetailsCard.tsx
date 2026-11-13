@@ -5,10 +5,6 @@ import type { OrderEvent } from '../../types';
 const TYPE_LABELS: Record<string, string> = {
   HOME: 'Home Sweet Home',
   FUNCTION_HALL: 'Function Hall / Convention Hall',
-  HOTEL_RESORT: 'Hotel / Resort',
-  RESTAURANT_BANQUET: 'Restaurant / Banquet',
-  OUTDOOR: 'Outdoor Venue',
-  OTHER: 'Other Venue',
 };
 
 function sourceBadge(ev: Partial<OrderEvent>) {

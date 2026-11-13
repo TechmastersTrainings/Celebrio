@@ -311,12 +311,13 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
 
   // Submit Callback Request
   const handleSubmitCallback = async () => {
-    if (!callbackMobile) return;
+    const mobile = (callbackMobile || customerMobile).trim();
+    if (!mobile) return;
     try {
       setCallbackLoading(true);
       await ApiService.requestCallback({
         customer_name: callbackName || customerName || 'Valued Customer',
-        customer_mobile: callbackMobile,
+        customer_mobile: mobile,
         preferred_callback_time: callbackTime,
         assistance_required: callbackReason,
       });
@@ -1818,7 +1819,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                       Callback Request Confirmed!
                     </h4>
                     <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                      A TechMasters invitation specialist will call you at <strong>{callbackMobile}</strong> ({callbackTime}).
+                      A TechMasters invitation specialist will call you at <strong>{callbackMobile || customerMobile}</strong> ({callbackTime}).
                     </p>
                     <button
                       className="btn btn-navy btn-sm"
@@ -1893,7 +1894,7 @@ export const OrderWizardPage: React.FC<OrderWizardPageProps> = ({
                         type="button"
                         className="btn btn-primary btn-sm"
                         onClick={handleSubmitCallback}
-                        disabled={callbackLoading || !callbackMobile}
+                        disabled={callbackLoading || !(callbackMobile || customerMobile).trim()}
                       >
                         {callbackLoading ? 'Submitting...' : 'Submit Callback Request'}
                       </button>

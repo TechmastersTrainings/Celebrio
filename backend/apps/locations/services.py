@@ -79,11 +79,8 @@ _WORD_RE = re.compile(r"[a-z0-9]+")
 CATEGORY_LABELS = {c.value: c.label.lower() for c in VenueCategory}
 # Common words customers type for each category
 CATEGORY_KEYWORDS = {
-    VenueCategory.FUNCTION_HALL: ['function', 'hall', 'convention', 'kalyana', 'mantapa', 'mandapam', 'palace', 'community'],
-    VenueCategory.HOTEL_RESORT: ['hotel', 'resort', 'inn', 'lodge', 'residency', 'stay'],
-    VenueCategory.RESTAURANT_BANQUET: ['restaurant', 'banquet', 'dhaba', 'cafe', 'dining', 'family'],
-    VenueCategory.OUTDOOR: ['outdoor', 'garden', 'lawn', 'farm', 'farmhouse', 'ground', 'park'],
-    VenueCategory.OTHER: ['temple', 'church', 'mosque', 'club', 'school', 'auditorium'],
+    VenueCategory.FUNCTION_HALL: ['function', 'hall', 'convention', 'kalyana', 'kalyan', 'mantapa', 'mantap',
+                                  'mandapam', 'palace', 'mahal', 'garden', 'banquet', 'community'],
 }
 
 
@@ -467,7 +464,7 @@ def _queue_for_review(ev, source, venue_type, city, locality, external_place_id,
     name = _clean(ev.get('venue_name'), 200)
     if not city or not name or venue_type == VenueType.HOME:
         return None
-    category = venue_type if venue_type in VenueCategory.values else VenueCategory.OTHER
+    category = VenueCategory.FUNCTION_HALL
     existing = None
     if external_place_id:
         existing = Venue.objects.filter(external_place_id=external_place_id).first()

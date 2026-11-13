@@ -22,7 +22,7 @@ class OrderEventSerializer(serializers.ModelSerializer):
     venue_latitude = serializers.FloatField(required=False, allow_null=True, write_only=True)
     venue_longitude = serializers.FloatField(required=False, allow_null=True, write_only=True)
     venue_type = serializers.ChoiceField(
-        choices=['', 'HOME', 'FUNCTION_HALL', 'HOTEL_RESORT', 'RESTAURANT_BANQUET', 'OUTDOOR', 'OTHER'],
+        choices=['', 'HOME', 'FUNCTION_HALL'],
         required=False, allow_blank=True, default='',
     )
     venue_source = serializers.ChoiceField(

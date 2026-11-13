@@ -17,6 +17,9 @@ interface SearchableSelectProps {
   loading?: boolean;
   allowClear?: boolean;
   emptyText?: string;
+  /** When set, the user may also keep a typed value that is not in the list. */
+  freeText?: string;
+  onFreeText?: (text: string) => void;
 }
 
 /**
@@ -33,6 +36,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   loading,
   allowClear = false,
   emptyText = 'No matches',
+  freeText = '',
+  onFreeText,
 }) => {
   const uid = useId();
   const listId = `${uid}-list`;
@@ -44,8 +49,8 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
   const selected = options.find((o) => o.id === value) || null;
 
   useEffect(() => {
-    if (!open) setText(selected ? selected.name : '');
-  }, [selected?.id, selected?.name, open]);
+    if (!open) setText(selected ? selected.name : freeText);
+  }, [selected?.id, selected?.name, open, freeText]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -67,6 +72,14 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   useEffect(() => setActive(0), [text]);
 
+  const typed = text.trim();
+  const canUseTyped =
+    Boolean(onFreeText) && open && typed !== '' && !options.some((o) => o.name.toLowerCase() === typed.toLowerCase());
+  const useTyped = () => {
+    onFreeText?.(typed);
+    setOpen(false);
+  };
+
   const pick = (o: SearchableOption | null) => {
     onChange(o);
     setText(o ? o.name : '');
@@ -77,7 +90,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setOpen(true);
-      setActive((a) => Math.min(a + 1, filtered.length - 1));
+      setActive((a) => Math.min(a + 1, filtered.length - (canUseTyped ? 0 : 1)));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActive((a) => Math.max(a - 1, 0));
@@ -85,6 +98,9 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       if (open && filtered[active]) {
         e.preventDefault();
         pick(filtered[active]);
+      } else if (canUseTyped) {
+        e.preventDefault();
+        useTyped();
       }
     } else if (e.key === 'Escape') {
       setOpen(false);
@@ -127,7 +143,7 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
       </div>
       {open && !disabled && (
         <ul className="vs-menu vs-menu-compact" role="listbox" id={listId}>
-          {filtered.length === 0 && <li className="vs-menu-empty">{loading ? 'Loading…' : emptyText}</li>}
+          {filtered.length === 0 && !canUseTyped && <li className="vs-menu-empty">{loading ? 'Loading…' : emptyText}</li>}
           {filtered.map((o, i) => (
             <li
               key={o.id}
@@ -145,6 +161,20 @@ export const SearchableSelect: React.FC<SearchableSelectProps> = ({
               {o.hint && <span className="vs-option-hint">{o.hint}</span>}
             </li>
           ))}
+          {canUseTyped && (
+            <li
+              role="option"
+              aria-selected={false}
+              className={`vs-option-compact ${active === filtered.length ? 'is-active' : ''}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                useTyped();
+              }}
+              onMouseEnter={() => setActive(filtered.length)}
+            >
+              <span>Use “{typed}”</span>
+            </li>
+          )}
         </ul>
       )}
     </div>
