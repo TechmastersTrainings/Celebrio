@@ -298,10 +298,141 @@
     position: sticky; top: 64px; z-index: 5; max-height: none; overflow: visible; padding: 0.35em;
     border-radius: 0.9em; box-shadow: 0 0.6em 1.4em -1em rgba(15, 23, 42, 0.25);
   }
-  .sf-menu-title, .sf-menu-sep { display: none; }
-  .sf-menu ul { display: flex; gap: 0.35em; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
-  .sf-menu ul::-webkit-scrollbar { display: none; }
+  .sf-menu { display: flex; gap: 0.35em; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .sf-menu::-webkit-scrollbar { display: none; }
+  .sf-menu-title, .sf-menu-sep, .sf-menu-cta { display: none; }
+  .sf-menu ul { display: flex; flex: none; gap: 0.35em; }
   .sf-menu li { flex: none; scroll-snap-align: start; }
   .sf-menu-item { width: auto; white-space: nowrap; padding: 0.5em 0.8em; border-radius: 999px; border: 1px solid var(--border-subtle); }
   .sf-menu-item.is-active { box-shadow: none; border-color: var(--burgundy-rich); }
 }
+
+/* =========================================================================
+   Festive Indian touches (catalog + designs)
+   ========================================================================= */
+.sf-festive-hero {
+  position: relative; overflow: hidden; isolation: isolate; text-align: center;
+  padding: clamp(3.4em, 7vw, 5em) 0 clamp(2em, 4vw, 3em);
+  background:
+    radial-gradient(40em 18em at 50% 0%, rgba(245, 158, 11, 0.16), transparent 70%),
+    linear-gradient(180deg, #fff6e6 0%, #fffaf2 60%, var(--bg-ivory) 100%);
+  border-bottom: 1px solid #f1e2c4;
+}
+.sf-toran { position: absolute; top: 0; left: 0; width: 100%; height: 46px; z-index: 1; }
+.sf-hero-mandala { position: absolute; width: clamp(14em, 30vw, 24em); color: #d4a017; opacity: 0.14; z-index: -1; animation: sf-spin 120s linear infinite; }
+.sf-hero-mandala-l { left: -6em; top: 1em; }
+.sf-hero-mandala-r { right: -6em; bottom: -6em; animation-direction: reverse; }
+@keyframes sf-spin { to { transform: rotate(360deg); } }
+.sf-festive-inner { position: relative; }
+.sf-festive-hero h1 { font-size: clamp(2em, 4vw, 3em); line-height: 1.08; margin: 0.35em 0 0.4em; color: #4a0e1a; }
+.sf-festive-hero p { color: var(--text-muted); max-width: 40em; margin: 0 auto; line-height: 1.6; font-size: 1.02em; }
+.sf-festive-hero .sf-trust { justify-content: center; margin-top: 1.2em; }
+.sf-festive-hero .sf-cat-actions { justify-content: center; margin-top: 1.1em; }
+.sf-ornament { display: block; width: min(14em, 60%); margin: 0.8em auto 0; color: var(--gold-primary); }
+
+.sf-menu-cta { display: flex; flex-direction: column; gap: 0.45em; padding: 0.8em; margin: 0.3em; border-radius: 0.8em; background: linear-gradient(160deg, #fff7e8, #fff); border: 1px solid #f1e2c4; font-size: 0.82em; }
+.sf-menu-cta strong { display: inline-flex; align-items: center; gap: 0.35em; color: var(--burgundy-rich); }
+.sf-menu-cta span { color: var(--text-muted); line-height: 1.45; }
+
+/* ---------- Design cards ---------- */
+.dz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17em), 1fr)); gap: 1.3em; }
+.dz-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 1.2em; background: #fff; border: 1px solid #efe4d2; box-shadow: 0 0.3em 1em rgba(74, 14, 26, 0.05); transition: transform 0.22s ease, box-shadow 0.22s ease; }
+.dz-card:hover { transform: translateY(-0.3em); box-shadow: 0 1.6em 3em -1.4em rgba(74, 14, 26, 0.35); }
+.dz-card-poster { position: relative; display: block; padding: 0; border: 0; cursor: pointer; background: none; aspect-ratio: 4 / 5; }
+.dz-card-hover {
+  position: absolute; left: 50%; bottom: 1em; transform: translate(-50%, 0.4em); opacity: 0;
+  display: inline-flex; align-items: center; gap: 0.4em; padding: 0.55em 1em; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95); color: #4a0e1a; font: 700 0.8em var(--font-sans); white-space: nowrap;
+  box-shadow: 0 0.6em 1.4em rgba(0, 0, 0, 0.25); transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.dz-card-poster:hover .dz-card-hover, .dz-card-poster:focus-visible .dz-card-hover { opacity: 1; transform: translate(-50%, 0); }
+@media (hover: none) { .dz-card-hover { opacity: 1; transform: translate(-50%, 0); } }
+.dz-card-body { display: flex; flex-direction: column; gap: 0.55em; padding: 1em 1.1em 1.1em; flex: 1; }
+.dz-card-top { display: flex; justify-content: space-between; gap: 0.6em; align-items: flex-start; }
+.dz-card-aesthetic { display: block; font-size: 0.66em; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-primary); }
+.dz-card h3 { font-size: 1.3em; line-height: 1.15; margin-top: 0.15em; }
+.dz-card-body > p { font-size: 0.84em; line-height: 1.55; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.dz-tags { display: flex; flex-wrap: wrap; gap: 0.35em; }
+.dz-tags span { padding: 0.2em 0.6em; border-radius: 999px; background: #fdf4e3; color: #8a5a12; font-size: 0.7em; font-weight: 600; }
+
+/* ---------- Poster (miniature invitation) ---------- */
+.dz-poster {
+  position: absolute; inset: 0; display: grid; place-items: center; overflow: hidden; text-align: center;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--si-accent) 22%, transparent), transparent 65%), var(--si-bg);
+  color: var(--si-text); font-size: clamp(11px, 0.9em, 15px);
+}
+.dz-poster-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 0.45em; padding: 1.4em 1em; }
+.dz-poster-inv { font-family: 'Noto Sans Kannada', serif; font-size: 0.78em; color: var(--si-accent); }
+.dz-poster-art { color: var(--si-accent); }
+.dz-poster-art svg { width: 4.6em; height: auto; }
+.dz-poster-art .si-diyas { display: flex; gap: 0.3em; color: #9a3412; }
+.dz-poster-art .si-diyas svg { width: 2.6em; }
+.dz-poster-kicker { font-family: 'Cinzel', serif; font-size: 0.66em; letter-spacing: 0.24em; text-transform: uppercase; color: var(--si-accent); }
+.dz-poster-names { font-family: 'Great Vibes', cursive; font-size: 2.7em; line-height: 1; color: var(--si-ink); }
+.dz-poster-names em { font-family: 'Cormorant Garamond', serif; font-size: 0.4em; color: var(--si-accent); }
+.dz-poster-div { width: 8em; color: var(--si-accent); }
+.dz-poster-date { font-family: 'Cinzel', serif; font-size: 0.74em; letter-spacing: 0.08em; color: var(--si-ink); }
+.dz-pc { position: absolute; width: 3.6em; color: var(--si-accent); opacity: 0.65; }
+.dz-pc-tl { top: 0.6em; left: 0.6em; }
+.dz-pc-tr { top: 0.6em; right: 0.6em; transform: scaleX(-1); }
+.dz-poster-toran { position: absolute; top: 0; left: 0; width: 100%; height: 2.4em; z-index: 2; }
+.dz-poster-confetti::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(#f43f5e 1.5px, transparent 2px), radial-gradient(#10b981 1.5px, transparent 2px), radial-gradient(#3b82f6 1.5px, transparent 2px);
+  background-size: 2.2em 2.6em, 3em 2.4em, 2.6em 3.2em; background-position: 0 0, 1em 1.2em, 0.4em 2em; opacity: 0.7;
+}
+
+/* ---------- Mockup viewer ---------- */
+.dz-modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: clamp(0.5em, 2vw, 1.5em); background: rgba(20, 8, 12, 0.72); backdrop-filter: blur(4px); }
+.dz-modal { width: min(100%, 78em); height: min(100%, 52em); display: flex; flex-direction: column; border-radius: 1.2em; overflow: hidden; background: linear-gradient(180deg, #fffaf2, #f6efe3); box-shadow: 0 2em 5em rgba(0, 0, 0, 0.4); }
+.dz-modal-head { display: flex; align-items: center; gap: 0.8em 1em; flex-wrap: wrap; padding: 0.9em 1.1em; border-bottom: 1px solid #ecdfc9; background: #fff; }
+.dz-modal-title { flex: 1 1 14em; min-width: 0; }
+.dz-modal-title h2 { font-size: 1.35em; line-height: 1.1; }
+.dz-seg { display: inline-flex; padding: 0.2em; border-radius: 999px; background: #f4ecdf; border: 1px solid #eadcc4; }
+.dz-seg button { display: inline-flex; align-items: center; gap: 0.4em; padding: 0.45em 0.9em; border: 0; border-radius: 999px; background: none; font: 600 0.84em var(--font-sans); color: #6b5640; cursor: pointer; }
+.dz-seg button.is-on { background: var(--burgundy-rich); color: #fff; box-shadow: 0 0.3em 0.8em rgba(107, 23, 40, 0.3); }
+.dz-close { display: grid; place-items: center; width: 2.4em; height: 2.4em; border-radius: 50%; border: 1px solid #e4d6be; background: #fff; cursor: pointer; color: #4a0e1a; }
+.dz-stage { flex: 1; min-height: 0; display: grid; place-items: center; padding: clamp(0.8em, 2vw, 1.6em); background: radial-gradient(ellipse at 50% 20%, #fff, transparent 70%); }
+
+.dz-frame-box { width: 100%; height: 100%; display: grid; place-items: center; }
+.dz-frame-viewport { position: relative; overflow: hidden; }
+.dz-frame-viewport iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: #fff; }
+
+.dz-laptop { width: 100%; height: 100%; max-width: 64em; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.dz-laptop-screen { width: 92%; flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0.7em 0.7em 0.9em; border-radius: 1em 1em 0.3em 0.3em; background: #111827; box-shadow: inset 0 0 0 0.12em #374151; }
+.dz-browser-bar { display: flex; align-items: center; gap: 0.7em; padding: 0.45em 0.7em; border-radius: 0.5em 0.5em 0 0; background: #f3f4f6; }
+.dz-dots { display: inline-flex; gap: 0.35em; }
+.dz-dots i { width: 0.65em; height: 0.65em; border-radius: 50%; background: #f87171; }
+.dz-dots i:nth-child(2) { background: #fbbf24; }
+.dz-dots i:nth-child(3) { background: #34d399; }
+.dz-url { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.25em 0.8em; border-radius: 999px; background: #fff; color: #6b7280; font-size: 0.72em; text-align: center; }
+.dz-laptop-frame { flex: 1; min-height: 0; background: #fff; border-radius: 0 0 0.3em 0.3em; place-items: start center; }
+.dz-laptop-base { width: 100%; height: 0.9em; border-radius: 0 0 1.2em 1.2em; background: linear-gradient(180deg, #d1d5db, #9ca3af); position: relative; }
+.dz-laptop-base::before { content: ''; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 14%; height: 0.35em; border-radius: 0 0 0.5em 0.5em; background: #6b7280; }
+
+.dz-phone { position: relative; height: 100%; max-height: 46em; aspect-ratio: 390 / 844; padding: 0.7em; border-radius: 2.6em; background: #111827; box-shadow: 0 2em 4em -1.5em rgba(0, 0, 0, 0.5), inset 0 0 0 0.14em #374151; }
+.dz-phone-island { position: absolute; top: 1.05em; left: 50%; transform: translateX(-50%); width: 28%; height: 1.5em; border-radius: 1em; background: #000; z-index: 2; }
+.dz-phone-frame { border-radius: 2em; overflow: hidden; background: #fff; }
+
+.dz-modal-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.8em; flex-wrap: wrap; padding: 0.8em 1.1em; border-top: 1px solid #ecdfc9; background: #fff; }
+.dz-hint { font-size: 0.8em; color: var(--text-muted); }
+.dz-foot-actions { display: flex; align-items: center; gap: 0.6em; flex-wrap: wrap; }
+
+@media (max-width: 760px) {
+  .dz-modal { height: 100%; border-radius: 0.9em; }
+  .dz-open-full { order: 3; }
+  .dz-hint { display: none; }
+  .dz-foot-actions { width: 100%; justify-content: space-between; }
+  .dz-phone { max-height: 100%; }
+}
+
+/* Catalog: occasion-tinted package cards */
+.sf-cat-occ { position: relative; padding: clamp(1em, 2.4vw, 1.5em); border-radius: 1.3em; background: #fff; border: 1px solid #efe4d2; box-shadow: 0 0.3em 1.2em rgba(74, 14, 26, 0.04); }
+.sf-cat-occ::before { content: ''; position: absolute; inset: 0 0 auto; height: 0.32em; border-radius: 1.3em 1.3em 0 0; background: linear-gradient(90deg, var(--tint-a, #6b1728), var(--tint-b, #b88e3e)); }
+.sf-cat-occ .sf-pkg { background: linear-gradient(180deg, color-mix(in srgb, var(--tint-b, #b88e3e) 7%, #fff) 0%, #fff 55%); }
+.sf-cat-occ .sf-pkg.is-top { border-color: color-mix(in srgb, var(--tint-a, #6b1728) 55%, #d4af37); }
+.sf-cat-occ .sf-pkg-price { color: var(--tint-a, var(--burgundy-rich)); }
+.sf-sample-link { display: inline-flex; align-items: center; gap: 0.35em; margin-top: 0.45em; font-size: 0.8em; font-weight: 700; color: var(--tint-a, var(--burgundy-rich)); text-decoration: none; }
+.sf-sample-link:hover { text-decoration: underline; }
+.sf-cat-occ:last-child { background: transparent; border: 0; box-shadow: none; padding-inline: 0; }
+.sf-cat-occ:last-child::before { display: none; }

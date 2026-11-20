@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ApiService } from '../../services/api';
 import type { Occasion } from '../../types';
 import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
-import { Sparkles, CheckCircle2, ArrowRight, Clock, Search, ShieldCheck, MessageCircle, Smartphone, LayoutGrid } from 'lucide-react';
-import { OccasionArt, OccasionIcon, isFormat, rupees } from '../../components/occasions/occasionVisuals';
+import { Sparkles, CheckCircle2, ArrowRight, Clock, Search, ShieldCheck, MessageCircle, Smartphone, LayoutGrid, Eye } from 'lucide-react';
+import { OccasionArt, OccasionIcon, isFormat, occasionVisual, rupees } from '../../components/occasions/occasionVisuals';
+import { Divider, Mandala, Toran } from '../../components/motifs/IndianMotifs';
+import { samplesFor } from '../samples/sampleDesigns';
 import '../../styles/storefront.css';
 
 interface CatalogPageProps {
@@ -69,35 +71,35 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onSelectPackage, onTra
 
   return (
     <div className="sf">
-      <section className="sf-cat-hero">
-        <div className="sf-wrap">
+      <section className="sf-festive-hero">
+        <Toran className="sf-toran" />
+        <Mandala className="sf-hero-mandala sf-hero-mandala-l" />
+        <Mandala className="sf-hero-mandala sf-hero-mandala-r" />
+        <div className="sf-wrap sf-festive-inner">
           <span className="sf-kicker">TechMasters Digital Services</span>
-          <div className="sf-cat-hero-row">
-            <div>
-              <h1>Celebration Packages &amp; Transparent Pricing</h1>
-              <p>
-                All-inclusive, handcrafted digital invitations for your family milestones. Inspect your watermarked interactive preview with family, request fine-tuning, and authorize payment only after 100% satisfaction.
-              </p>
-            </div>
-            <div className="sf-cat-actions">
-              <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm" onClick={onTrackOrder}>
-                <Search size={14} /> Track Existing Order
-              </button>
-              <a
-                className="sf-btn sf-btn-ghost sf-btn-sm"
-                href={`${WHATSAPP}?text=${encodeURIComponent('Hello TechMasters, I have a question about your invitation packages.')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <MessageCircle size={14} style={{ color: '#16A34A' }} /> WhatsApp Consultation
-              </a>
-            </div>
-          </div>
-          <div className="sf-trust sf-cat-trust">
+          <h1>Celebration Packages &amp; Transparent Pricing</h1>
+          <p>
+            All-inclusive, handcrafted digital invitations for your family milestones. Inspect your watermarked interactive preview with family, request fine-tuning, and authorize payment only after 100% satisfaction.
+          </p>
+          <Divider className="sf-ornament" />
+          <div className="sf-trust">
             <span><ShieldCheck size={14} /> Pay After 100% Approval</span>
             <span><Clock size={14} /> 24–48h Fast Turnaround</span>
             <span><Smartphone size={14} /> Mobile-First Web App</span>
             <span><CheckCircle2 size={14} /> 300 DPI Print-Ready PDF</span>
+          </div>
+          <div className="sf-cat-actions">
+            <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm" onClick={onTrackOrder}>
+              <Search size={14} /> Track Existing Order
+            </button>
+            <a
+              className="sf-btn sf-btn-ghost sf-btn-sm"
+              href={`${WHATSAPP}?text=${encodeURIComponent('Hello TechMasters, I have a question about your invitation packages.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle size={14} style={{ color: '#16A34A' }} /> WhatsApp Consultation
+            </a>
           </div>
         </div>
       </section>
@@ -134,13 +136,25 @@ export const CatalogPage: React.FC<CatalogPageProps> = ({ onSelectPackage, onTra
         <div className="sf-cat-main" ref={mainRef}>
           {shown.map((occ) => {
             const maxPrice = Math.max(...occ.packages.map((p) => parseFloat(String(p.base_price_inr)) || 0));
+            const tint = occasionVisual(occ.slug).tint;
+            const sample = samplesFor(occ.slug)[0];
             return (
-              <section key={occ.id} className="sf-cat-occ" aria-labelledby={`occ-${occ.id}`}>
+              <section
+                key={occ.id}
+                className="sf-cat-occ"
+                aria-labelledby={`occ-${occ.id}`}
+                style={{ '--tint-a': tint[0], '--tint-b': tint[1] } as React.CSSProperties}
+              >
                 <div className="sf-cat-occ-head">
                   <OccasionArt occasion={occ} />
                   <div>
                     <h2 id={`occ-${occ.id}`}>{occ.display_name}</h2>
                     <p>{occ.description}</p>
+                    {sample && (
+                      <a className="sf-sample-link" href={`/sample/${sample.slug}`} target="_blank" rel="noopener noreferrer">
+                        <Eye size={13} /> See a sample design
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="sf-pkgs">

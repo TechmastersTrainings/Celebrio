@@ -37,33 +37,41 @@ export const Mandala: React.FC<SvgProps & { petals?: number }> = ({ petals = 16,
   );
 };
 
-/** Marigold-and-mango-leaf toran garland; tiles horizontally. */
+/** Marigold-and-mango-leaf toran garland; repeats across the full width without stretching. */
 export const Toran: React.FC<SvgProps & { marigold?: string; marigold2?: string; leaf?: string }> = ({
   marigold = '#f59e0b',
   marigold2 = '#ea580c',
   leaf = '#3f7d3a',
   ...props
-}) => (
-  <svg viewBox="0 0 120 46" preserveAspectRatio="none" aria-hidden {...props}>
-    <path d="M0 6 Q30 18 60 6 T120 6" fill="none" stroke={marigold2} strokeWidth="2" />
-    {[10, 30, 50, 70, 90, 110].map((x, i) => (
-      <g key={x}>
-        <circle cx={x} cy={i % 2 ? 11 : 9} r="5.2" fill={i % 2 ? marigold2 : marigold} />
-        <circle cx={x} cy={i % 2 ? 11 : 9} r="2.2" fill="#fde68a" opacity="0.8" />
-      </g>
-    ))}
-    {[20, 60, 100].map((x) => (
-      <path key={x} d={`M${x} 12 q-6 14 0 30 q6 -16 0 -30z`} fill={leaf} />
-    ))}
-    {[40, 80].map((x) => (
-      <g key={x}>
-        <circle cx={x} cy="20" r="3.6" fill={marigold} />
-        <circle cx={x} cy="28" r="3.6" fill={marigold2} />
-        <circle cx={x} cy="36" r="3.2" fill={marigold} />
-      </g>
-    ))}
-  </svg>
-);
+}) => {
+  const id = React.useId().replace(/:/g, '');
+  return (
+    <svg aria-hidden {...props}>
+      <defs>
+        <pattern id={`toran-${id}`} width="120" height="46" patternUnits="userSpaceOnUse">
+          <path d="M0 6 Q30 18 60 6 T120 6" fill="none" stroke={marigold2} strokeWidth="2" />
+          {[10, 30, 50, 70, 90, 110].map((x, i) => (
+            <g key={x}>
+              <circle cx={x} cy={i % 2 ? 11 : 9} r="5.2" fill={i % 2 ? marigold2 : marigold} />
+              <circle cx={x} cy={i % 2 ? 11 : 9} r="2.2" fill="#fde68a" opacity="0.8" />
+            </g>
+          ))}
+          {[20, 60, 100].map((x) => (
+            <path key={x} d={`M${x} 12 q-6 14 0 30 q6 -16 0 -30z`} fill={leaf} />
+          ))}
+          {[40, 80].map((x) => (
+            <g key={x}>
+              <circle cx={x} cy="20" r="3.6" fill={marigold} />
+              <circle cx={x} cy="28" r="3.6" fill={marigold2} />
+              <circle cx={x} cy="36" r="3.2" fill={marigold} />
+            </g>
+          ))}
+        </pattern>
+      </defs>
+      <rect width="100%" height="46" fill={`url(#toran-${id})`} />
+    </svg>
+  );
+};
 
 /** Kalash (sacred pot) with coconut and mango leaves. */
 export const Kalash: React.FC<SvgProps> = (props) => (

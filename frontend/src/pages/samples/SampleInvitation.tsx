@@ -59,7 +59,7 @@ function useReveal(enabled: boolean) {
   }, [enabled]);
 }
 
-function HeroArt({ s }: { s: SampleDesign }) {
+export function HeroArt({ s }: { s: Pick<SampleDesign, 'motif'> }) {
   switch (s.motif) {
     case 'royal':
     case 'jubilee':

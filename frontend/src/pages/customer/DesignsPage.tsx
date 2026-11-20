@@ -1,735 +1,208 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ApiService } from '../../services/api';
-import { Occasion } from '../../types';
+import type { Occasion } from '../../types';
 import { OFFICIAL_OCCASIONS } from '../../data/defaultCatalog';
-import { Sparkles, Smartphone, Monitor, Eye, ArrowRight, X, Heart, Calendar, MapPin, Layers, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, ExternalLink, Laptop, LayoutGrid, MessageCircle, Smartphone, Sparkles, X } from 'lucide-react';
+import { SAMPLE_DESIGNS, type SampleDesign } from '../samples/sampleDesigns';
+import { DesignPoster, ScaledFrame } from '../../components/designs/DesignPoster';
+import { Mandala, Toran } from '../../components/motifs/IndianMotifs';
+import { OccasionIcon, rupees, startingPrice } from '../../components/occasions/occasionVisuals';
+import '../../styles/storefront.css';
 
 interface DesignsPageProps {
   onSelectDesign: (occasionId: string, packageId?: string) => void;
   onNavigate: (view: string) => void;
 }
 
-interface GalleryItem {
-  id: string;
-  title: string;
-  category: string;
-  occasionId: string;
-  startingPrice: number;
-  aesthetic: string;
-  imageUrl: string;
-  description: string;
-  tags: string[];
-  mockCouple: string;
-  mockDate: string;
-  mockVenue: string;
-}
+const ALL = 'ALL';
+const WHATSAPP = 'https://wa.me/919880768222';
 
 export const DesignsPage: React.FC<DesignsPageProps> = ({ onSelectDesign, onNavigate }) => {
   const [occasions, setOccasions] = useState<Occasion[]>(OFFICIAL_OCCASIONS);
-  const [loading, setLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
-  const [previewItem, setPreviewItem] = useState<GalleryItem | null>(null);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [collection, setCollection] = useState(ALL);
+  const [preview, setPreview] = useState<SampleDesign | null>(null);
+  const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
 
   useEffect(() => {
-    loadCatalog();
+    ApiService.getOccasions()
+      .then((d) => Array.isArray(d) && d.length > 0 && setOccasions(d))
+      .catch(() => undefined);
   }, []);
 
-  const loadCatalog = async () => {
-    try {
-      setLoading(true);
-      const data = await ApiService.getOccasions();
-      setOccasions(data || []);
-    } catch (err) {
-      console.error('Failed to load occasions for gallery:', err);
-    } finally {
-      setLoading(false);
-    }
+  const occBySlug = useMemo(() => new Map(occasions.map((o) => [o.slug, o])), [occasions]);
+  const collections = useMemo(() => {
+    const seen = new Map<string, { name: string; slug: string; count: number }>();
+    SAMPLE_DESIGNS.forEach((d) => {
+      const c = seen.get(d.collection) || { name: d.collection, slug: d.occasionSlug, count: 0 };
+      c.count += 1;
+      seen.set(d.collection, c);
+    });
+    return [...seen.values()];
+  }, []);
+  const shown = collection === ALL ? SAMPLE_DESIGNS : SAMPLE_DESIGNS.filter((d) => d.collection === collection);
+
+  const openPreview = (d: SampleDesign) => {
+    setDevice(window.innerWidth < 760 ? 'mobile' : 'desktop');
+    setPreview(d);
   };
 
-  // Find occasion IDs dynamically from backend
-  const weddingOcc = occasions.find((o) => o.slug.includes('marr') || o.slug.includes('wed'));
-  const engagementOcc = occasions.find((o) => o.slug.includes('engag'));
-  const birthdayOcc = occasions.find((o) => o.slug.includes('birth'));
-  const namingOcc = occasions.find((o) => o.slug.includes('nam') || o.slug.includes('cradle'));
-  const anniversaryOcc = occasions.find((o) => o.slug.includes('anniv'));
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setPreview(null);
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [preview]);
 
-  const getLowestPrice = (occ?: Occasion) => {
-    if (!occ || !occ.packages || occ.packages.length === 0) return 399;
-    const prices = occ.packages.map((p) => parseFloat(String(p.base_price_inr)) || 0).filter((p) => p > 0);
-    return prices.length > 0 ? Math.min(...prices) : 399;
+  const chooseDesign = (d: SampleDesign) => {
+    const occ = occBySlug.get(d.occasionSlug);
+    if (occ) onSelectDesign(occ.id);
+    else onNavigate('wizard');
   };
 
-  // Curated gallery items linked strictly to backend occasions and packages
-  const galleryItems: GalleryItem[] = [
-    {
-      id: 'des-01',
-      title: 'Royal Mysore Vivaha',
-      category: 'TRADITIONAL_WEDDING',
-      occasionId: weddingOcc?.id || '',
-      startingPrice: getLowestPrice(weddingOcc),
-      aesthetic: 'Traditional Indian Wedding',
-      imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
-      description: 'Opulent crimson and antique gold filigree motifs with auspicious Sanskrit mantras, interactive muhurtham schedule, and devotional shehnai audio.',
-      tags: ['Royal Crimson', 'Sanskrit Shlokas', 'Audio Embedded', 'Interactive RSVP'],
-      mockCouple: 'Dr. Aditi & Srihari',
-      mockDate: 'December 12, 2026',
-      mockVenue: 'The Leela Palace, Bengaluru',
-    },
-    {
-      id: 'des-02',
-      title: 'Kalyana Mandapam Elegance',
-      category: 'WEDDING',
-      occasionId: weddingOcc?.id || '',
-      startingPrice: getLowestPrice(weddingOcc),
-      aesthetic: 'Traditional Heritage',
-      imageUrl: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80',
-      description: 'Rich temple gopuram line-art, jasmine garlands, multi-day ceremony timelines (Haldi, Mehendi, Sangeet), and direct Google Maps navigation.',
-      tags: ['Temple Architecture', 'Multi-day Timeline', 'Google Maps'],
-      mockCouple: 'Ananya & Siddharth',
-      mockDate: 'November 28, 2026',
-      mockVenue: 'Shree Krishna Kalyana Mantapa, Bidar',
-    },
-    {
-      id: 'des-03',
-      title: 'Champagne Minimalist',
-      category: 'MODERN_WEDDING',
-      occasionId: weddingOcc?.id || '',
-      startingPrice: getLowestPrice(weddingOcc),
-      aesthetic: 'Modern & Minimalist',
-      imageUrl: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80',
-      description: 'Clean typographic sophistication on soft champagne paper, delicate deckle-edge borders, and contemporary editorial photography grid.',
-      tags: ['Editorial Typography', 'Champagne Palette', 'Photo Gallery'],
-      mockCouple: 'Natasha & Vikram',
-      mockDate: 'January 18, 2027',
-      mockVenue: 'Taj West End, Race Course Road',
-    },
-    {
-      id: 'des-04',
-      title: 'Imperial Nizam Gold',
-      category: 'LUXURY_HERITAGE',
-      occasionId: weddingOcc?.id || '',
-      startingPrice: getLowestPrice(weddingOcc),
-      aesthetic: 'Luxury Heritage',
-      imageUrl: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=800&q=80',
-      description: 'Gilded palace chandeliers, ornate arches inspired by royal Deccan architecture, dynamic QR check-in, and WhatsApp share buttons.',
-      tags: ['Deccan Architecture', 'QR-Enabled', 'VIP Portal'],
-      mockCouple: 'Zoya & Farhan',
-      mockDate: 'February 14, 2027',
-      mockVenue: 'Chowmahalla Palace Courtyard',
-    },
-    {
-      id: 'des-05',
-      title: 'Rose Gold Ring Ceremony',
-      category: 'ENGAGEMENT',
-      occasionId: engagementOcc?.id || '',
-      startingPrice: getLowestPrice(engagementOcc),
-      aesthetic: 'Engagement & Ring Ceremony',
-      imageUrl: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=800&q=80',
-      description: 'Warm blush florals, shimmering rose gold rings emblem, live guest countdown timer, and couple love story milestones.',
-      tags: ['Blush Rose', 'Countdown Clock', 'Love Story'],
-      mockCouple: 'Priya & Rohan',
-      mockDate: 'October 24, 2026',
-      mockVenue: 'ITC Windsor Manor, Sankey Road',
-    },
-    {
-      id: 'des-06',
-      title: 'Little Prince & Princess Namakarana',
-      category: 'NAMING_CEREMONY',
-      occasionId: namingOcc?.id || '',
-      startingPrice: getLowestPrice(namingOcc),
-      aesthetic: 'Naming Ceremony (Namakarana)',
-      imageUrl: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=800&q=80',
-      description: 'Soft pastels, floral cradle illustration, family lineage blessings, regional Kannada/English script support, and baby gift registry guide.',
-      tags: ['Cradle Motif', 'Multilingual Script', 'Family Tree'],
-      mockCouple: 'Baby Aarav',
-      mockDate: 'September 15, 2026',
-      mockVenue: 'Ananda Nilaya, Mailoor, Bidar',
-    },
-    {
-      id: 'des-07',
-      title: 'Golden Jubilee 50th Anniversary',
-      category: 'ANNIVERSARY',
-      occasionId: anniversaryOcc?.id || '',
-      startingPrice: getLowestPrice(anniversaryOcc),
-      aesthetic: 'Wedding Anniversary',
-      imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
-      description: 'A half-century of love celebrated with gold foil accents, retrospective couple timeline (1976–2026), and guest digital memory book.',
-      tags: ['50 Years Jubilee', 'Memory Book', 'Timeline'],
-      mockCouple: 'Smt. Shanta & Sri. Ramesh Kulkarni',
-      mockDate: 'November 05, 2026',
-      mockVenue: 'Grand Magrath Hall, Bengaluru',
-    },
-    {
-      id: 'des-08',
-      title: 'Milestone 1st Birthday Wonderland',
-      category: 'BIRTHDAY',
-      occasionId: birthdayOcc?.id || '',
-      startingPrice: getLowestPrice(birthdayOcc),
-      aesthetic: 'Milestone Birthday',
-      imageUrl: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=800&q=80',
-      description: 'Enchanted celebration with playful confetti animations, photo month-by-month memories, party theme styling, and instant RSVP tracking.',
-      tags: ['Playful Confetti', '1st Year Milestones', 'Party Theme'],
-      mockCouple: 'Master Reyansh (Turns One!)',
-      mockDate: 'August 20, 2026',
-      mockVenue: 'Country Club Pavilion, Bidar',
-    },
-  ];
-
-  const categories = [
-    { key: 'ALL', label: 'All Designs' },
-    { key: 'WEDDING', label: 'Wedding Invitations' },
-    { key: 'TRADITIONAL_WEDDING', label: 'Traditional Indian Wedding' },
-    { key: 'MODERN_WEDDING', label: 'Modern & Minimalist' },
-    { key: 'LUXURY_HERITAGE', label: 'Luxury Royal Heritage' },
-    { key: 'ENGAGEMENT', label: 'Engagement Ceremony' },
-    { key: 'NAMING_CEREMONY', label: 'Naming Ceremony' },
-    { key: 'ANNIVERSARY', label: 'Anniversary Celebrations' },
-    { key: 'BIRTHDAY', label: 'Milestone Birthdays' },
-  ];
-
-  const filteredItems = galleryItems.filter((item) => {
-    if (selectedCategory === 'ALL') return true;
-    if (selectedCategory === 'WEDDING') {
-      return (
-        item.category === 'WEDDING' ||
-        item.category === 'TRADITIONAL_WEDDING' ||
-        item.category === 'MODERN_WEDDING' ||
-        item.category === 'LUXURY_HERITAGE'
-      );
-    }
-    return item.category === selectedCategory;
-  });
-
-  const activeCategoryLabel = categories.find((c) => c.key === selectedCategory)?.label || 'All Designs';
+  const priceFor = (d: SampleDesign) => {
+    const occ = occBySlug.get(d.occasionSlug);
+    return occ ? startingPrice(occ) : null;
+  };
 
   return (
-    <div style={{ padding: '3rem 0 5rem' }}>
-      <div className="container">
-        {/* Editorial Header */}
-        <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 2.75rem' }}>
-          <span className="editorial-kicker">CURATED INVITATION EXPERIENCES</span>
-          <h1 style={{ marginBottom: '0.75rem', fontSize: '2.5rem' }}>
-            Invitation Design Gallery
-          </h1>
-          <p className="lead-text">
-            Explore our artisan-crafted digital invitation designs. Every experience includes interactive websites, high-resolution 300 DPI print-ready cards, dynamic QR codes, and animated invitations.
+    <div className="sf">
+      {/* Festive header */}
+      <section className="sf-festive-hero">
+        <Toran className="sf-toran" />
+        <Mandala className="sf-hero-mandala sf-hero-mandala-l" />
+        <Mandala className="sf-hero-mandala sf-hero-mandala-r" />
+        <div className="sf-wrap sf-festive-inner">
+          <span className="sf-kicker">Curated Invitation Experiences</span>
+          <h1>Invitation Design Gallery</h1>
+          <p>
+            Explore live sample invitations crafted for Indian celebrations — tap any design to see it as your guests will, on a laptop and on a phone.
           </p>
         </div>
+      </section>
 
-        {/* 2-Column Responsive Layout: Left-Side Menu + Right-Side Gallery */}
-        <div className="designs-page-layout">
-          {/* =========================================================================
-              LEFT SIDEBAR: CATEGORIES & THEMES MENU
-              ========================================================================= */}
-          <aside
-            className="designs-sidebar"
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid var(--border-subtle)',
-              borderRadius: 'var(--radius-md)',
-              boxShadow: 'var(--shadow-subtle)',
-              overflow: 'hidden',
-              position: 'sticky',
-              top: '90px',
-            }}
-          >
-            {/* Sidebar Title */}
-            <div
-              className="designs-sidebar-header"
-              style={{
-                padding: '1.25rem 1.5rem',
-                borderBottom: '1px solid var(--border-subtle)',
-                background: 'var(--bg-champagne)',
-              }}
-            >
-              <span
-                className="editorial-kicker"
-                style={{ fontSize: '0.68rem', marginBottom: '2px', display: 'block' }}
-              >
-                COLLECTIONS
-              </span>
-              <h3 style={{ fontSize: '1.15rem', color: 'var(--navy-deep)', margin: 0 }}>
-                Occasions &amp; Themes
-              </h3>
-            </div>
-
-            {/* Category Links (Vertical on desktop, scrollable chips on mobile) */}
-            <nav className="designs-sidebar-nav" style={{ padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              {categories.map((c) => {
-                const isActive = selectedCategory === c.key;
-
-                return (
-                  <button
-                    key={c.key}
-                    onClick={() => setSelectedCategory(c.key)}
-                    className={isActive ? '' : 'category-sidebar-btn'}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'flex-start',
-                      padding: '0.72rem 1rem',
-                      borderRadius: 'var(--radius-sm)',
-                      border: 'none',
-                      background: isActive ? 'var(--burgundy-rich)' : 'transparent',
-                      color: isActive ? '#FFFFFF' : 'var(--text-body)',
-                      fontWeight: isActive ? 600 : 500,
-                      fontSize: '0.88rem',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      transition: 'all 0.18s ease',
-                      width: '100%',
-                    }}
-                  >
-                    <span>{c.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* Bespoke Request Sidebar Box */}
-            <div
-              style={{
-                padding: '1.25rem',
-                margin: '0.5rem 0.75rem 0.75rem',
-                background: 'var(--bg-ivory)',
-                border: '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-sm)',
-                textAlign: 'left',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  color: 'var(--burgundy-rich)',
-                  fontWeight: 600,
-                  fontSize: '0.84rem',
-                  marginBottom: '0.35rem',
-                }}
-              >
-                <Sparkles size={14} style={{ color: 'var(--gold-primary)' }} />
-                <span>Custom Theme Request</span>
-              </div>
-              <p
-                style={{
-                  fontSize: '0.76rem',
-                  color: 'var(--text-muted)',
-                  lineHeight: 1.5,
-                  margin: '0 0 0.85rem',
-                }}
-              >
-                Need a bespoke theme or cultural artwork? Our internal artisans craft custom designs.
-              </p>
-              <button
-                className="btn btn-outline-gold btn-sm"
-                style={{ width: '100%', fontSize: '0.76rem', padding: '0.4rem 0.75rem' }}
-                onClick={() => onNavigate('wizard')}
-              >
-                Request Custom Design &rarr;
+      <div className="sf-wrap sf-cat">
+        <nav className="sf-menu" aria-label="Design collections">
+          <div className="sf-menu-title">Collections</div>
+          <ul>
+            <li>
+              <button type="button" className={`sf-menu-item ${collection === ALL ? 'is-active' : ''}`} aria-current={collection === ALL ? 'true' : undefined} onClick={() => setCollection(ALL)}>
+                <LayoutGrid size={15} />
+                <span>All Designs</span>
+                <span className="sf-menu-count">{SAMPLE_DESIGNS.length}</span>
               </button>
-            </div>
-          </aside>
-
-          {/* =========================================================================
-              RIGHT MAIN CONTENT: DESIGNS GALLERY
-              ========================================================================= */}
-          <main style={{ minWidth: 0 }}>
-            {/* Gallery Top Status Bar */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingBottom: '1rem',
-                marginBottom: '1.5rem',
-                borderBottom: '1px solid var(--border-subtle)',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <div>
-                <h2 style={{ fontSize: '1.4rem', color: 'var(--navy-deep)', margin: '0 0 0.2rem' }}>
-                  {activeCategoryLabel}
-                </h2>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Showing {filteredItems.length} curated celebration design{filteredItems.length === 1 ? '' : 's'}
-                </p>
-              </div>
-
-              {selectedCategory !== 'ALL' && (
-                <button
-                  onClick={() => setSelectedCategory('ALL')}
-                  className="btn btn-outline btn-sm"
-                  style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
-                >
-                  View All Designs
+            </li>
+            {collections.map((c) => (
+              <li key={c.name}>
+                <button type="button" className={`sf-menu-item ${collection === c.name ? 'is-active' : ''}`} aria-current={collection === c.name ? 'true' : undefined} onClick={() => setCollection(c.name)}>
+                  <OccasionIcon slug={c.slug} size={15} />
+                  <span>{c.name}</span>
+                  <span className="sf-menu-count">{c.count}</span>
                 </button>
-              )}
-            </div>
+              </li>
+            ))}
+          </ul>
+          <div className="sf-menu-sep" />
+          <div className="sf-menu-cta">
+            <strong><Sparkles size={14} /> Want something unique?</strong>
+            <span>Our artisans create custom themes for your culture and family.</span>
+            <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm sf-btn-block" onClick={() => onNavigate('wizard')}>Request a Custom Design</button>
+          </div>
+        </nav>
 
-            {/* Designs Cards Grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))',
-                gap: '1.75rem',
-              }}
-            >
-              {filteredItems.map((item) => (
-                <div key={item.id} className="showcase-card">
-                  <div style={{ position: 'relative', overflow: 'hidden' }}>
-                    <img src={item.imageUrl} alt={item.title} className="showcase-card-img" />
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '12px',
-                        left: '12px',
-                        background: 'rgba(13, 27, 42, 0.85)',
-                        backdropFilter: 'blur(6px)',
-                        color: '#F8FAFC',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
-                        padding: '0.28rem 0.65rem',
-                        borderRadius: 'var(--radius-xs)',
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {item.aesthetic}
-                    </span>
-
-                    <button
-                      onClick={() => setPreviewItem(item)}
-                      style={{
-                        position: 'absolute',
-                        bottom: '12px',
-                        right: '12px',
-                        background: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '0.45rem 0.75rem',
-                        fontSize: '0.8rem',
-                        fontWeight: 600,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.35rem',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
-                        color: 'var(--navy-deep)',
-                      }}
-                    >
-                      <Eye size={14} />
-                      <span>Preview</span>
-                    </button>
-                  </div>
-
-                  <div className="showcase-card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-                      <h3 style={{ fontSize: '1.25rem', color: 'var(--text-heading)', margin: 0 }}>
-                        {item.title}
-                      </h3>
-                      <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '0.75rem' }}>
-                        <span className="card-price-value">
-                          <span className="card-price-currency">₹</span>
-                          <span className="card-price-amount">{Math.floor(parseFloat(String(item.startingPrice)))}</span>
-                          <span className="card-price-decimals">.00</span>
-                        </span>
+        <div className="sf-cat-main">
+          <div className="dz-grid">
+            {shown.map((d) => {
+              const from = priceFor(d);
+              return (
+                <article key={d.slug} className="dz-card">
+                  <button type="button" className="dz-card-poster" onClick={() => openPreview(d)} aria-label={`Preview ${d.title}`}>
+                    <DesignPoster design={d} />
+                    <span className="dz-card-hover"><Laptop size={16} /> <Smartphone size={14} /> View Mockup</span>
+                  </button>
+                  <div className="dz-card-body">
+                    <div className="dz-card-top">
+                      <div>
+                        <span className="dz-card-aesthetic">{d.aesthetic}</span>
+                        <h3>{d.title}</h3>
                       </div>
+                      {from !== null && <span className="sf-price"><small>from</small>{rupees(from)}</span>}
                     </div>
-
-                    <p style={{ fontSize: '0.86rem', color: 'var(--text-muted)', marginBottom: '1.25rem', flex: 1, lineHeight: 1.6 }}>
-                      {item.description}
-                    </p>
-
-                    {/* Feature Tags */}
-                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                      {item.tags.map((t, idx) => (
-                        <span
-                          key={idx}
-                          style={{
-                            fontSize: '0.70rem',
-                            background: 'var(--bg-champagne)',
-                            color: 'var(--text-body)',
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: 'var(--radius-xs)',
-                            border: '1px solid var(--border-subtle)',
-                          }}
-                        >
-                          {t}
-                        </span>
-                      ))}
+                    <p>{d.description}</p>
+                    <div className="dz-tags">
+                      {d.tags.slice(0, 3).map((t) => <span key={t}>{t}</span>)}
                     </div>
-
-                    <div style={{ display: 'flex', gap: '0.65rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
-                      <button
-                        className="btn btn-outline btn-sm"
-                        style={{ flex: 1 }}
-                        onClick={() => setPreviewItem(item)}
-                      >
-                        View Mockup
-                      </button>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        style={{ flex: 1.2 }}
-                        onClick={() => onSelectDesign(item.occasionId)}
-                      >
-                        <span>Customise</span>
-                        <ArrowRight size={14} />
-                      </button>
+                    <div className="sf-occ-actions">
+                      <button type="button" className="sf-btn sf-btn-ghost sf-btn-sm" onClick={() => openPreview(d)}>View Mockup</button>
+                      <button type="button" className="sf-btn sf-btn-primary sf-btn-sm" onClick={() => chooseDesign(d)}>Use Design <ArrowRight size={14} /></button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredItems.length === 0 && (
-              <div
-                style={{
-                  textAlign: 'center',
-                  padding: '4rem 1.5rem',
-                  background: '#FFFFFF',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '1rem' }}>
-                  No invitation designs found in this category.
-                </p>
-                <button
-                  className="btn btn-outline btn-sm"
-                  onClick={() => setSelectedCategory('ALL')}
-                >
-                  View All Designs
-                </button>
-              </div>
-            )}
-          </main>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Live Interactive Invitation Preview Modal */}
-      {previewItem && (
-        <div className="modal-backdrop" onClick={() => setPreviewItem(null)}>
-          <div
-            className="modal-content"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '900px', height: '88vh', display: 'flex', flexDirection: 'column' }}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '1.25rem 1.75rem',
-                borderBottom: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'var(--bg-cream)',
-              }}
-            >
-              <div>
-                <span className="editorial-kicker" style={{ marginBottom: '2px', fontSize: '0.72rem' }}>
-                  {previewItem.aesthetic} PREVIEW
-                </span>
-                <h3 style={{ fontSize: '1.35rem', margin: 0 }}>
-                  {previewItem.title}
-                </h3>
+      {/* Mockup viewer */}
+      {preview && (
+        <div className="dz-modal-backdrop" onClick={() => setPreview(null)}>
+          <div className="dz-modal" role="dialog" aria-modal="true" aria-labelledby="dz-modal-title" onClick={(e) => e.stopPropagation()}>
+            <header className="dz-modal-head">
+              <div className="dz-modal-title">
+                <span className="dz-card-aesthetic">{preview.aesthetic} · Live sample</span>
+                <h2 id="dz-modal-title">{preview.title}</h2>
               </div>
-
-              {/* Viewport switch: Desktop vs Mobile */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ background: '#FFFFFF', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', padding: '2px', display: 'flex' }}>
-                  <button
-                    onClick={() => setPreviewDevice('desktop')}
-                    style={{
-                      background: previewDevice === 'desktop' ? 'var(--burgundy-rich)' : 'transparent',
-                      color: previewDevice === 'desktop' ? '#FFFFFF' : 'var(--text-muted)',
-                      border: 'none',
-                      padding: '0.35rem 0.65rem',
-                      borderRadius: 'var(--radius-xs)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '0.8rem',
-                    }}
-                  >
-                    <Monitor size={14} /> Desktop
-                  </button>
-                  <button
-                    onClick={() => setPreviewDevice('mobile')}
-                    style={{
-                      background: previewDevice === 'mobile' ? 'var(--burgundy-rich)' : 'transparent',
-                      color: previewDevice === 'mobile' ? '#FFFFFF' : 'var(--text-muted)',
-                      border: 'none',
-                      padding: '0.35rem 0.65rem',
-                      borderRadius: 'var(--radius-xs)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      fontSize: '0.8rem',
-                    }}
-                  >
-                    <Smartphone size={14} /> Mobile
-                  </button>
-                </div>
-
-                <button
-                  onClick={() => setPreviewItem(null)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                >
-                  <X size={22} />
+              <div className="dz-seg" role="tablist" aria-label="Device">
+                <button type="button" role="tab" aria-selected={device === 'desktop'} className={device === 'desktop' ? 'is-on' : ''} onClick={() => setDevice('desktop')}>
+                  <Laptop size={15} /> Website
+                </button>
+                <button type="button" role="tab" aria-selected={device === 'mobile'} className={device === 'mobile' ? 'is-on' : ''} onClick={() => setDevice('mobile')}>
+                  <Smartphone size={15} /> Mobile
                 </button>
               </div>
+              <a className="sf-btn sf-btn-ghost sf-btn-sm dz-open-full" href={`/sample/${preview.slug}`} target="_blank" rel="noopener noreferrer">
+                <ExternalLink size={14} /> Open full screen
+              </a>
+              <button type="button" className="dz-close" onClick={() => setPreview(null)} aria-label="Close preview"><X size={18} /></button>
+            </header>
+
+            <div className={`dz-stage is-${device}`}>
+              {device === 'desktop' ? (
+                <div className="dz-laptop">
+                  <div className="dz-laptop-screen">
+                    <div className="dz-browser-bar">
+                      <span className="dz-dots"><i /><i /><i /></span>
+                      <span className="dz-url">techmastersdesigns.online/sample/{preview.slug}</span>
+                    </div>
+                    <ScaledFrame key={`d-${preview.slug}`} src={`/sample/${preview.slug}`} width={1366} height={854} title={`${preview.title} — website view`} className="dz-laptop-frame" fill onEscape={() => setPreview(null)} />
+                  </div>
+                  <div className="dz-laptop-base" />
+                </div>
+              ) : (
+                <div className="dz-phone">
+                  <span className="dz-phone-island" />
+                  <ScaledFrame key={`m-${preview.slug}`} src={`/sample/${preview.slug}`} width={390} height={844} title={`${preview.title} — mobile view`} className="dz-phone-frame" fill onEscape={() => setPreview(null)} />
+                </div>
+              )}
             </div>
 
-            {/* Modal Body: Device Simulation */}
-            <div
-              style={{
-                flex: 1,
-                overflowY: 'auto',
-                background: '#F1EDE6',
-                padding: '2rem 1rem',
-                display: 'flex',
-                justifyContent: 'center',
-              }}
-            >
-              <div
-                style={{
-                  width: previewDevice === 'mobile' ? '375px' : '100%',
-                  maxWidth: previewDevice === 'mobile' ? '375px' : '760px',
-                  background: 'var(--bg-ivory)',
-                  borderRadius: previewDevice === 'mobile' ? '28px' : '12px',
-                  border: previewDevice === 'mobile' ? '8px solid #1E293B' : '1px solid var(--border-medium)',
-                  boxShadow: '0 20px 45px rgba(0,0,0,0.18)',
-                  overflow: 'hidden',
-                  position: 'relative',
-                  transition: 'width 0.3s ease',
-                }}
-              >
-                {/* Simulated Invitation Hero */}
-                <div
-                  style={{
-                    padding: '3rem 2rem 2.5rem',
-                    textAlign: 'center',
-                    background: 'radial-gradient(circle at 50% 20%, #FFFDF9 0%, #F5EFEB 100%)',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    position: 'relative',
-                  }}
-                >
-                  <span style={{ fontSize: '1.75rem', display: 'block', marginBottom: '0.5rem' }}>✨</span>
-                  <p style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--gold-primary)', fontSize: '1.1rem', marginBottom: '0.25rem' }}>
-                    Cordially Invite You To Celebrate
-                  </p>
-                  <h2 style={{ fontSize: '2.1rem', color: 'var(--burgundy-rich)', marginBottom: '0.75rem' }}>
-                    {previewItem.mockCouple}
-                  </h2>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto' }}>
-                    Join us as two families unite in love, culture, and timeless celebration.
-                  </p>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: '1.5rem',
-                      marginTop: '1.5rem',
-                      fontSize: '0.88rem',
-                      color: 'var(--text-body)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Calendar size={15} style={{ color: 'var(--gold-primary)' }} />
-                      <span>{previewItem.mockDate}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <MapPin size={15} style={{ color: 'var(--gold-primary)' }} />
-                      <span>{previewItem.mockVenue}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Simulated Features Section */}
-                <div style={{ padding: '2rem' }}>
-                  <div
-                    style={{
-                      background: '#FFFFFF',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '1.25rem',
-                      border: '1px solid var(--border-subtle)',
-                      marginBottom: '1.25rem',
-                      textAlign: 'center',
-                    }}
-                  >
-                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--gold-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                      CEREMONY COUNTDOWN
-                    </span>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '0.75rem' }}>
-                      <div style={{ background: 'var(--bg-champagne)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-sm)' }}>
-                        <strong style={{ fontSize: '1.25rem', color: 'var(--burgundy-rich)' }}>48</strong>
-                        <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)' }}>DAYS</span>
-                      </div>
-                      <div style={{ background: 'var(--bg-champagne)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-sm)' }}>
-                        <strong style={{ fontSize: '1.25rem', color: 'var(--burgundy-rich)' }}>14</strong>
-                        <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)' }}>HOURS</span>
-                      </div>
-                      <div style={{ background: 'var(--bg-champagne)', padding: '0.6rem 0.8rem', borderRadius: 'var(--radius-sm)' }}>
-                        <strong style={{ fontSize: '1.25rem', color: 'var(--burgundy-rich)' }}>32</strong>
-                        <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-muted)' }}>MINS</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>
-                      Interactive RSVP &bull; Google Maps Venue Navigation &bull; Multilingual Wishes
-                    </p>
-                    <span className="badge badge-published">
-                      300 DPI Print Card &amp; Animated Video Included
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div
-              style={{
-                padding: '1.25rem 1.75rem',
-                borderTop: '1px solid var(--border-subtle)',
-                background: 'var(--bg-card)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Package Starting Price:</span>
-                <span className="card-price-value" style={{ display: 'flex', fontSize: '1.45rem', marginTop: '2px' }}>
-                  <span className="card-price-currency" style={{ fontSize: '1.15rem' }}>₹</span>
-                  <span className="card-price-amount">{Math.floor(parseFloat(String(previewItem.startingPrice)))}</span>
-                  <span className="card-price-decimals" style={{ fontSize: '1.02rem' }}>.00</span>
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                <button className="btn btn-outline btn-sm" onClick={() => setPreviewItem(null)}>
-                  Close
-                </button>
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => {
-                    setPreviewItem(null);
-                    onSelectDesign(previewItem.occasionId);
-                  }}
-                >
-                  <span>Customise This Design</span>
-                  <ArrowRight size={14} />
+            <footer className="dz-modal-foot">
+              <span className="dz-hint">Tap “Tap to open” inside the preview to explore the full invitation.</span>
+              <div className="dz-foot-actions">
+                {priceFor(preview) !== null && <span className="sf-price">from {rupees(priceFor(preview)!)}</span>}
+                <a className="sf-btn sf-btn-ghost sf-btn-sm" href={`${WHATSAPP}?text=${encodeURIComponent(`Hello TechMasters, I like the "${preview.title}" design.`)}`} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={14} style={{ color: '#16a34a' }} /> Ask on WhatsApp
+                </a>
+                <button type="button" className="sf-btn sf-btn-primary sf-btn-sm" onClick={() => chooseDesign(preview)}>
+                  Use This Design <ArrowRight size={14} />
                 </button>
               </div>
-            </div>
+            </footer>
           </div>
         </div>
       )}
