@@ -13,6 +13,7 @@ import { DeveloperAuthPage } from './pages/workspace/DeveloperAuthPage';
 import { AdminAuthPage } from './pages/admin/AdminAuthPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { PublicInvitationPage } from './pages/public/PublicInvitationPage';
+import { SampleInvitation } from './pages/samples/SampleInvitation';
 import { OffersPage } from './pages/customer/OffersPage';
 import { IdleLogoutWarning } from './components/IdleLogoutWarning';
 import { StaffHeader } from './components/StaffHeader';
@@ -81,6 +82,16 @@ export const App: React.FC = () => {
       if (slug) {
         setPublicSlug(slug);
         setCurrentView('public-invite');
+        return;
+      }
+    }
+
+    // 1b. Sample invitation designs (shown in the Designs gallery mockups): /sample/:slug
+    if (pathname.startsWith('/sample/')) {
+      const slug = pathname.replace('/sample/', '').replace(/\/$/, '');
+      if (slug) {
+        setPublicSlug(slug);
+        setCurrentView('sample');
         return;
       }
     }
@@ -302,6 +313,9 @@ export const App: React.FC = () => {
   // If in public invitation mode, render isolated viewer without main application navbar
   if (currentView === 'public-invite') {
     return <PublicInvitationPage slug={publicSlug} />;
+  }
+  if (currentView === 'sample') {
+    return <SampleInvitation slug={publicSlug} />;
   }
 
   // Developer & admin side (including their login pages) use the staff top bar, not the public navigation.
